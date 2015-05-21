@@ -131,12 +131,12 @@ string ccsJunkyard(int round, string opp, string text)
 	{
 		return "item molybdenum magnet";
 	}
-	if((!contains_text(combatState, "marshmallow")) && have_skill($skill[Curse of the Marshmallow]) && (my_mp() > 1))
+	if((!contains_text(combatState, "marshmallow")) && have_skill($skill[Curse of the Marshmallow]) && (my_mp() > 10))
 	{
 		set_property("cc_combatHandler", combatState + "(marshmallow)");
 		return "skill Curse of the Marshmallow";
 	}
-	if((!contains_text(combatState, "marshmallow")) && have_skill($skill[Curse of Heredity]) && (my_mp() > 1))
+	if((!contains_text(combatState, "heredity")) && have_skill($skill[Curse of Heredity]) && (my_mp() > 15))
 	{
 		set_property("cc_combatHandler", combatState + "(heredity)");
 		return "skill Curse of the Heredity";
@@ -187,7 +187,22 @@ string ccsJunkyard(int round, string opp, string text)
 			return "item rock band flyers";
 		}
 	}
-
+	if(get_property("cc_edCombatStage").to_int() == 1 && (my_location() != $location[The Battlefield (Frat Uniform)]) && (!contains_text(combatState, "flyers2")))
+	{
+		if((item_amount($item[rock band flyers]) > 0) && (get_property("flyeredML").to_int() < 10000))
+		{
+			set_property("cc_combatHandler", combatState + "(flyers2)");
+			return "item rock band flyers";
+		}
+	}
+	if(get_property("cc_edCombatStage").to_int() == 2 && (my_location() != $location[The Battlefield (Frat Uniform)]) && (expected_damage() * 1.15) < my_hp() && (!contains_text(combatState, "flyers3")))
+	{
+		if((item_amount($item[rock band flyers]) > 0) && (get_property("flyeredML").to_int() < 10000))
+		{
+			set_property("cc_combatHandler", combatState + "(flyers3)");
+			return "item rock band flyers";
+		}
+	}
 
 	if(!get_property("cc_gremlinMoly").to_boolean())
 	{
@@ -215,7 +230,7 @@ string ccsJunkyard(int round, string opp, string text)
 	{
 		return "item dictionary";
 	}
-	return "attack with weapon";
+	return "mild curse";
 }
 
 void handleSniffs(monster enemy, skill sniffer)
@@ -739,7 +754,7 @@ string cc_edCombatHandler(int round, string opp, string text)
 		{
 			doLash = true;
 		}
-		if((my_location() == $location[Hippy Camp]) || (my_location() == $location[Wartime Hippy Camp]) && contains_text(enemy, "hippy"))
+		if((my_location() == $location[Hippy Camp]) || (my_location() == $location[Wartime Hippy Camp]) && contains_text(enemy, "hippy") && get_property("cc_legsbeforebread") != "true")
 		{
 			if(!possessEquipment($item[Filthy Knitted Dread Sack]) || !possessEquipment($item[Filthy Corduroys]))
 			{

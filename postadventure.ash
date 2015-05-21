@@ -23,6 +23,11 @@ void handlePostAdventure()
 		set_property("cc_gaudypiratecount", "" + (get_property("cc_gaudypiratecount").to_int() + 1));
 		print("Fought " + get_property("cc_gaudypiratecount") + " gaudy pirates.", "blue");
 	}
+	if((last_monster() == $monster[Drab Bard]) || (last_monster() == $monster[Racecar Bob]) || (last_monster() == $monster[Bob Racecar]))
+	{
+		set_property("cc_palindomeDudesDefeated", "" + (get_property("cc_palindomeDudesDefeated").to_int() + 1));
+		print("Fought " + get_property("cc_palindomeDudesDefeated") + " dudes.", "blue");
+	}
 
 	print("Post Adventure done, boop.", "purple");
 }

@@ -2,11 +2,44 @@ script "preadventure.ash";
 import <zlib.ash>
 import <cc_util.ash>
 
+void highLogging()
+{
+	wait(1);
+	print("Turn(" + my_turncount() + "): Starting with " + my_adventures() + " left and at Level: " + my_level(), "cyan");
+	
+	if((item_amount($item[rock band flyers]) == 1) && (get_property("flyeredML").to_int() < 10000))
+	{
+		print("Still flyering: " + get_property("flyeredML"), "blue");
+	}
+	
+	print("Encounter: " + combat_rate_modifier() + "   Exp Bonus: " + experience_bonus(), "blue");
+	print("Meat: " + meat_drop_modifier() + "   Item: " + item_drop_modifier(), "blue");
+	print("ML: " + monster_level_adjustment() + " control: " + current_mcd(), "blue");
+	
+	if(have_effect($effect[Everything looks yellow]) > 0)
+	{
+		print("Everything Looks Yellow: " + have_effect($effect[everything looks yellow]), "blue");
+	}
+	
+	print("HP: " + my_hp() + "/" + my_maxhp() + "\tMP: " + my_mp() + "/" + my_maxmp(), "violet");
+	print("Ka Coins: " + item_amount($item[Ka Coin]), "green");
+
+	if(have_skill($skill[Lash of the Cobra]))
+	{
+		print("Lashes used: " + get_property("_edLashCount"));
+	}
+}
+
 void handlePreAdventure()
 {
 	if(get_property("cc_disableAdventureHandling") == "yes")
 	{
 		return;
+	}
+	
+	if(get_property("cc_highlogging") == "true")
+	{
+		highLogging();
 	}
 
 //Handle poisons commonly found (that last more than one turn) during an Ed run
@@ -86,11 +119,11 @@ void handlePreAdventure()
 		{
 			buffMaintain($effect[Hide of Sobek], 10, 1, 1);
 		}
-		if(my_location() != $location[The Secret Government Laboratory])
+		if(my_location() != $location[The Secret Government Laboratory] && my_level() > 5)
 		{
 			buffMaintain($effect[Bounty of Renenutet], 20, 1, 5);
 		}
-		if((my_servant() == $servant[Priest]) && ($servant[Priest].experience < 196))
+		if((my_servant() == $servant[Priest]) && ($servant[Priest].experience < 196) && ($servant[Priest].experience > 80))
 		{
 			buffMaintain($effect[Purr of the Feline], 10, 1, 5);
 		}
@@ -102,11 +135,14 @@ void handlePreAdventure()
 		{
 			buffMaintain($effect[Purr of the Feline], 10, 1, 5);
 		}
-		if((my_servant() == $servant[Belly-Dancer]) && ($servant[Belly-Dancer].experience < 196))
+		if((my_servant() == $servant[Belly-Dancer]) && ($servant[Belly-Dancer].experience < 196) && ($servant[Priest].experience > 80))
 		{
 			buffMaintain($effect[Purr of the Feline], 10, 1, 5);
 		}
-		if((my_level() < 13) && (my_level() > 3))
+		if(my_level() > 4 && item_amount($item[The Crown of Ed the Undying]) == 0)
+		{
+			buffMaintain($effect[Blessing of Serqet], 15, 1, 1);
+		} else if(item_amount($item[The Crown of Ed the Undying]) > 0)
 		{
 			buffMaintain($effect[Blessing of Serqet], 15, 1, 1);
 		}

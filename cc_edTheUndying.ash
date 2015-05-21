@@ -710,20 +710,11 @@ boolean ed_needShop()
 		return false;
 	}
 	int canEat = (spleen_limit() - my_spleen_use()) / 5;
-	if(canEat == 0)
+	if(canEat == 0 && item_amount($item[Ka Coin]) < 19)
 	{
-		if(item_amount($item[Ka Coin]) < 20)
-		{
-			return false;
-		}
-	} else if(canEat > 0)
-	{
-		if(item_amount($item[Ka Coin]) < 15 && have_skill($skill[Upgraded Legs]))
-		{
-			return false;
-		}
+		return false;
 	}
-	
+
 	canEat = max(0, canEat - item_amount($item[Mummified Beef Haunch]));
 	skill limiter = $skill[Okay Seriously, This is the Last Spleen];
 	if(my_daycount() == 2)
@@ -733,7 +724,7 @@ boolean ed_needShop()
 	{
 		skill limiter = $skill[Healing Scarabs];
 	}
-
+	
 	if((canEat == 0) && have_skill(limiter) && (item_amount($item[Linen Bandages]) >= 3) && (get_property("cc_renenutetBought").to_int() >= 7) && (item_amount($item[Holy Spring Water]) >= 1) && (item_amount($item[Talisman of Horus]) >= 2))
 	{
 		if((item_amount($item[Spirit Beer]) == 0))
@@ -756,6 +747,7 @@ boolean ed_needShop()
 
 boolean ed_shopping()
 {
+	print("test 1", "red");
 	if(!ed_needShop())
 	{
 		return false;

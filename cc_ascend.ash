@@ -150,6 +150,7 @@ void initializeSettings()
 	set_property("cc_oilpeak", "");
 	set_property("cc_orchard", "");
 	set_property("cc_palindome", "");
+	set_property("cc_palindomeDudesDefeated", "");
 	set_property("cc_prewar", "");
 	set_property("cc_prehippy", "");
 	set_property("cc_pirateoutfit", "");
@@ -498,7 +499,7 @@ void sellStuff()
 	autosell(item_amount($item[carob chunks]), $item[carob chunks]);
 	autosell(item_amount($item[herbs]), $item[herbs]);
 	autosell(item_amount($item[imp ale]), $item[imp ale]);
-	autosell(item_amount($item[rat gut]), $item[rat gut]);
+	autosell(item_amount($item[ratgut]), $item[ratgut]);
 	autosell(item_amount($item[hemp string]) - 1, $item[hemp string]);
 	autosell(item_amount($item[loose teeth]), $item[loose teeth]);
 	autosell(item_amount($item[skeleton bone]), $item[skeleton bone]);
@@ -796,6 +797,11 @@ boolean questOverride()
 	{
 		print("Found completed Black Market (11)");
 		set_property("cc_blackmap", "finished");
+	}
+	if((get_property("questL11Palindome") == "finished") && (get_property("cc_palindome") != "finished"))
+	{
+		print("Found completed Palindome (11)");
+		set_property("cc_palindome", "finished");
 	}
 	if((get_property("questL11Business") == "finished") && (get_property("cc_hiddenoffice") != "finished"))
 	{
@@ -2040,6 +2046,10 @@ boolean L8_trapperGround()
 	{
 		return false;
 	}
+	if(item_amount($item[Disassembled Clover]) == 0)
+	{
+		return false;
+	}
 
 	#print("Starting Trapper Collection", "blue");
 	item oreGoal = to_item(get_property("trapperOre"));
@@ -2057,23 +2067,20 @@ boolean L8_trapperGround()
 		ccAdv(1, $location[The Goatlet]);
 		return true;
 	}
-	if(item_amount(oreGoal) >= 3)
+	if(item_amount(oreGoal) < 3)
 	{
-		if(item_amount($item[goat cheese]) >= 3)
+		use(1, $item[Disassembled Clover]);
+		if(ccAdvBypass(270, $location[Itznotyerzitz Mine]))
 		{
-			print("Giving Trapper goat cheese and " + oreGoal, "blue");
-			set_property("cc_trapper", "yeti");
-			visit_url("place.php?whichplace=mclargehuge&action=trappercabin");
+			print("Wandering monster interrupt at Itznotyerzitz Mine", "red");
 			return true;
 		}
-		print("Yay for goat cheese!", "blue");
-		ccAdv(1, $location[The Goatlet]);
+
+		use(item_amount($item[ten-leaf clover]), $item[ten-leaf clover]);
 		return true;
 	}
-	else
-	{
-		return false;
-	}
+	
+	return true;
 }
 
 boolean L8_trapperStart()
@@ -2452,7 +2459,7 @@ boolean LX_handleSpookyravenFirstFloor()
 		buffMaintain($effect[Hide of Sobek], 10, 1, 1);
 		ccAdv(1, $location[The Haunted Kitchen]);
 	}
-	return false;
+	return true;
 }
 
 boolean L5_getEncryptionKey()
@@ -3595,10 +3602,8 @@ boolean LX_nastyBooty()
 	{
 		return false;
 	}
-	if(my_class() == $class[Ed])
-	{
-		handleServant($servant[Priest]);
-	}
+
+	handleServant($servant[Priest]);
 	if(possessEquipment($item[The Crown of Ed the Undying]))
 	{
 		adjustEdHat("weasel");
@@ -3673,7 +3678,7 @@ boolean LX_pirateInsults()
 	{
 		return false;
 	}
-	if(my_maxhp() < 40)
+	if(my_maxhp() < 60)
 	{
 		if((item_amount($item[Cap\'m Caronch\'s Map]) != 0) && (item_amount($item[Cap\'m Caronch\'s Nasty Booty]) == 0))
 		{
@@ -4685,6 +4690,47 @@ boolean doTasks()
 		abort("Should not have gotten here. Aborting");
 	}
 
+	if((get_property("cc_mcmuffin") == "start") && (get_property("cc_swordfish") == "finished") && (get_property("cc_palindome") == ""))
+	{
+		if(get_property("questL11Palindome") == "finished")
+		{
+			set_property("cc_palindome", "finished");
+			return true;
+		}
+		if(equipped_item($slot[acc3]) != $item[Talisman O\' Namsilat])
+		{
+			equip($slot[acc3], $item[Talisman O\' Namsilat]);
+		}
+
+		int total = 0;
+		total = total + item_amount($item[Photograph Of A Red Nugget]);
+		total = total + item_amount($item[Photograph Of An Ostrich Egg]);
+		total = total + item_amount($item[Photograph Of God]);
+		total = total + item_amount($item[Photograph Of A Dog]);
+		boolean lovemeDone = (item_amount($item[&quot;I Love Me\, Vol. I&quot;]) > 0);
+		print("In the palindome", "blue");
+		if(loveMeDone)
+		{
+			if(item_amount($item[&quot;I Love Me\, Vol. I&quot;]) > 0)
+			{
+				use(1, $item[&quot;I Love Me\, Vol. I&quot;]);
+			}
+			visit_url("place.php?whichplace=palindome&action=pal_drlabel");
+			visit_url("choice.php?pwd&whichchoice=872&option=1&photo1=2259&photo2=7264&photo3=7263&photo4=7265");
+			set_property("cc_palindome", "finished");
+			return true;
+		}
+		else
+		{
+			ccAdv(1, $location[Inside the Palindome]);
+			if($location[Inside the Palindome].turns_spent > 30)
+			{
+				abort("It appears that we've spent too many turns in the Palindome. If you run me again, I'll try one more time but many I failed finishing the Palindome");
+			}
+		}
+		return true;
+	}
+	
 	if((my_level() >= 12) && (get_property("cc_gremlins") == ""))
 	{
 		print("Gremlin prep", "blue");
