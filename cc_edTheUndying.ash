@@ -96,6 +96,32 @@ void ed_initializeDay(int day)
 	}
 }
 
+void createBurrito()
+{
+	if((my_daycount() == 2) && (eudora_current() == $item[Xi Receiver Unit]) && possessEquipment($item[Xiblaxian holo-wrist-puter]) && ((my_fullness() + 4) <= fullness_limit()) && (item_amount($item[Xiblaxian Circuitry]) >= 1) && (item_amount($item[Xiblaxian Polymer]) >= 1) && (item_amount($item[Xiblaxian Alloy]) >= 3))
+	{
+		if(item_amount($item[Xiblaxian 5D Printer]) == 0)
+		{
+			if(item_amount($item[transmission from planet Xi]) > 0)
+			{
+				use(1, $item[transmission from planet xi]);
+				use(1, $item[Xiblaxian Cache Locator Simcode]);
+			}
+		}
+		if(item_amount($item[Xiblaxian 5D Printer]) > 0)
+		{
+			int[item] canMake = eudora_xiblaxian();
+			if(canMake contains $item[Xiblaxian Ultraburrito])
+			{
+				if(canMake[$item[Xiblaxian Ultraburrito]] > 0)
+				{
+					visit_url("shop.php?pwd=&whichshop=5dprinter&action=buyitem&quantity=1&whichrow=339", true);
+				}
+			}
+		}
+	}
+}
+
 boolean adjustEdHat(string goal)
 {
 	if(!possessEquipment($item[The Crown of Ed the Undying]))
@@ -473,11 +499,7 @@ boolean ed_buySkills()
 			{
 				sid = 2;
 			}
-			if(!have_servant($servant[Scribe]))
-			{
-				sid = 5;
-			}
-			if(!have_servant($servant[Maid]))
+			if(!have_servant($servant[Maid]) )
 			{
 				sid = 3;
 				if((my_level() >= 9) && (imbuePoints > 5) && !have_servant($servant[Scribe]))
@@ -487,6 +509,18 @@ boolean ed_buySkills()
 				}
 			}
 			if(!have_servant($servant[Cat]))
+			{
+				sid = 1;
+			}
+			if(!have_servant($servant[Scribe]))
+			{
+				sid = 5;
+			}
+			if(!have_servant($servant[Belly-Dancer]) && !have_skill($skill[lash of the cobra]))
+			{
+				sid = 2;
+			}
+			if(!have_servant($servant[Cat]) && !have_skill($skill[bounty of renenutet]))
 			{
 				sid = 1;
 			}
@@ -509,65 +543,37 @@ boolean ed_buySkills()
 		while(imbuePoints > 0)
 		{
 			servant tryImbue = $servant[none];
-
-			if(get_property("cc_dickstab").to_boolean())
+			if(have_servant($servant[Priest]) && ($servant[Priest].experience < 81))
 			{
-				if(have_servant($servant[Priest]) && ($servant[Priest].experience < 81))
-				{
-					tryImbue = $servant[Priest];
-				}
-				else if(have_servant($servant[Scribe]) && ($servant[Scribe].experience < 441))
-				{
-					tryImbue = $servant[Scribe];
-				}
-				else if(have_servant($servant[Maid]) && ($servant[Maid].experience < 441) && (my_level() >= 12))
-				{
-					tryImbue = $servant[Maid];
-				}
+				tryImbue = $servant[Priest];
+			}
+			else if(have_servant($servant[Scribe]) && ($servant[Scribe].experience < 441) && (imbuePoints > 4))
+			{
+				tryImbue = $servant[Scribe];
+			}
+			else if(have_servant($servant[Cat]) && ($servant[Cat].experience < 199))
+			{
+				tryImbue = $servant[Cat];
+			}
+			else if(have_servant($servant[Belly-Dancer]) && ($servant[Belly-Dancer].experience < 81))
+			{
+				tryImbue = $servant[Belly-Dancer];
+			}
+			else if(have_servant($servant[Maid]) && ($servant[Maid].experience < 221) && have_skill($skill[Curse of Fortune]))
+			{
+				tryImbue = $servant[Maid];
+			}
+			else if(have_servant($servant[Scribe]) && ($servant[Scribe].experience < 221))
+			{
+				tryImbue = $servant[Scribe];
 			}
 			else
 			{
-
-				if(have_servant($servant[Priest]) && ($servant[Priest].experience < 81))
+				if((imbuePoints > 4) && (my_level() >= 9))
 				{
-					tryImbue = $servant[Priest];
-				}
-				else if(have_servant($servant[Cat]) && ($servant[Cat].experience < 199))
-				{
-					tryImbue = $servant[Cat];
-				}
-				else if(have_servant($servant[Maid]) && ($servant[Maid].experience < 199))
-				{
-					tryImbue = $servant[Maid];
-				}
-				else if(have_servant($servant[Belly-Dancer]) && ($servant[Belly-Dancer].experience < 341))
-				{
-					tryImbue = $servant[Belly-Dancer];
-				}
-				else if(have_servant($servant[Scribe]) && ($servant[Scribe].experience < 99))
-				{
-					tryImbue = $servant[Scribe];
-				}
-				else if(have_servant($servant[Maid]) && ($servant[Maid].experience < 441) && (my_level() >= 12))
-				{
-					tryImbue = $servant[Maid];
-				}
-				else if(have_servant($servant[Cat]) && ($servant[Cat].experience < 441) && (my_level() >= 12))
-				{
-					tryImbue = $servant[Cat];
-				}
-				else if(have_servant($servant[Scribe]) && ($servant[Scribe].experience < 441) && (my_level() >= 12))
-				{
-					tryImbue = $servant[Scribe];
-				}
-				else
-				{
-					if((imbuePoints > 4) && (my_level() >= 9))
+					if(have_servant($servant[Scribe]) && ($servant[Scribe].experience < 341))
 					{
-						if(have_servant($servant[Scribe]) && ($servant[Scribe].experience < 341))
-						{
-							tryImbue = $servant[Scribe];
-						}
+						tryImbue = $servant[Scribe];
 					}
 				}
 			}
@@ -592,36 +598,49 @@ boolean ed_buySkills()
 boolean ed_eatStuff()
 {
 	int canEat = (spleen_limit() - my_spleen_use()) / 5;
-	canEat = min(canEat, item_amount($item[Mummified Beef Haunch]));
+	int canDrink = inebriety_limit() - my_inebriety();
+	int canOtherEat = fullness_limit() - my_fullness();
+	if(canEat == 0 && canDrink == 0 && canOtherEat == 0)
+	{
+		return false;
+	}
 	
+//Spleens	
+	canEat = min(canEat, item_amount($item[Mummified Beef Haunch]));
 	if(canEat > 0)
 	{
 		chew(canEat, $item[Mummified Beef Haunch]);
 	}
-	
-	if((my_daycount() == 2) && (eudora_current() == $item[Xi Receiver Unit]) && possessEquipment($item[Xiblaxian holo-wrist-puter]) && ((my_fullness() + 4) <= fullness_limit()) && (item_amount($item[Xiblaxian Circuitry]) >= 1) && (item_amount($item[Xiblaxian Polymer]) >= 1) && (item_amount($item[Xiblaxian Alloy]) >= 3))
+
+	string cookie = get_counters("Fortune Cookie", 0, 200);
+	if(cookie != "Fortune Cookie")
 	{
-		if(item_amount($item[Xiblaxian 5D Printer]) == 0)
+		if((my_meat() >= 500) && have_skill($skill[Replacement Liver]) && ((my_inebriety() == 0) || (my_inebriety() == 3)))
 		{
-			if(item_amount($item[transmission from planet Xi]) > 0)
-			{
-				use(1, $item[transmission from planet xi]);
-				use(1, $item[Xiblaxian Cache Locator Simcode]);
-			}
+			cli_execute("drink 1 lucky lindy");
 		}
-		if(item_amount($item[Xiblaxian 5D Printer]) > 0)
+		else if((my_meat() >= 40) && have_skill($skill[Replacement Stomach]) && ((my_fullness() == 0) || (fullness_limit() - my_fullness() == 1)))
 		{
-			int[item] canMake = eudora_xiblaxian();
-			if(canMake contains $item[Xiblaxian Ultraburrito])
-			{
-				if(canMake[$item[Xiblaxian Ultraburrito]] > 0)
-				{
-					visit_url("shop.php?pwd=&whichshop=5dprinter&action=buyitem&quantity=1&whichrow=339", true);
-				}
-			}
+			buy(1, $item[Fortune Cookie]);
+			eat(1, $item[Fortune Cookie]);
 		}
 	}
-
+	return false;
+//Eats
+	if(get_property("cc_dickstab").to_boolean() && !get_property("_fancyHotDogEaten").to_boolean() && ((my_fullness() + 2) <= fullness_limit()) && (item_amount($item[Clan VIP Lounge Key]) > 0) && !have_skill($skill[Dog Tired]) && get_property("chateauAvailable") == "true")
+	{
+//We're going to make the assumption here that you keep your hot dog stand stocked properly in advance
+		cli_execute("eat 1 sleeping dog");
+		if(!get_property("_fancyHotDogEaten").to_boolean())
+		{
+			abort("Failed eating sleeping dog (eat it manually I suppose?)....");
+		}
+	}
+	if((item_amount($item[Xiblaxian Ultraburrito]) > 0) && (fullness_limit() - my_fullness() > 3) && (item_amount($item[Astral Hot Dog]) == 0))
+	{
+		createBurrito();
+		eat(1, $item[Xiblaxian Ultraburrito]);
+	}
 	if((item_amount($item[Limp Broccoli]) > 0) && (my_level() >= 5) && ((my_fullness() == 0) || (my_fullness() == 3)) && (fullness_limit() >= 2))
 	{
 		eat(1, $item[Limp Broccoli]);
@@ -629,10 +648,6 @@ boolean ed_eatStuff()
 	if((item_amount($item[Limp Broccoli]) > 0) && (my_level() >= 5) && (my_fullness() == 2) && (fullness_limit() >= 5) && (item_amount($item[Astral Hot Dog]) == 0))
 	{
 		eat(1, $item[Limp Broccoli]);
-	}
-	if((item_amount($item[Xiblaxian Ultraburrito]) > 0) && (my_fullness() == 0) && (fullness_limit() >= 4) && (item_amount($item[Astral Hot Dog]) == 0))
-	{
-		eat(1, $item[Xiblaxian Ultraburrito]);
 	}
 	if((my_level() >= 11) && ((my_fullness() + 3) <= fullness_limit()) && (item_amount($item[Astral Hot Dog]) > 0))
 	{
@@ -642,28 +657,25 @@ boolean ed_eatStuff()
 	{
 		eat(1, $item[Astral Hot Dog]);
 	}
+	if(((my_fullness() + 3) <= fullness_limit()) && (item_amount($item[Tasty Tart]) > 0) && (item_amount($item[Astral Hot Dog]) == 0) )
+	{
+		eat(3, $item[Tasty Tart]);
+	}
+	if(((my_fullness() + 3) <= fullness_limit()) && (item_amount($item[Tasty Tart]) > 0) && (my_adventures() < 4))
+	{
+		eat(3, $item[Tasty Tart]);
+	}
 	if(!get_property("_fancyHotDogEaten").to_boolean() && (my_daycount() == 1) && (my_level() >= 9) && ((my_fullness() + 3) <= fullness_limit()) && (item_amount($item[Astral Hot Dog]) == 0) && (my_adventures() < 10) && (item_amount($item[Clan VIP Lounge Key]) > 0))
 	{
-		visit_url("clan_viplounge.php?action=hotdogstand");
-		buy_using_storage(3, $item[GameInformPowerDailyPro Magazine], 2500);
-		visit_url("clan_viplounge.php?preaction=hotdogsupply&hagnks=1&whichdog=-103&quantity=3");
+//We're going to make the assumption here that you keep your hot dog stand stocked properly in advance
 		cli_execute("eat 1 video games hot dog");
 		if(!get_property("_fancyHotDogEaten").to_boolean())
 		{
-			abort("Failed eating video games hot dog (already contributed, eat it manually I suppose)....");
+			abort("Failed eating video games hot dog (eat it manually I suppose?)....");
 		}
 	}
-	if(get_property("cc_dickstab").to_boolean() && !get_property("_fancyHotDogEaten").to_boolean() && (my_daycount() == 1) && ((my_fullness() + 2) <= fullness_limit()) && (item_amount($item[Astral Hot Dog]) == 0) && (item_amount($item[Clan VIP Lounge Key]) > 0))
-	{
-		visit_url("clan_viplounge.php?action=hotdogstand");
-		buy_using_storage(10, $item[Gauze Hammock], 6000);
-		visit_url("clan_viplounge.php?preaction=hotdogsupply&hagnks=1&whichdog=-101&quantity=10");
-		cli_execute("eat 1 sleeping dog");
-		if(!get_property("_fancyHotDogEaten").to_boolean())
-		{
-			abort("Failed eating sleeping dog (already contributed, eat it manually I suppose)....");
-		}
-	}
+	
+//Drinks
 	if((my_daycount() >= 3) && (my_inebriety() == 0) && (inebriety_limit() == 4) && (item_amount($item[Xiblaxian Space-Whiskey]) > 0) && (my_adventures() < 10))
 	{
 		drink(1, $item[Xiblaxian Space-Whiskey]);
@@ -686,21 +698,82 @@ boolean ed_eatStuff()
 		drink(1, $item[Highest Bitter]);
 	}
 
-	string cookie = get_counters("Fortune Cookie", 0, 200);
-	if(cookie != "Fortune Cookie")
-	{
-		if((my_meat() >= 500) && have_skill($skill[Replacement Liver]) && ((my_inebriety() == 0) || (my_inebriety() == 3)))
-		{
-			cli_execute("drink 1 lucky lindy");
-		}
-		else if((my_meat() >= 40) && have_skill($skill[Replacement Stomach]) && ((my_fullness() == 0) || (my_fullness() == 4)))
-		{
-			buy(1, $item[Fortune Cookie]);
-			eat(1, $item[Fortune Cookie]);
-		}
-	}
+
 	
 	return true;
+	
+	
+//EXPERIMENTAL!!!!!! Thanks DeadNed
+//	 
+//	boolean [item] sauceDish = $items[Hell ramen, fettucini Inconnu, gnocchetti di Nietzsche, spaghetti with Skullheads, spaghetti con calaveras, cold hi mein, hot hi mein, sleazy hi mein, spooky hi mein, stinky hi mein];
+//	 
+//	record food2beat {
+//	   item name;
+//	   float goodness;
+//	   int size;
+//	};
+//	 
+//	food2beat [int] jerky;
+//	 
+//	int counter=0;
+//	 
+//	foreach it in get_inventory() {
+//	if (it.fullness >0){
+//			string a=it.adventures;
+//			string [int] b=split_string(a,"-");
+//			float c;
+//			int i=0;
+//			foreach thing in b{
+//					c += b[thing].to_int();
+//					i+=1;
+//					}
+//			float e=c/i;
+//	 
+//			if (have_skill($skill[saucemaven])&& (sauceDish contains it)){
+//					if (to_string(my_class().primestat)=="Mysticality")
+//							e+=10;
+//					else
+//							e+=5;
+//					}
+//			int h=it.fullness;
+//			float j=e/h;
+//			if (j==0)
+//					j=1;
+//		   
+//			jerky[counter].name=it;
+//			jerky[counter].goodness=j;
+//			jerky[counter].size=h;
+//			counter +=1;
+//	 
+//			}
+//	}
+//	sort jerky by -value.goodness;
+//	for key from 0 to 10
+//			print(jerky[key].name+": "+to_string(jerky[key].goodness,"%.2f")+" adv/full ("+jerky[key].size+" fullness) "+jerky[key].name.adventures);
+//	print(" ");
+//	 
+//	 
+//	 
+//	for i from 0 to 10 {
+//			print(" ");
+//			print("sim["+i+"]");
+//			int turnsGen=0;
+//			int stomachSpace= fullness_limit()-my_fullness();
+//			while (stomachSpace>0){
+//					int eat1=available_amount(jerky[i].name);
+//					int eat2=stomachSpace/jerky[i].size; //can't eat half a jerky.
+//					if (eat2>eat1)
+//							eat2=eat1;
+//					if (eat2 != 0){
+//							print("you'd eat: "+eat2+" "+jerky[i].name+" if you could!");
+//							stomachSpace -= (eat2 * jerky[i].size);
+//							turnsGen += (eat2 * jerky[i].goodness*jerky[i].size);
+//							print("remaining space:"+stomachSpace);
+//							}
+//					i+=1;
+//			}
+//			print("turns generated: "+turnsGen);
+//	}
 }
 
 boolean ed_needShop()
@@ -1014,11 +1087,7 @@ boolean ed_handleAdventureServant(location loc)
 
 	if(reassign)
 	{
-		if(!have_skill($skill[Gift of the Maid]) && have_servant($servant[Maid]) && (get_property("cc_nuns") != "finished") && (get_property("cc_nuns") != "done"))
-		{
-			handleServant($servant[Maid]);
-		}
-		else if((!have_skill($skill[Gift of the Scribe]) || (my_level() < 13)) && have_servant($servant[Scribe]))
+		if((!have_skill($skill[Gift of the Scribe]) || (my_level() < 13)) && have_servant($servant[Scribe]))
 		{
 			handleServant($servant[Scribe]);
 		}
@@ -1026,32 +1095,17 @@ boolean ed_handleAdventureServant(location loc)
 		{
 			handleServant($servant[Cat]);
 		}
-		else if((my_mp() < 20) && have_servant($servant[Belly-Dancer]))
+		else if(!have_skill($skill[Gift of the Maid]) && have_servant($servant[Maid]) && (get_property("cc_nuns") != "finished") && (get_property("cc_nuns") != "done") && (have_skill($skill[Curse of Fortune])))
+		{
+			handleServant($servant[Maid]);
+		}
+		else if((have_servant($servant[Belly-Dancer])))
 		{
 			handleServant($servant[Belly-Dancer]);
 		}
 		else
 		{
-			if(my_level() >= 13)
-			{
-				if(!handleServant($servant[Cat]))
-				{
-					if(!handleServant($servant[Maid]))
-					{
-						handleServant($servant[Scribe]);
-					}
-				}
-			}
-			else
-			{
-				if(!handleServant($servant[Scribe]))
-				{
-					if(!handleServant($servant[Cat]))
-					{
-						handleServant($servant[Maid]);
-					}
-				}
-			}
+			handleServant($servant[Cat]);
 		}
 	}
 	if((loc == $location[The Secret Government Laboratory]) && (my_daycount() == 1))
@@ -1111,18 +1165,21 @@ boolean ed_handleAdventureServant(location loc)
 		(loc == $location[The Haunted Kitchen]) ||
 		(loc == $location[The Haunted Bathroom]))
 	{
-		if(!have_skill($skill[Gift of the Maid]) && !handleServant($servant[Maid]))
+		if(!handleServant($servant[Scribe]))
 		{
-			if(!handleServant($servant[Scribe]))
+			if(!handleServant($servant[Cat]))
 			{
-				handleServant($servant[Cat]);
+				handleServant($servant[Maid]);
 			}
 		}
 	}
 
 	if(loc == $location[The Themthar Hills])
 	{
-		handleServant($servant[Maid]);
+		if(!handleServant($servant[Maid]))
+		{
+			handleServant($servant[Scribe]);
+		}
 	}
 
 	if((loc == $location[Next To That Barrel With Something Burning In It]) ||

@@ -258,10 +258,12 @@ void warAdventure()
 {
 	if(!get_property("cc_hippyInstead").to_boolean())
 	{
+		handleServant($servant[Scribe]);
 		ccAdv(1, $location[The Battlefield (Frat Uniform)]);
 	}
 	else
 	{
+		handleServant($servant[Scribe]);
 		ccAdv(1, $location[The Battlefield (Hippy Uniform)]);
 	}
 }
@@ -517,77 +519,22 @@ void sellStuff()
 	autosell(item_amount($item[windchimes]), $item[windchimes]);
 	autosell(item_amount($item[phat turquoise bead]), $item[phat turquoise bead]);
 	autosell(item_amount($item[filthy pestle]), $item[filthy pestle]);
-}
-
-void fortuneCookieEvent()
-{
-	if((get_property("cc_orchard") == "finished"))
-	{
-		if(get_counters("Fortune Cookie", 0, 200) != "")
-		{
-			cli_execute("counters clear");
-			print("We don't care about the semirares anymore, we are past the orchard. Cancelling.");
-		}
-		return;
-	}
-
-	if(get_counters("Fortune Cookie", 0, 0) == "Fortune Cookie")
-	{
-		print("Semi rare time!", "blue");
-		cli_execute("counters");
-		cli_execute("counters clear");
-		print("Removed all the counters, can we just remove the cookie?");
-		
-		if((get_property("cc_semisub") == ""))
-		{
-			ccAdv(1, $location[The Haunted Pantry]);
-			if(item_amount($item[tasty tart]) > 0)
-			{
-				set_property("cc_semisub", "pantry");
-			}
-		}
-		else if((get_property("cc_semirare") == "") && (get_property("cc_spookysapling") == "finished"))
-		{
-			ccAdv(1, $location[The Hidden Temple]);
-			if(item_amount($item[stone wool]) > 0)
-			{
-				set_property("cc_semirare", "1");
-				set_property("cc_semisub", "wool");
-			}
-		}
-		else if((get_property("cc_semirare") == "1") && (get_property("cc_castleground") == "finished") && (get_property("cc_nuns") != "done"))
-		{
-			ccAdv(1, $location[The Castle in the Clouds in the Sky (Top Floor)]);
-			if(item_amount($item[Mick\'s IcyVapoHotness Inhaler]) > 0)
-			{
-				set_property("cc_castleground", "done");
-				set_property("cc_semisub", "inhaler");
-			}
-		}
-		else if(get_property("cc_semisub") != "limerick")
-		{
-			if(item_amount($item[cyclops eyedrops]) > 0)
-			{
-				set_property("cc_semisub", "limerick");
-			}
-			
-			ccAdv(1, $location[The Limerick Dungeon]);
-			if(item_amount($item[cyclops eyedrops]) > 0)
-			{
-				set_property("cc_semisub", "limerick");
-			}
-		}
-		else if(get_property("cc_semisub") != "pantry")
-		{
-			ccAdv(1, $location[The Haunted Pantry]);
-			set_property("cc_semisub", "pantry");
-		}
-		else
-		{
-			ccAdv(1, $location[The Sleazy Back Alley]);
-			set_property("cc_semisub", "alley");
-		}
-	}
+	autosell(item_amount($item[decorative fountain]), $item[decorative fountain]);
+	autosell(item_amount($item[filthy knitted dread sack]) - 1, $item[filthy knitted dread sack]);
+	autosell(item_amount($item[filthy corduroys]) - 1, $item[filthy corduroys]);
+	autosell(item_amount($item[hot wing]) - 3, $item[hot wing]);
+	autosell(item_amount($item[ice-cold Willer]), $item[ice-cold Willer]);
+	autosell(item_amount($item[moxie weed]), $item[moxie weed]);
+	autosell(item_amount($item[strongness elixir]), $item[strongness elixir]);
+	autosell(item_amount($item[leather mask]), $item[leather mask]);
+	autosell(item_amount($item[flaming crutch]), $item[flaming crutch]);
+	autosell(item_amount($item[Feng Shui for Big Dumb Idiots]), $item[Feng Shui for Big Dumb Idiots]);
+	autosell(item_amount($item[enchanted bean]), $item[enchanted bean]);
+	autosell(item_amount($item[spooky shrunken head]), $item[spooky shrunken head]);
+	autosell(item_amount($item[hot katana blade]), $item[hot katana blade]);
+	autosell(item_amount($item[sunken chest]), $item[sunken chest]);
+	autosell(item_amount($item[flaregun]), $item[flaregun]);
+	autosell(item_amount($item[wussiness potion]), $item[wussiness potion]);
 }
 
 void initializeDay(int day)
@@ -967,6 +914,58 @@ boolean L11_hiddenCityZones()
 	return false;
 }
 
+void fortuneCookieEvent()
+{
+	if((get_property("cc_orchard") == "finished"))
+	{
+		return;
+	}
+
+	if(get_counters("Fortune Cookie", 0, 0) == "Fortune Cookie")
+	{
+		print("Semi rare time!", "blue");
+		
+		if((get_property("cc_semirare") == "") && (get_property("cc_spookysapling") == "finished"))
+		{
+			ccAdv(1, $location[The Hidden Temple]);
+			if(item_amount($item[stone wool]) > 0)
+			{
+				set_property("cc_semirare", "1");
+				set_property("cc_semisub", "wool");
+				print("Wool obtained!", "blue");
+			}
+		}
+		else if((get_property("cc_semirare") == "1") && (get_property("cc_castleground") == "finished") && (get_property("cc_nuns") != "done") && have_skill($skill[Curse of Fortune]))
+		{
+			ccAdv(1, $location[The Castle in the Clouds in the Sky (Top Floor)]);
+			if(item_amount($item[Mick\'s IcyVapoHotness Inhaler]) > 0)
+			{
+				set_property("cc_castleground", "done");
+				set_property("cc_semisub", "inhaler");
+				print("Inhaler set!", "blue");
+			}
+		}
+		else if(get_property("cc_semisub") != "limerick")
+		{
+//Tests for potions obtained from chateau desk so you don't use the semi if not needed
+			if(item_amount($item[cyclops eyedrops]) > 0)
+			{
+				set_property("cc_semisub", "limerick");
+				print("Already got eyedrops, trying something else.", "blue");
+			}
+			
+			ccAdv(1, $location[The Limerick Dungeon]);
+			if(item_amount($item[cyclops eyedrops]) > 0)
+			{
+				set_property("cc_semisub", "limerick");
+				print("Eyes clear!", "blue");
+			}
+		} else {
+			abort("We have a semi-rare up, but no idea what to use it on!");
+		}
+	}
+}
+
 boolean L11_unlockHiddenCity()
 {
 	if(my_level() < 11)
@@ -1054,7 +1053,9 @@ boolean L11_nostrilOfTheSerpent()
 
 boolean LX_spookyBedroomCombat()
 {
+	set_property("cc_disableAdventureHandling", "yes");
 	ccAdv(1, $location[The Haunted Bedroom]);
+	set_property("cc_disableAdventureHandling", "no");
 	return false;
 }
 
@@ -1123,6 +1124,7 @@ boolean LX_spookyravenSecond()
 		}
 		if(item_amount($item[Lady Spookyraven\'s Dancing Shoes]) == 0)
 		{
+			set_property("louvreDesiredGoal", "7");
 			print("Spookyraven: Gallery", "blue");
 			ccAdv(1, $location[The Haunted Gallery]);
 			return true;
@@ -1486,14 +1488,6 @@ boolean L12_filthworms()
 	return true;
 }
 
-void consumeStuff()
-{
-	if(ed_eatStuff())
-	{
-		return;
-	}
-}
-
 boolean L12_orchardStart()
 {
 	if(my_level() < 12)
@@ -1702,9 +1696,8 @@ boolean L10_airship()
 	{
 		set_property("choiceAdventure182", "1");
 	}
-
-
-
+	
+	visit_url("place.php?whichplace=beanstalk");
 	ccAdv(1, $location[The Penultimate Fantasy Airship]);
 	return true;
 }
@@ -2252,7 +2245,9 @@ boolean LX_islandAccess()
 	set_property("choiceAdventure793", "2");
 	while((item_amount($item[Shore Inc. Ship Trip Scrip]) < 3) && (my_meat() > 500))
 	{
+		set_property("cc_disableAdventureHandling", "yes");
 		ccAdv(1, $location[The Shore\, Inc. Travel Agency]);
+		set_property("cc_disableAdventureHandling", "no");
 	}
 	if(item_amount($item[Shore Inc. Ship Trip Scrip]) < 3)
 	{
@@ -3219,6 +3214,10 @@ boolean L9_chasmBuild()
 
 boolean LX_dictionary()
 {
+	if(item_amount($item[dictionary]) > 0 || item_amount($item[facsimile dictionary]) > 0)
+	{
+		return false;
+	}
 	if(item_amount($item[abridged dictionary]) == 1)
 	{
 		if(knoll_available() || (get_property("questM01Untinker") == "finished"))
@@ -3273,6 +3272,7 @@ boolean L11_talismanOfNam()
 		if(item_amount($item[Talisman O\' Namsilat]) == 0)
 		{
 			print("We should have a talisman o' namsilat but we don't know about it, refreshing inventory", "red");
+			cli_execute("create talisman o' namsilat");
 			cli_execute("refresh inv");
 		}
 		return false;
@@ -4068,16 +4068,22 @@ boolean doTasks()
 	{
 		set_property("cc_newbieOverride", false);
 	}
-	
+
+//Using up +stat buffs
 	buffMaintain($effect[From Nantucket], 0, 1, 1);
 	buffMaintain($effect[Squatting and Thrusting], 0, 1, 1);
 	buffMaintain($effect[You Read the Manual], 0, 1, 1);
-	
+//Fix-me
 	equipBaseline();
-
+//Eating before cookies
+	if(ed_eatStuff())
+	{
+		return true;
+	}
+//Fortune cookie handling here instead of as a pre-adventure due to the chance of a semi-rare being off (from wrong fortune cookie numbers)
+//and thus combat, plus baabaabaran and such
 	fortuneCookieEvent();
-	consumeStuff();
-	
+
 	if(LX_dictionary())
 	{
 		return true;
@@ -5038,6 +5044,14 @@ boolean doTasks()
 		set_property("cc_war", "finished");
 		return true;
 	}
+	
+	if(my_level() < 13)
+	{
+		print("We've done everything possible at this time and have not reached the next level, so power-leveling in the most basic way Ed can, abort if you want to do this on your own.", "blue");
+		set_property("louvreDesiredGoal", "5");
+		ccAdv(1, $location[The Haunted Gallery]);
+		return true;
+	}
 
 	if(get_property("cc_sorceress") == "")
 	{
@@ -5191,27 +5205,10 @@ void cc_begin()
 
 	questOverride();
 
-	if(my_daycount() > 1)
-	{
-		equipBaseline();
-	}
-
-	consumeStuff();
-	
 	while((my_adventures() > 1) && (my_inebriety() <= inebriety_limit()) && (get_property("kingLiberated") == "false") && doTasks())
 	{
 	}
 	
-	if(get_property("kingLiberated") == "true")
-	{
-		if(get_property("cc_aftercore") != "done")
-		{
-			print("Failed to trigger kingLiberated script on liberation. Doing it manually", "green");
-			cli_execute("kingLiberated.ash");
-		}
-		equipBaseline();
-	}
-
 	doBedtime();
 	print("Done for today (" + my_daycount() + "), beep boop");
 }

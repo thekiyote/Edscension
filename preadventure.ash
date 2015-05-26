@@ -28,6 +28,14 @@ void highLogging()
 	{
 		print("Lashes used: " + get_property("_edLashCount"));
 	}
+	
+	if((get_property("cc_orchard") == "finished"))
+	{
+		if(get_counters("Fortune Cookie", 0, 200) != "")
+		{
+			print("We don't care about the semirares anymore, we are past the orchard. Cancelling.", "blue");
+		}
+	}
 }
 
 void handlePreAdventure()
@@ -62,36 +70,36 @@ void handlePreAdventure()
 	while(!doBreak)
 	{
 //Restore MP
-		if(item_amount($item[Magical Mystery Juice]) > 0 && (my_mp() < 15))
+		if(item_amount($item[Magical Mystery Juice]) > 0 && (my_mp() < 20))
 		{
 			use(1, $item[Magical Mystery Juice]);
 		}
-		else if(item_amount($item[Phonics Down]) > 0 && (my_mp() < 15))
+		else if(item_amount($item[Phonics Down]) > 0 && (my_mp() < 20))
 		{
 			use(1, $item[Phonics Down]);
 		}
-		else if(item_amount($item[Tiny House]) > 0 && (my_mp() < 15))
+		else if(item_amount($item[Tiny House]) > 0 && (my_mp() < 20))
 		{
 			use(1, $item[Tiny House]);
 		}
-		else if(item_amount($item[Grogpagne]) > 0 && (my_mp() < 15) && (my_maxmp() > 35))
+		else if(item_amount($item[Grogpagne]) > 0 && (my_mp() < 20) && (my_maxmp() > 35))
 		{
 			use(1, $item[Grogpagne]);
 		}
-		else if((my_mp() < 15) && my_meat() > 180)
+		else if((my_mp() < 20) && my_meat() > 180)
 		{
 			buyUpTo(1, $item[Doc Galaktik's Invigorating Tonic]);
 			use(1, $item[Doc Galaktik's Invigorating Tonic]);
 		}
-		else if(item_amount($item[Holy Spring Water]) > 0 && (my_mp() < 15))
+		else if(item_amount($item[Holy Spring Water]) > 0 && (my_mp() < 20))
 		{
 			use(1, $item[Holy Spring Water]);
 		}
-		else if(item_amount($item[Spirit Beer]) > 0 && (my_mp() < 15) && (my_maxmp() > 89))
+		else if(item_amount($item[Spirit Beer]) > 0 && (my_mp() < 20) && (my_maxmp() > 89))
 		{
 			use(1, $item[Spirit Beer]);
 		}
-		else if(item_amount($item[Sacramental Wine]) > 0 && (my_mp() < 15) && (my_maxmp() > 174))
+		else if(item_amount($item[Sacramental Wine]) > 0 && (my_mp() < 20) && (my_maxmp() > 174))
 		{
 			use(1, $item[Sacramental Wine]);
 		}
@@ -146,7 +154,7 @@ void handlePreAdventure()
 		{
 			buffMaintain($effect[Blessing of Serqet], 15, 1, 1);
 		}
-		while(my_mp() > 100)
+		while(my_mp() > 120)
 		{
 			int start = my_mp();
 			buffMaintain($effect[Prayer of Seshat], 5, 1, 300);

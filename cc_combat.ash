@@ -624,13 +624,10 @@ string cc_edCombatHandler(int round, string opp, string text)
 		}
 	}
 
-	if(item_amount($item[disposable instant camera]) > 0 && (get_property("cc_edStatus") == "UNDYING!"))
+	if(((enemy == $monster[bob racecar]) || (enemy == $monster[racecar bob])) && item_amount($item[disposable instant camera]) > 0)
 	{
-		if((enemy == $monster[bob racecar]) || (enemy == $monster[racecar bob]))
-		{
-			set_property("cc_combatHandler", combatState + "(disposable instant camera)");
-			return "item disposable instant camera";
-		}
+		set_property("cc_combatHandler", combatState + "(disposable instant camera)");
+		return "item disposable instant camera";
 	}
 
 	if((my_location() == $location[Oil Peak]) && (item_amount($item[duskwalker syringe]) > 0) && (get_property("cc_edStatus") == "UNDYING!"))
@@ -638,7 +635,7 @@ string cc_edCombatHandler(int round, string opp, string text)
 		return "item duskwalker syringe";
 	}
 
-	if(!contains_text(edCombatState, "lashofthecobra") && have_skill($skill[Lash of the Cobra]) && (my_mp() >= 12) && (get_property("_edLashCount").to_int() < 30))
+	if(!contains_text(edCombatState, "lashofthecobra") && have_skill($skill[Lash of the Cobra]) && (my_mp() > 11) && (get_property("_edLashCount").to_int() < 30))
 	{
 		set_property("cc_edCombatHandler", edCombatState + "(lashofthecobra)");
 		boolean doLash = false;
@@ -674,10 +671,6 @@ string cc_edCombatHandler(int round, string opp, string text)
 		{
 			doLash = true;
 		}
-		if((enemy == $monster[Stone Temple Pirate]) && !possessEquipment($item[Eyepatch]))
-		{
-			doLash = true;
-		}
 		if((enemy == $monster[Dairy Goat]) && (item_amount($item[Goat Cheese]) < 3))
 		{
 			doLash = true;
@@ -687,10 +680,6 @@ string cc_edCombatHandler(int round, string opp, string text)
 			doLash = true;
 		}
 		if((enemy == $monster[Protagonist]) && !possessEquipment($item[Ocarina of Space]) && !possessEquipment($item[Sewage-Clogged Pistol]) && !possessEquipment($item[serpentine sword])  && !possessEquipment($item[curmudgel]))
-		{
-			doLash = true;
-		}
-		if((enemy == $monster[Mad Wino]) && (item_amount($item[Psychotic Train Wine]) < 1))
 		{
 			doLash = true;
 		}
@@ -718,7 +707,7 @@ string cc_edCombatHandler(int round, string opp, string text)
 		{
 			doLash = true;
 		}
-		if((enemy == $monster[Oil Baron]) && (item_amount($item[Bubblin\' Crude]) < 12) && (item_amount($item[Jar of Oil]) == 0))
+		if((enemy == $monster[Oil Cartel]) && (item_amount($item[Bubblin\' Crude]) < 12) && (item_amount($item[Jar of Oil]) == 0))
 		{
 			doLash = true;
 		}
@@ -726,7 +715,7 @@ string cc_edCombatHandler(int round, string opp, string text)
 		{
 			doLash = true;
 		}
-		if((enemy == $monster[Pygmy Bowler]) && (get_property("_edLashCount").to_int() < 26))
+		if((enemy == $monster[Pygmy Bowler]) && (get_property("_edLashCount").to_int() < 10) && (item_drop_modifier().to_int() < 100))
 		{
 			doLash = true;
 		}
@@ -734,15 +723,15 @@ string cc_edCombatHandler(int round, string opp, string text)
 		{
 			doLash = true;
 		}
-		if(enemy == $monster[Larval Filthworm])
+		if(enemy == $monster[Larval Filthworm] && (item_amount($item[filthworm hatchling scent gland]) == 0))
 		{
 			doLash = true;
 		}
-		if(enemy == $monster[Filthworm Drone])
+		if(enemy == $monster[Filthworm Drone] && (item_amount($item[filthworm drone scent gland]) == 0))
 		{
 			doLash = true;
 		}
-		if(enemy == $monster[Filthworm Royal Guard])
+		if(enemy == $monster[Filthworm Royal Guard] && (item_amount($item[filthworm royal guard scent gland]) == 0))
 		{
 			doLash = true;
 		}
@@ -767,18 +756,6 @@ string cc_edCombatHandler(int round, string opp, string text)
 			{
 				doLash = true;
 			}
-		}
-		if((enemy == $monster[Dopey 7-Foot Dwarf]) && !possessEquipment($item[Miner\'s Helmet]))
-		{
-			doLash = true;
-		}
-		if((enemy == $monster[Grumpy 7-Foot Dwarf]) && !possessEquipment($item[7-Foot Dwarven Mattock]))
-		{
-			doLash = true;
-		}
-		if((enemy == $monster[Sleepy 7-Foot Dwarf]) && !possessEquipment($item[Miner\'s Pants]))
-		{
-			doLash = true;
 		}
 		if((enemy == $monster[Burly Sidekick]) && !possessEquipment($item[Mohawk Wig]))
 		{

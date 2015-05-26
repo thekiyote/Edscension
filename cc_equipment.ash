@@ -20,10 +20,6 @@ boolean possessEquipment(item equipment)
 	{
 		return true;
 	}
-//	if(closet_amount(equipment) > 0)
-//	{
-//		return true;
-//	}
 	if(equipped_item($slot[hat]) == equipment)
 	{
 		return true;
@@ -67,11 +63,10 @@ boolean possessEquipment(item equipment)
 	return false;
 }
 
-
 void handleOffHand()
 {
 	item toEquip = $item[none];
-	boolean[item] poss;
+	boolean[item] poss = $items[Hot Plate, Disturbing Fanfic, Coffin Lid];
 
 	if(weapon_hands(equipped_item($slot[weapon])) > 1)
 	{
@@ -86,10 +81,8 @@ void handleOffHand()
 		}
 	}
 
-
 	if(contains_text(holiday(), "Oyster Egg Day"))
 	{
-		poss = $items[Hot Plate, Disturbing Fanfic, Coffin Lid];
 		if((toEquip == $item[none]) || (poss contains toEquip))
 		{
 			if(!possessEquipment($item[Oyster Basket]) && (my_meat() >= 300))
@@ -102,6 +95,7 @@ void handleOffHand()
 			}
 		}
 	}
+
 	if((toEquip != $item[none]) && (toEquip != equipped_item($slot[off-hand])))
 	{
 		equip($slot[Off-hand], toEquip);
@@ -117,7 +111,7 @@ void equipBaselinePants()
 {
 	item toEquip = $item[none];
 
-	boolean[item] poss = $items[Old Sweatpants, Knob Goblin Pants, Filthy Corduroys, Leotarrrd, Swashbuckling Pants, Troll Britches, Distressed Denim Pants, Astral Shorts];
+	boolean[item] poss = $items[Old Sweatpants, Knob Goblin Pants, Filthy Corduroys, Swashbuckling Pants, Leotarrrd, Distressed Denim Pants, Troll Britches, Astral Shorts];
 	foreach thing in poss
 	{
 		if(possessEquipment(thing) && can_equip(thing))
@@ -154,17 +148,8 @@ void equipBaselineShirt()
 void equipBaselineBack()
 {
 	item toEquip = $item[none];
+	boolean[item] poss = $items[Giant Gym Membership Card, Misty Cloak, Misty Cape, Misty Robe];
 
-	boolean[item] poss;
-
-	if(my_class() == $class[Ed])
-	{
-		poss = $items[Giant Gym Membership Card, Misty Cloak, Misty Cape, Misty Robe];
-	}
-	else
-	{
-		poss = $items[Giant Gym Membership Card, Misty Cloak, Misty Cape, Misty Robe];
-	}
 	foreach thing in poss
 	{
 		if(possessEquipment(thing) && can_equip(thing))
@@ -247,19 +232,6 @@ void equipBaselineWeapon()
 	handleOffHand();
 }
 
-
-void equipBaseline()
-{
-	equipBaselineHat();
-	equipBaselineShirt();
-	equipBaselineWeapon();
-	equipBaselinePants();
-	equipBaselineBack();
-	equipBaselineAcc1();
-	equipBaselineAcc2();
-	equipBaselineAcc3();
-}
-
 void equipBaselineAcc1()
 {
 	item toEquip = $item[none];
@@ -319,6 +291,18 @@ void equipBaselineAcc3()
 	}
 }
 
+void equipBaseline()
+{
+	equipBaselineHat();
+	equipBaselineShirt();
+	equipBaselineWeapon();
+	handleOffHand();
+	equipBaselinePants();
+	equipBaselineBack();
+	equipBaselineAcc1();
+	equipBaselineAcc2();
+	equipBaselineAcc3();
+}
 
 void equipRollover()
 {
