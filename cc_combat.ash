@@ -313,6 +313,14 @@ string cc_edCombatHandler(int round, string opp, string text)
 	string combatState = get_property("cc_combatHandler");
 	string edCombatState = get_property("cc_edCombatHandler");
 	
+	if((item_amount($item[ka coin]) > 30) && !have_skill($skill[Healing Scarabs]) && (get_property("_edDefeats").to_int() == 0))
+	{
+		set_property("cc_edStatus", "UNDYING!");
+	} else if((item_amount($item[ka coin]) > 30) && !have_skill($skill[Healing Scarabs]) && (get_property("_edDefeats").to_int() > 0))
+	{
+		set_property("cc_edStatus", "dying");
+	}
+	
 	if((enemy == $monster[Pygmy Shaman] && have_effect($effect[Thrice-Cursed]) == 0) ||
 		(enemy == $monster[batwinged gremlin] && item_amount($item[molybdenum hammer]) == 0) ||
 		(enemy == $monster[vegetable gremlin] && item_amount($item[molybdenum screwdriver]) == 0) ||
@@ -320,17 +328,24 @@ string cc_edCombatHandler(int round, string opp, string text)
 		(enemy == $monster[erudite gremlin] && item_amount($item[molybdenum crescent wrench]) == 0) ||
 		(enemy == $monster[tetchy pirate] && (get_property("lastPirateInsult1") == false || get_property("lastPirateInsult2") == false || get_property("lastPirateInsult3") == false || get_property("lastPirateInsult4") == false || get_property("lastPirateInsult5") == false || get_property("lastPirateInsult6") == false || get_property("lastPirateInsult7") == false || get_property("lastPirateInsult8") == false)) ||
 		(enemy == $monster[toothy pirate] && (get_property("lastPirateInsult1") == false || get_property("lastPirateInsult2") == false || get_property("lastPirateInsult3") == false || get_property("lastPirateInsult4") == false || get_property("lastPirateInsult5") == false || get_property("lastPirateInsult6") == false || get_property("lastPirateInsult7") == false || get_property("lastPirateInsult8") == false)) ||
-		(enemy == $monster[tipsy pirate] && (get_property("lastPirateInsult1") == false || get_property("lastPirateInsult2") == false || get_property("lastPirateInsult3") == false || get_property("lastPirateInsult4") == false || get_property("lastPirateInsult5") == false || get_property("lastPirateInsult6") == false || get_property("lastPirateInsult7") == false || get_property("lastPirateInsult8") == false)) ||
-		(item_amount($item[rock band flyers]) == 1 && get_property("flyeredML") < 10000))
+		(enemy == $monster[tipsy pirate] && (get_property("lastPirateInsult1") == false || get_property("lastPirateInsult2") == false || get_property("lastPirateInsult3") == false || get_property("lastPirateInsult4") == false || get_property("lastPirateInsult5") == false || get_property("lastPirateInsult6") == false || get_property("lastPirateInsult7") == false || get_property("lastPirateInsult8") == false)))
 	{
 		set_property("cc_edStatus", "UNDYING!");
 	}
 	
-	if(get_property("cc_edCombatStage").to_int() >= 3)
+	if((item_amount($item[rock band flyers]) == 1 && get_property("flyeredML") < 10000))
+	{
+		set_property("cc_edStatus", "UNDYING!");
+	}
+	
+	if(get_property("cc_edCombatStage").to_int() >= 5 && (item_amount($item[rock band flyers]) == 1 && get_property("flyeredML") < 10000) && have_skill($skill[Healing Scarabs]))
+	{
+		set_property("cc_edStatus", "dying");
+	} else if(get_property("cc_edCombatStage").to_int() >= 3)
 	{
 		set_property("cc_edStatus", "dying");
 	}
-
+	
 	#Handle different path is monster_level_adjustment() > 150 (immune to staggers?)
 	int mcd = monster_level_adjustment();
 
@@ -355,17 +370,10 @@ string cc_edCombatHandler(int round, string opp, string text)
 	{
 		if((!contains_text(combatState, "love gnats")) && have_skill($skill[Summon Love Gnats]))
 		{
-			set_property("cc_combatHandler", combatState + "(love gnats1)");
+			set_property("cc_combatHandler", combatState + "(love gnats)");
 			return "skill summon love gnats";
 		}
-
-		if((!contains_text(combatState, "love gnats")) && get_property("lovebugsUnlocked").to_boolean())
-		{
-			set_property("cc_combatHandler", combatState + "(love gnats2)");
-			return "skill summon love gnats";
-		}
-
-		if((!contains_text(combatState, "love gnats")) && have_skill($skill[Curse of Indecision]) && my_mp() > 25)
+		if(((!contains_text(combatState, "love gnats") || (contains_text(combatState, "stun resisted"))) || (contains_text(combatState, "gnats disperse"))) && have_skill($skill[Curse of Indecision]) && my_mp() > 25)
 		{
 			set_property("cc_combatHandler", combatState + "(love gnats3)");
 			return "skill Curse of Indecision";
@@ -375,7 +383,7 @@ string cc_edCombatHandler(int round, string opp, string text)
 	{
 		boolean doStunner = true;
 
-		if((mcd > 150) && (expected_damage() * 1.15) > my_hp())
+		if((mcd > 125) || ((expected_damage() * 1.15) < my_hp()))
 		{
 			doStunner = false;
 		}
@@ -384,17 +392,10 @@ string cc_edCombatHandler(int round, string opp, string text)
 		{
 			if((!contains_text(combatState, "love gnats")) && have_skill($skill[Summon Love Gnats]))
 			{
-				set_property("cc_combatHandler", combatState + "(love gnats1)");
+				set_property("cc_combatHandler", combatState + "(love gnats)");
 				return "skill summon love gnats";
 			}
-
-			if((!contains_text(combatState, "love gnats")) && get_property("lovebugsUnlocked").to_boolean())
-			{
-				set_property("cc_combatHandler", combatState + "(love gnats2)");
-				return "skill summon love gnats";
-			}
-			
-			if((!contains_text(combatState, "love gnats")) && have_skill($skill[Curse of Indecision]) && my_mp() > 25)
+			if(((!contains_text(combatState, "love gnats") || (contains_text(combatState, "stun resisted"))) || (contains_text(combatState, "gnats disperse"))) && have_skill($skill[Curse of Indecision]) && my_mp() > 25)
 			{
 				set_property("cc_combatHandler", combatState + "(love gnats3)");
 				return "skill Curse of Indecision";
@@ -438,7 +439,7 @@ string cc_edCombatHandler(int round, string opp, string text)
 
 	if((item_amount($item[The Big Book of Pirate Insults]) > 0) && (!contains_text(combatState, "insults")))
 	{
-		if((my_location() == $location[The Obligatory Pirate\'s Cove]) || (my_location() == $location[barrrney\'s barrr]))
+		if((my_location() == $location[barrrney\'s barrr]))
 		{
 			set_property("cc_combatHandler", combatState + "(insults)");
 			return "item the big book of pirate insults";
@@ -553,7 +554,7 @@ string cc_edCombatHandler(int round, string opp, string text)
 	if((!contains_text(combatState, "yellowray")) && (have_effect($effect[everything looks yellow]) == 0) && (have_skill($skill[Wrath of Ra])) && (my_mp() >= 40))
 	{
 		boolean doWrath = false;
-		if((my_location() == $location[Hippy Camp]) && !possessEquipment($item[Filthy Corduroys]) && !possessEquipment($item[Filthy Knitted Dread Sack]))
+		if((my_location() == $location[Hippy Camp]) && !possessEquipment($item[Filthy Corduroys]) && !possessEquipment($item[Filthy Knitted Dread Sack]) && !get_property("cc_legsbeforebread").to_boolean())
 		{
 			doWrath = true;
 		}
@@ -635,7 +636,7 @@ string cc_edCombatHandler(int round, string opp, string text)
 		return "item duskwalker syringe";
 	}
 
-	if(!contains_text(edCombatState, "lashofthecobra") && have_skill($skill[Lash of the Cobra]) && (my_mp() > 11) && (get_property("_edLashCount").to_int() < 30))
+	if(!contains_text(edCombatState, "lashofthecobra") && have_skill($skill[Lash of the Cobra]) && (my_mp() > 19) && (get_property("_edLashCount").to_int() < 30))
 	{
 		set_property("cc_edCombatHandler", edCombatState + "(lashofthecobra)");
 		boolean doLash = false;
@@ -743,14 +744,7 @@ string cc_edCombatHandler(int round, string opp, string text)
 		{
 			doLash = true;
 		}
-		if((my_location() == $location[Hippy Camp]) || (my_location() == $location[Wartime Hippy Camp]) && contains_text(enemy, "hippy") && get_property("cc_legsbeforebread") != "true")
-		{
-			if(!possessEquipment($item[Filthy Knitted Dread Sack]) || !possessEquipment($item[Filthy Corduroys]))
-			{
-				doLash = true;
-			}
-		}
-		if(my_location() == $location[Wartime Frat House])
+		if(my_location() == $location[Wartime Frat House (Hippy Disguise)])
 		{
 			if(!possessEquipment($item[Beer Helmet]) || !possessEquipment($item[Bejeweled Pledge Pin]) || !possessEquipment($item[Distressed Denim Pants]))
 			{
@@ -975,5 +969,5 @@ string cc_edCombatHandler(int round, string opp, string text)
 		print("About to UNDYING too much but have no other combat resolution. Please report this.", "red");
 	}
 
-	return "skill Mild Curse";
+	return "attack with weapon";
 }
