@@ -5,24 +5,25 @@ import <cc_eudora.ash>
 
 void ed_initializeSettings()
 {
-	set_property("cc_edSkills", -1);
-	set_property("cc_semisub", "pantry");
-	set_property("cc_lashes_day1", "");
-	set_property("cc_lashes_day2", "");
-	set_property("cc_lashes_day3", "");
-	set_property("cc_lashes_day4", "");
-	set_property("cc_lashes", "");
-	set_property("cc_renenutet_day1", "");
-	set_property("cc_renenutet_day2", "");
-	set_property("cc_renenutet_day3", "");
-	set_property("cc_renenutet_day4", "");
-	set_property("cc_renenutet", "");
-	set_property("cc_chasmBusted", "false");
-	set_property("cc_renenutetBought", 0);
-	set_property("cc_edCombatCount", 0);
-	set_property("cc_edCombatRoundCount", 0);
-	set_property("choiceAdventure1002", 1);
-	set_property("cc_edDelayHauntedKitchen", "true");
+	if(my_path() == "Actually Ed the Undying")
+	{
+		set_property("cc_edSkills", -1);
+		set_property("cc_lashes_day1", "");
+		set_property("cc_lashes_day2", "");
+		set_property("cc_lashes_day3", "");
+		set_property("cc_lashes_day4", "");
+		set_property("cc_lashes", "");
+		set_property("cc_renenutet_day1", "");
+		set_property("cc_renenutet_day2", "");
+		set_property("cc_renenutet_day3", "");
+		set_property("cc_renenutet_day4", "");
+		set_property("cc_renenutet", "");
+		set_property("cc_chasmBusted", "false");
+		set_property("cc_renenutetBought", 0);
+		set_property("cc_edCombatCount", 0);
+		set_property("cc_edCombatRoundCount", 0);
+		set_property("choiceAdventure1002", 1);
+	}
 }
 
 void ed_initializeDay(int day)
@@ -188,7 +189,7 @@ boolean handleServant(servant who)
 		return use_servant(who);
 	} else
 	{
-		return false;
+		return true;
 	}
 }
 
@@ -278,7 +279,7 @@ boolean ed_buySkills()
 			skillPoints = 0;
 		}
 		
-		if (skillpoints > 8) {
+		if (skillpoints >= 8) {
 			while(skillPoints > 0)
 			{
 				skillPoints = skillPoints - 1;
@@ -614,10 +615,6 @@ boolean ed_eatStuff()
 	string cookie = get_counters("Fortune Cookie", 0, 200);
 	if(cookie != "Fortune Cookie")
 	{
-		if(my_turncount() < 81)
-		{
-			return false;
-		}
 		if((my_meat() >= 500) && have_skill($skill[Replacement Liver]) && ((my_inebriety() == 0) || (my_inebriety() == 3)))
 		{
 			cli_execute("drink 1 lucky lindy");
@@ -786,30 +783,28 @@ boolean ed_needShop()
 		return false;
 	}
 	int canEat = (spleen_limit() - my_spleen_use()) / 5;
-	if((canEat == 0) && (item_amount($item[Ka Coin]) < 20))
+	if(canEat == 0 && item_amount($item[Ka Coin]) < 19)
 	{
 		return false;
 	}
 
 	canEat = max(0, canEat - item_amount($item[Mummified Beef Haunch]));
-//Skill limiter helps prevent overspending of Ka on other skills that are not as important as getting your edible organs on day 1
-	skill limiter = $skill[Even More Elemental Wards];
-	if(my_daycount() >= 2)
+	skill limiter = $skill[Okay Seriously, This is the Last Spleen];
+	if(my_daycount() == 2)
 	{
-		limiter = $skill[Healing Scarabs];
+		limiter = $skill[Upgraded Spine];
+	} else if(my_daycount() > 2)
+	{
+		skill limiter = $skill[Healing Scarabs];
 	}
 	
-	if((canEat == 0) && have_skill(limiter) && (item_amount($item[Linen Bandages]) >= 4) && (get_property("cc_renenutetBought").to_int() >= 7) && (item_amount($item[Holy Spring Water]) >= 1) && (item_amount($item[Talisman of Horus]) >= 2))
+	if((canEat == 0) && have_skill(limiter) && (item_amount($item[Linen Bandages]) >= 3) && (get_property("cc_renenutetBought").to_int() >= 7) && (item_amount($item[Holy Spring Water]) >= 1) && (item_amount($item[Talisman of Horus]) >= 2))
 	{
-		if((item_amount($item[Ka Coin]) > 30) && (item_amount($item[Spirit Beer]) == 0))
+		if((item_amount($item[Spirit Beer]) == 0))
 		{
 			return true;
 		}
-		if((item_amount($item[Ka Coin]) > 30) && (item_amount($item[Sacramental Wine]) == 0))
-		{
-			return true;
-		}
-		if((item_amount($item[Ka Coin]) > 35) && !have_skill($skill[Upgraded Spine]))
+		if((!have_skill($skill[Upgraded Spine])))
 		{
 			return true;
 		}
@@ -825,6 +820,7 @@ boolean ed_needShop()
 
 boolean ed_shopping()
 {
+	print("test 1", "red");
 	if(!ed_needShop())
 	{
 		return false;
@@ -842,19 +838,15 @@ boolean ed_shopping()
 	
 	int skillBuy = 0;
 	int coins = item_amount($item[Ka Coin]);
+	
 	if(!have_skill($skill[Upgraded Legs]) && get_property("cc_legsbeforebread").to_boolean())
 	{
 		if(coins >= 10)
 		{
 			print("Buying Upgraded Legs", "green");
 			skillBuy = 36;
-			visit_url("place.php?whichplace=edunder&action=edunder_bodyshop");
-			visit_url("choice.php?pwd&skillid=" + skillBuy + "&option=1&whichchoice=1052", true);
-			visit_url("choice.php?pwd&option=2&whichchoice=1052", true);
 		}
-	}
-	
-	if(((my_spleen_use() + 5) <= spleen_limit()) && ((my_adventures() < 15) || have_skill($skill[More Elemental Wards])))
+	} else if((my_spleen_use() + 5) <= spleen_limit())
 	{
 		int canEat = (spleen_limit() - my_spleen_use()) / 5;
 		canEat = canEat - item_amount($item[Mummified Beef Haunch]);
@@ -865,9 +857,7 @@ boolean ed_shopping()
 			coins = coins - 15;
 			canEat = canEat - 1;
 		}
-	}
-	
-	if(!have_skill($skill[More Legs]) && get_property("cc_legsbeforebread").to_boolean())
+	} else if(!have_skill($skill[More Legs]) && get_property("cc_legsbeforebread").to_boolean())
 	{
 		if(coins >= 20)
 		{
@@ -894,14 +884,6 @@ boolean ed_shopping()
 		{
 			print("Buying Upgraded Legs", "green");
 			skillBuy = 36;
-		}
-	} else if(!get_property("cc_dickstab").to_boolean() && (item_amount($item[Holy Spring Water]) < 3))
-	{
-		while((item_amount($item[Holy Spring Water]) < 3) && (coins > 2))
-		{
-			print("Buying Holy Spring Water", "green");
-			visit_url("shop.php?pwd=&whichshop=edunder_shopshop&action=buyitem&quantity=1&whichrow=436", true);
-			coins -= 1;
 		}
 	} else if(!have_skill($skill[More Legs]) && !get_property("cc_dickstab").to_boolean())
 	{
@@ -1008,23 +990,23 @@ boolean ed_shopping()
 			print("Buying Even More Elemental Wards", "green");
 			skillBuy = 46;
 		}
-	} else if(!have_skill($skill[Upgraded Arms]) && (my_daycount() > 1) && (coins > 20))
+	} else if(!have_skill($skill[Upgraded Arms]) && (my_daycount() >= 2) && (coins >= 20))
 	{
 		print("Buying Upgraded Arms (20)", "green");
 		skillBuy = 37;
-	} else if(!have_skill($skill[Tougher Skin]) && (my_daycount() > 1) && (coins > 20))
+	} else if(!have_skill($skill[Tougher Skin]) && (my_daycount() >= 2) && (coins >= 20))
 	{
 		print("Buying Tougher Skin (10)", "green");
 		skillBuy = 39;
-	} else if(!have_skill($skill[Armor Plating]) && (my_daycount() > 1) && (coins > 20))
+	} else if(!have_skill($skill[Armor Plating]) && (my_daycount() >= 2) && (coins >= 20))
 	{
 		print("Buying Armor Plating (10)", "green");
 		skillBuy = 40;
-	} else if(!have_skill($skill[Upgraded Spine]) && (my_daycount() > 1) && (coins > 20))
+	} else if(!have_skill($skill[Upgraded Spine]) && (my_daycount() >= 2) && (coins >= 20))
 	{
 		print("Buying Upgraded Spine (20)", "green");
 		skillBuy = 38;
-	} else if((!have_skill($skill[Healing Scarabs])) && (my_daycount() > 1))
+	} else if((!have_skill($skill[Healing Scarabs])) && (my_daycount() >= 2))
 	{
 		if(coins >= 35)
 		{
@@ -1032,7 +1014,15 @@ boolean ed_shopping()
 			skillBuy = 43;
 		}
 	} else if(have_skill($skill[Okay Seriously, This is the Last Spleen]))
-	{
+	{	//437 438?
+		while((coins >= 1) && (get_property("cc_renenutetBought").to_int() < 7))
+		{
+			print("Buying Talisman of Renenutet", "green");
+			visit_url("shop.php?pwd=&whichshop=edunder_shopshop&action=buyitem&quantity=1&whichrow=439", true);
+			#buy(1, $item[Talisman of Renenutet]);
+			set_property("cc_renenutetBought", 1 + get_property("cc_renenutetBought").to_int());
+			coins = coins - 1;
+		}
 		while((item_amount($item[Linen Bandages]) < 4) && (coins >= 4))
 		{
 			print("Buying Linen Bandages", "green");
@@ -1192,17 +1182,10 @@ boolean ed_handleAdventureServant(location loc)
 		}
 	}
 
-//The cat is swapped in at the shrines while matcheing them because your servant still gets xp points, also sparrows. :D
 	if((loc == $location[Next To That Barrel With Something Burning In It]) ||
 		(loc == $location[Out By That Rusted-Out Car]) ||
 		(loc == $location[Over Where The Old Tires Are]) ||
-		(loc == $location[Near an Abandoned Refrigerator]) ||
-		(loc == $location[The Black Forest] && item_amount($item[reassembled blackbird]) == 0) ||
-		(loc == $location[An Overgrown Shrine (Northwest)]) ||
-		(loc == $location[An Overgrown Shrine (Northeast)]) ||
-		(loc == $location[An Overgrown Shrine (Southwest)]) ||
-		(loc == $location[An Overgrown Shrine (Southeast)]) ||
-		(loc == $location[A Massive Ziggurat] && item_amount($item[stone triangle]) == 0))
+		(loc == $location[Near an Abandoned Refrigerator]))
 	{
 		handleServant($servant[Cat]);
 	}

@@ -82,32 +82,27 @@ void handlePreAdventure()
 		{
 			use(1, $item[Tiny House]);
 		}
-		else if(item_amount($item[Grogpagne]) > 0 && (my_mp() < 20) && (my_maxmp() > 55))
+		else if(item_amount($item[Grogpagne]) > 0 && (my_mp() < 20) && (my_maxmp() > 35))
 		{
 			use(1, $item[Grogpagne]);
 		}
-		else if(item_amount($item[Bottle of Monsieur Bubble]) > 0 && (my_mp() < 20))
+		else if((my_mp() < 20) && my_meat() > 180)
 		{
-			use(1, $item[Bottle of Monsieur Bubble]);
-		}
-		else if(item_amount($item[Sacramental Wine]) > 0 && (my_mp() < 20) && (my_maxmp() > 174))
-		{
-			use(1, $item[Sacramental Wine]);
-		}
-		else if(item_amount($item[Spirit Beer]) > 0 && (my_mp() < 20) && (my_maxmp() > 89))
-		{
-			use(1, $item[Spirit Beer]);
+			buyUpTo(1, $item[Doc Galaktik's Invigorating Tonic]);
+			use(1, $item[Doc Galaktik's Invigorating Tonic]);
 		}
 		else if(item_amount($item[Holy Spring Water]) > 0 && (my_mp() < 20))
 		{
 			use(1, $item[Holy Spring Water]);
 		}
-		else if((my_mp() < 20) && my_meat() > 180)
+		else if(item_amount($item[Spirit Beer]) > 0 && (my_mp() < 20) && (my_maxmp() > 89))
 		{
-			buyUpTo(1, $item[Doc Galaktik\'s Invigorating Tonic]);
-			use(1, $item[Doc Galaktik\'s Invigorating Tonic]);
+			use(1, $item[Spirit Beer]);
 		}
-
+		else if(item_amount($item[Sacramental Wine]) > 0 && (my_mp() < 20) && (my_maxmp() > 174))
+		{
+			use(1, $item[Sacramental Wine]);
+		}
 
 //Handle buffs
 		if(my_level() < 13)
@@ -209,8 +204,7 @@ void handlePreAdventure()
 
 //Handle +combat
 		if((my_location() == $location[Lair of the Ninja Snowmen] && ("Lair of the Ninja Snowmen".to_location().turns_spent >= 1)) ||
-			(my_location() == $location[Sonofa Beach]) ||
-			(my_location() == $location[The f'cle]))
+			(my_location() == $location[Sonofa Beach]))
 		{
 			if((have_effect($effect[Shelter of Shed]) > 0))
 			{
@@ -221,7 +215,7 @@ void handlePreAdventure()
 			}
 
 			buffMaintain($effect[Taunt of Horus], 0, 1, 1);
-			if (item_amount($item[Reodorant]) > 2)
+			if (item_amount($item[Reodorant]) > 3)
 			{
 				buffMaintain($effect[Hippy Stench], 0, 1, 1);
 			} else if(my_location() == $location[Sonofa Beach])
@@ -230,75 +224,13 @@ void handlePreAdventure()
 			}
 		}
 		
-//Escape clauses, counting MP for YRs and lashes and standard combat and bosses
+//Escape clauses
 		buffcounter += 1;
 		if(buffcounter > 29)
 		{
 			abort("We couldn't restore your MP properly, try autoselling some junk!");
 		}
-		if(((my_location() == $location[Wartime Hippy Camp (Frat Disguise)]) && (get_property("hippiesDefeated") == 1000)) ||
-		(my_location() == $location[The Naughty Sorceress\' Chamber]))
-		{
-			if((my_mp() < 80) && my_meat() > 180)
-			{
-				buyUpTo(1, $item[Doc Galaktik\'s Invigorating Tonic]);
-				use(1, $item[Doc Galaktik\'s Invigorating Tonic]);
-			}
-			if(my_mp() >= 80)
-			{
-				doBreak = true;
-			}
-		} else if(((my_location() == $location[Hippy Camp]) && !get_property("cc_legsbeforebread").to_boolean()) ||
-			(my_location() == $location[The Penultimate Fantasy Airship]  && ((item_amount($item[mohawk wig]) == 0))) ||
-			(my_location() == $location[Cobb\'s Knob Harem] && !have_outfit("Knob Goblin Harem Girl Disguise")) ||
-			(my_location() == $location[Wartime Frat House (Hippy Disguise)]) && !have_outfit("Frat Warrior Fatigues") &&
-			have_skill($skill[Wrath of Ra]) && (have_effect($effect[Everything Looks Yellow]) == 0))
-		{
-			if((my_mp() < 40) && my_meat() > 180)
-			{
-				buyUpTo(1, $item[Doc Galaktik\'s Invigorating Tonic]);
-				use(1, $item[Doc Galaktik\'s Invigorating Tonic]);
-			}
-			if(my_mp() >= 40)
-			{
-				doBreak = true;
-			}
-		} else if((my_location() == $location[The Obligatory Pirate\'s Cove]) ||
-			(my_location() == $location[Twin Peak]) ||
-			(my_location() == $location[Pirates of the Garbage Barges]) ||
-			(my_location() == $location[Barf Mountain]) ||
-			(my_location() == $location[The Degrassi Knoll Gym]) ||
-			(my_location() == $location[The Goatlet]) ||
-			(my_location() == $location[The Castle in the Clouds in the Sky (Ground Floor)]) ||
-			(my_location() == $location[The Penultimate Fantasy Airship]) ||
-			(my_location() == $location[The Beanbat Chamber]) ||
-			(my_location() == $location[The Haunted Library]) ||
-			(my_location() == $location[The Defiled Nook]) ||
-			(my_location() == $location[Oil Peak]) ||
-			(my_location() == $location[The Black Forest]) ||
-			(my_location() == $location[The Hidden Bowling Alley]) ||
-			(my_location() == $location[The Hidden Apartment Building]) ||
-			(my_location() == $location[The Hidden Office Building]) ||
-			(my_location() == $location[The Hatching Chamber]) ||
-			(my_location() == $location[The Feeding Chamber]) ||
-			(my_location() == $location[The Royal Guard Chamber]) ||
-			(my_location() == $location[Cobb\'s Knob Harem]) ||
-			((my_location() == $location[Wartime Frat House (Hippy Disguise)]) && !have_outfit("Frat Warrior Fatigues")) ||
-			(my_location() == $location[The Secret Council Warehouse]) ||
-			((my_location() == $location[The Dark Heart of the Woods]) && (item_amount($item[hot wing]) < 3)) ||
-			((my_location() == $location[The Dark Neck of the Woods]) && (item_amount($item[hot wing]) < 3)) ||
-			((my_location() == $location[The Dark Elbow of the Woods]) && (item_amount($item[hot wing]) < 3)))
-		{
-			if((my_mp() < 23) && my_meat() > 180)
-			{
-				buyUpTo(1, $item[Doc Galaktik\'s Invigorating Tonic]);
-				use(1, $item[Doc Galaktik\'s Invigorating Tonic]);
-			}
-			if(my_mp() >= 23)
-			{
-				doBreak = true;
-			}
-		} else if(my_mp() > 14)
+		if(my_mp() > 14)
 		{
 			doBreak = true;
 		}
