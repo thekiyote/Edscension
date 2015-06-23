@@ -1,6 +1,5 @@
-script "cc_util.ash";
+script "ed_util.ash";
 import <zlib.ash>
-import <chateaumantegna.ash>
 
 // Public Prototypes
 float elemental_resist_value(int resistance);
@@ -16,7 +15,7 @@ int lumberCount();
 string tryBeerPong();
 boolean buyUpTo(int num, item it);
 boolean buffMaintain(effect buff, int mp_min, int cases, int turns);
-boolean cc_deleteMail(kmessage msg);
+boolean ed_deleteMail(kmessage msg);
 void woods_questStart();			//From Bale\'s woods.ash relay mod.
 int howLongBeforeHoloWristDrop();
 
@@ -104,17 +103,17 @@ void ovenHandle()
 	if(get_campground() contains $item[Dramatic&trade; range])
 	{
 		print("Oven found! We can cook!", "blue");
-		set_property("cc_haveoven", true);
+		set_property("ed_haveoven", true);
 	}
-	if(!get_property("cc_haveoven").to_boolean() && (my_meat() > 4000))
+	if(!get_property("ed_haveoven").to_boolean() && (my_meat() > 4000))
 	{
 		buyUpTo(1, $item[Dramatic&trade; range]);
 		use(1, $item[Dramatic&trade; range]);
-		set_property("cc_haveoven", true);
+		set_property("ed_haveoven", true);
 	}
 }
 
-boolean cc_deleteMail(kmessage msg)
+boolean ed_deleteMail(kmessage msg)
 {
 	if((msg.fromid == 0) && (contains_text(msg.message, "We found this telegram at the bottom of an old bin of mail.")))
 	{

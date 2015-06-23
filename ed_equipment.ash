@@ -1,5 +1,5 @@
-script "cc_equipment.ash";
-import <cc_util.ash>
+script "ed_equipment.ash";
+import <ed_util.ash>
 void equipBaseline();
 void equipBaselineWeapon();
 void equipBaselinePants();

@@ -1,4 +1,4 @@
-script "cc_eudora.ash"
+script "ed_eudora.ash"
 
 boolean eudora_available()
 {

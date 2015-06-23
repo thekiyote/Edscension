@@ -1,4 +1,4 @@
-script "cc_elementalPlanes.ash"
+script "ed_elementalPlanes.ash"
 
 boolean elementalPlanes_initializeSettings()
 {
@@ -101,17 +101,17 @@ boolean dinseylandfill_garbageMoney()
 	{
 		return false;
 	}
-	if(get_property("cc_dinseyGarbageMoney").to_int() == my_daycount())
+	if(get_property("ed_dinseyGarbageMoney").to_int() == my_daycount())
 	{
 		return false;
 	}
-	if(!get_property("cc_getDinseyGarbageMoney").to_boolean())
+	if(!get_property("ed_getDinseyGarbageMoney").to_boolean())
 	{
 		return false;
 	}
 	if(item_amount($item[Bag of Park Garbage]) > 0)
 	{
-		set_property("cc_dinseyGarbageMoney", my_daycount());
+		set_property("ed_dinseyGarbageMoney", my_daycount());
 		visit_url("place.php?whichplace=airport_stench&action=airport3_tunnels");
 		visit_url("choice.php?pwd=&whichchoice=1067&option=6",true);
 		visit_url("main.php");

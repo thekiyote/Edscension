@@ -1,28 +1,28 @@
-script "cc_edTheUndying.ash"
-import <cc_util.ash>
-import <cc_equipment.ash>
-import <cc_eudora.ash>
+script "ed_edTheUndying.ash"
+import <ed_util.ash>
+import <ed_equipment.ash>
+import <ed_eudora.ash>
 
 void ed_initializeSettings()
 {
-	set_property("cc_edSkills", -1);
-	set_property("cc_semisub", "pantry");
-	set_property("cc_lashes_day1", "");
-	set_property("cc_lashes_day2", "");
-	set_property("cc_lashes_day3", "");
-	set_property("cc_lashes_day4", "");
-	set_property("cc_lashes", "");
-	set_property("cc_renenutet_day1", "");
-	set_property("cc_renenutet_day2", "");
-	set_property("cc_renenutet_day3", "");
-	set_property("cc_renenutet_day4", "");
-	set_property("cc_renenutet", "");
-	set_property("cc_chasmBusted", "false");
-	set_property("cc_renenutetBought", 0);
-	set_property("cc_edCombatCount", 0);
-	set_property("cc_edCombatRoundCount", 0);
+	set_property("ed_edSkills", -1);
+	set_property("ed_semisub", "pantry");
+	set_property("ed_lashes_day1", "");
+	set_property("ed_lashes_day2", "");
+	set_property("ed_lashes_day3", "");
+	set_property("ed_lashes_day4", "");
+	set_property("ed_lashes", "");
+	set_property("ed_renenutet_day1", "");
+	set_property("ed_renenutet_day2", "");
+	set_property("ed_renenutet_day3", "");
+	set_property("ed_renenutet_day4", "");
+	set_property("ed_renenutet", "");
+	set_property("ed_chasmBusted", "false");
+	set_property("ed_renenutetBought", 0);
+	set_property("ed_edCombatCount", 0);
+	set_property("ed_edCombatRoundCount", 0);
 	set_property("choiceAdventure1002", 1);
-	set_property("cc_edDelayHauntedKitchen", "true");
+	set_property("ed_edDelayHauntedKitchen", "true");
 }
 
 void ed_initializeDay(int day)
@@ -34,9 +34,9 @@ void ed_initializeDay(int day)
 	
 	if(day == 1)
 	{
-		if(get_property("cc_day1_init") != "finished")
+		if(get_property("ed_day1_init") != "finished")
 		{
-			set_property("cc_renenutetBought", 0);
+			set_property("ed_renenutetBought", 0);
 			if(item_amount($item[transmission from planet Xi]) > 0)
 			{
 				use(1, $item[transmission from planet xi]);
@@ -52,45 +52,36 @@ void ed_initializeDay(int day)
 
 			equipBaseline();
 
-			set_property("cc_day1_init", "finished");
+			set_property("ed_day1_init", "finished");
 		}
 	}
 	else if(day == 2)
 	{
-		if(get_property("cc_day2_init") == "")
+		if(get_property("ed_day2_init") == "")
 		{
-			if(get_property("cc_dickstab").to_boolean() && chateaumantegna_available() && my_meat() > 1500)
-			{
-				boolean[item] furniture = chateaumantegna_decorations();
-				if(!furniture[$item[Ceiling Fan]])
-				{
-					chateaumantegna_buyStuff($item[Ceiling Fan]);
-				}
-			}
-			
 			equipBaseline();
 			ovenHandle();
-			set_property("cc_renenutetBought", 0);
+			set_property("ed_renenutetBought", 0);
 			hermit(10, $item[ten-leaf clover]);
-			set_property("cc_day2_init", "finished");
+			set_property("ed_day2_init", "finished");
 		}
 	}
 	else if(day == 3)
 	{
-		if(get_property("cc_day3_init") == "")
+		if(get_property("ed_day3_init") == "")
 		{
-			set_property("cc_renenutetBought", 0);
+			set_property("ed_renenutetBought", 0);
 			hermit(10, $item[ten-leaf clover]);
-			set_property("cc_day3_init", "finished");
+			set_property("ed_day3_init", "finished");
 		}
 	}
 	else if(day == 4)
 	{
-		if(get_property("cc_day4_init") == "")
+		if(get_property("ed_day4_init") == "")
 		{
-			set_property("cc_renenutetBought", 0);
+			set_property("ed_renenutetBought", 0);
 			hermit(10, $item[ten-leaf clover]);
-			set_property("cc_day4_init", "finished");
+			set_property("ed_day4_init", "finished");
 		}
 	}
 }
@@ -232,7 +223,7 @@ boolean handleServant(string name)
 
 boolean ed_doResting()
 {
-	if(!chateaumantegna_available() || get_property("timesRested").to_int() >= total_free_rests() || my_level() < 8 )
+	if(!get_property("chateauAvailable").to_boolean() || get_property("timesRested").to_int() >= total_free_rests() || my_level() < 8 )
 	{
 		return false;
 	}
@@ -260,7 +251,7 @@ boolean ed_doResting()
 
 boolean ed_buySkills()
 {
-	if(my_level() <= get_property("cc_edSkills").to_int())
+	if(my_level() <= get_property("ed_edSkills").to_int())
 	{
 		return false;
 	}
@@ -590,7 +581,7 @@ boolean ed_buySkills()
 		handleServant(current);
 	}
 
-	set_property("cc_edSkills", my_level());
+	set_property("ed_edSkills", my_level());
 	return true;
 }
 
@@ -630,7 +621,7 @@ boolean ed_eatStuff()
 	}
 	return false;
 //Eats
-	if(get_property("cc_dickstab").to_boolean() && !get_property("_fancyHotDogEaten").to_boolean() && ((my_fullness() + 2) <= fullness_limit()) && (item_amount($item[Clan VIP Lounge Key]) > 0) && !have_skill($skill[Dog Tired]) && get_property("chateauAvailable") == "true")
+	if(get_property("ed_dickstab").to_boolean() && !get_property("_fancyHotDogEaten").to_boolean() && ((my_fullness() + 2) <= fullness_limit()) && (item_amount($item[Clan VIP Lounge Key]) > 0) && !have_skill($skill[Dog Tired]) && get_property("chateauAvailable").to_boolean())
 	{
 //We're going to make the assumption here that you keep your hot dog stand stocked properly in advance
 		cli_execute("eat 1 sleeping dog");
@@ -799,7 +790,7 @@ boolean ed_needShop()
 		limiter = $skill[Healing Scarabs];
 	}
 	
-	if((canEat == 0) && have_skill(limiter) && (item_amount($item[Linen Bandages]) >= 4) && (get_property("cc_renenutetBought").to_int() >= 7) && (item_amount($item[Holy Spring Water]) >= 1) && (item_amount($item[Talisman of Horus]) >= 2))
+	if((canEat == 0) && have_skill(limiter) && (item_amount($item[Linen Bandages]) >= 4) && (get_property("ed_renenutetBought").to_int() >= 7) && (item_amount($item[Holy Spring Water]) >= 1) && (item_amount($item[Talisman of Horus]) >= 2))
 	{
 		if((item_amount($item[Ka Coin]) > 30) && (item_amount($item[Spirit Beer]) == 0))
 		{
@@ -833,16 +824,16 @@ boolean ed_shopping()
 	wait(1);
 	visit_url("choice.php?pwd=&whichchoice=1023&option=1", true);
 
-	if(get_property("cc_breakstone").to_boolean())
+	if(get_property("ed_breakstone").to_boolean())
 	{
 		visit_url("place.php?whichplace=edunder&action=edunder_hippy");
 		visit_url("choice.php?pwd&whichchoice=1057&option=1", true);
-		set_property("cc_breakstone", false);
+		set_property("ed_breakstone", false);
 	}
 	
 	int skillBuy = 0;
 	int coins = item_amount($item[Ka Coin]);
-	if(!have_skill($skill[Upgraded Legs]) && get_property("cc_legsbeforebread").to_boolean())
+	if(!have_skill($skill[Upgraded Legs]) && get_property("ed_legsbeforebread").to_boolean())
 	{
 		if(coins >= 10)
 		{
@@ -867,7 +858,7 @@ boolean ed_shopping()
 		}
 	}
 	
-	if(!have_skill($skill[More Legs]) && get_property("cc_legsbeforebread").to_boolean())
+	if(!have_skill($skill[More Legs]) && get_property("ed_legsbeforebread").to_boolean())
 	{
 		if(coins >= 20)
 		{
@@ -888,14 +879,14 @@ boolean ed_shopping()
 			print("Buying Another Extra Spleen", "green");
 			skillBuy = 31;
 		}
-	} else if(!have_skill($skill[Upgraded Legs]) && !get_property("cc_dickstab").to_boolean())
+	} else if(!have_skill($skill[Upgraded Legs]) && !get_property("ed_dickstab").to_boolean())
 	{
 		if(coins >= 10)
 		{
 			print("Buying Upgraded Legs", "green");
 			skillBuy = 36;
 		}
-	} else if(!get_property("cc_dickstab").to_boolean() && (item_amount($item[Holy Spring Water]) < 3))
+	} else if(!get_property("ed_dickstab").to_boolean() && (item_amount($item[Holy Spring Water]) < 3))
 	{
 		while((item_amount($item[Holy Spring Water]) < 3) && (coins > 2))
 		{
@@ -903,7 +894,7 @@ boolean ed_shopping()
 			visit_url("shop.php?pwd=&whichshop=edunder_shopshop&action=buyitem&quantity=1&whichrow=436", true);
 			coins -= 1;
 		}
-	} else if(!have_skill($skill[More Legs]) && !get_property("cc_dickstab").to_boolean())
+	} else if(!have_skill($skill[More Legs]) && !get_property("ed_dickstab").to_boolean())
 	{
 		if(coins >= 20)
 		{
@@ -945,7 +936,7 @@ boolean ed_shopping()
 			print("Buying Replacement Liver", "green");
 			skillBuy = 29;
 		}
-	} else if(!have_skill($skill[Elemental Wards]) && get_property("cc_dickstab").to_boolean())
+	} else if(!have_skill($skill[Elemental Wards]) && get_property("ed_dickstab").to_boolean())
 	{
 		if(coins >= 10)
 		{
@@ -959,14 +950,14 @@ boolean ed_shopping()
 			print("Buying Okay Seriously, This is the Last Spleen", "green");
 			skillBuy = 35;
 		}
-	} else if((get_property("cc_renenutetBought").to_int() < 7) && (coins > 1))
+	} else if((get_property("ed_renenutetBought").to_int() < 7) && (coins > 1))
 	{
-		while((get_property("cc_renenutetBought").to_int() < 7) && (coins > 1))
+		while((get_property("ed_renenutetBought").to_int() < 7) && (coins > 1))
 		{
 			print("Buying Talisman of Renenutet", "green");
 			visit_url("shop.php?pwd=&whichshop=edunder_shopshop&action=buyitem&quantity=1&whichrow=439", true);
 			#buy(1, $item[Talisman of Renenutet]);
-			set_property("cc_renenutetBought", 1 + get_property("cc_renenutetBought").to_int());
+			set_property("ed_renenutetBought", 1 + get_property("ed_renenutetBought").to_int());
 			coins = coins - 1;
 			if(!have_skill($skill[Okay Seriously, This is the Last Spleen]))
 			{
@@ -1105,7 +1096,7 @@ boolean ed_handleAdventureServant(location loc)
 		{
 			handleServant($servant[Cat]);
 		}
-		else if(!have_skill($skill[Gift of the Maid]) && have_servant($servant[Maid]) && (get_property("cc_nuns") != "finished") && (get_property("cc_nuns") != "done") && (have_skill($skill[Curse of Fortune])))
+		else if(!have_skill($skill[Gift of the Maid]) && have_servant($servant[Maid]) && (get_property("ed_nuns") != "finished") && (get_property("ed_nuns") != "done") && (have_skill($skill[Curse of Fortune])))
 		{
 			handleServant($servant[Maid]);
 		}
@@ -1144,7 +1135,7 @@ boolean ed_handleAdventureServant(location loc)
 		(loc == $location[The Dark Heart of the Woods]) ||
 		(loc == $location[The Dark Elbow of the Woods]))
 	{
-		if((get_property("cc_pirateoutfit") != "finished") && (get_property("cc_pirateoutfit") != "almost") && (item_amount($item[Hot Wing]) < 3))
+		if((get_property("ed_pirateoutfit") != "finished") && (get_property("ed_pirateoutfit") != "almost") && (item_amount($item[Hot Wing]) < 3))
 		{
 			if(!handleServant($servant[Cat]))
 			{
@@ -1260,9 +1251,9 @@ boolean ed_preAdv(int num, location loc, string option)
 
 boolean ed_ccAdv(int num, location loc, string option, boolean skipFirstLife)
 {
-	if((option == "") || (option == "cc_combatHandler"))
+	if((option == "") || (option == "ed_combatHandler"))
 	{
-		option = "cc_edCombatHandler";
+		option = "ed_edCombatHandler";
 	}
 
 	if(!skipFirstLife)
@@ -1280,16 +1271,16 @@ boolean ed_ccAdv(int num, location loc, string option, boolean skipFirstLife)
 			print("This fight and " + num + " more left.", "blue");
 		}
 
-		set_property("cc_disableAdventureHandling", "yes");
-		set_property("cc_edCombatHandler", "");
+		set_property("ed_disableAdventureHandling", "yes");
+		set_property("ed_edCombatHandler", "");
 		if(!skipFirstLife)
 		{
-			set_property("cc_edCombatStage", 0);
+			set_property("ed_edCombatStage", 0);
 			print("Starting Ed Battle at " + loc, "blue");
 			status = adv1(loc, 1, option);
 			if(!status && (get_property("lastEncounter") == "Like a Bat Into Hell"))
 			{
-				set_property("cc_disableAdventureHandling", "no");
+				set_property("ed_disableAdventureHandling", "no");
 				abort("Either a) We had a connection problem and lost track of the battle, or we were defeated multiple times beyond our usual UNDYING. Manually handle the fight and rerun.");
 			}
 		}
@@ -1308,14 +1299,14 @@ boolean ed_ccAdv(int num, location loc, string option, boolean skipFirstLife)
 				#If this visit_url results in the enemy dying, we don't want to continue
 				visit_url("choice.php?pwd=&whichchoice=1023&option=2", true);
 			}
-			set_property("cc_edCombatStage", 1);
+			set_property("ed_edCombatStage", 1);
 			print("Ed returning to battle Stage 1", "blue");
 
 			if(get_property("_edDefeats").to_int() == 0)
 			{
 				print("Monster defeated in initialization, aborting attempt.", "red");
-				set_property("cc_edCombatStage", 0);
-				set_property("cc_disableAdventureHandling", "no");
+				set_property("ed_edCombatStage", 0);
+				set_property("ed_disableAdventureHandling", "no");
 				cli_execute("postadventure.ash");
 				return true;
 			}
@@ -1335,14 +1326,14 @@ boolean ed_ccAdv(int num, location loc, string option, boolean skipFirstLife)
 					#If this visit_url results in the enemy dying, we don't want to continue
 					visit_url("choice.php?pwd=&whichchoice=1023&option=2", true);
 				}
-				set_property("cc_edCombatStage", 2);
+				set_property("ed_edCombatStage", 2);
 				print("Ed returning to battle Stage 2", "blue");
 
 				if(get_property("_edDefeats").to_int() == 0)
 				{
 					print("Monster defeated in initialization, aborting attempt.", "red");
-					set_property("cc_edCombatStage", 0);
-					set_property("cc_disableAdventureHandling", "no");
+					set_property("ed_edCombatStage", 0);
+					set_property("ed_disableAdventureHandling", "no");
 					cli_execute("postadventure.ash");
 					return true;
 				}
@@ -1360,8 +1351,8 @@ boolean ed_ccAdv(int num, location loc, string option, boolean skipFirstLife)
 				}
 			}
 		}
-		set_property("cc_edCombatStage", 0);
-		set_property("cc_disableAdventureHandling", "no");
+		set_property("ed_edCombatStage", 0);
+		set_property("ed_disableAdventureHandling", "no");
 		cli_execute("postadventure.ash");
 	}
 	return status;

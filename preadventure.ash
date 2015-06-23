@@ -1,6 +1,6 @@
 script "preadventure.ash";
 import <zlib.ash>
-import <cc_util.ash>
+import <ed_util.ash>
 
 void highLogging()
 {
@@ -28,24 +28,16 @@ void highLogging()
 	{
 		print("Lashes used: " + get_property("_edLashCount"));
 	}
-	
-	if((get_property("cc_orchard") == "finished"))
-	{
-		if(get_counters("Fortune Cookie", 0, 200) != "")
-		{
-			print("We don't care about the semirares anymore, we are past the orchard. Cancelling.", "blue");
-		}
-	}
 }
 
 void handlePreAdventure()
 {
-	if(get_property("cc_disableAdventureHandling") == "yes")
+	if(get_property("ed_disableAdventureHandling") == "yes")
 	{
 		return;
 	}
 	
-	if(get_property("cc_highlogging") == "true")
+	if(get_property("ed_highlogging") == "true")
 	{
 		highLogging();
 	}
@@ -190,7 +182,7 @@ void handlePreAdventure()
 			(my_location() == $location[The Defiled Alcove]) ||
 			(my_location() == $location[The Spooky Forest] && ("The Spooky Forest".to_location().turns_spent >= 5)) ||
 			(my_location() == $location[Inside the Palindome]) ||
-			(my_location() == $location[Barrrney\'s Barrr] && item_amount($item[Cap\'m Caronch\'s Map]) == 0 && item_amount($item[Cap\'m Caronch\'s Nasty Booty]) == 0 && (get_property("cc_pirateoutfit") == "insults")) ||
+			(my_location() == $location[Barrrney\'s Barrr] && item_amount($item[Cap\'m Caronch\'s Map]) == 0 && item_amount($item[Cap\'m Caronch\'s Nasty Booty]) == 0 && (get_property("ed_pirateoutfit") == "insults")) ||
 			(my_location() == $location[Wartime Hippy Camp]) ||
 			(my_location() == $location[The Castle in the Clouds in the Sky (Basement)]) ||
 			(my_location() == $location[The Castle in the Clouds in the Sky (Top Floor)]) ||
@@ -248,7 +240,7 @@ void handlePreAdventure()
 			{
 				doBreak = true;
 			}
-		} else if(((my_location() == $location[Hippy Camp]) && !get_property("cc_legsbeforebread").to_boolean()) ||
+		} else if(((my_location() == $location[Hippy Camp]) && !get_property("ed_legsbeforebread").to_boolean()) ||
 			(my_location() == $location[The Penultimate Fantasy Airship]  && ((item_amount($item[mohawk wig]) == 0))) ||
 			(my_location() == $location[Cobb\'s Knob Harem] && !have_outfit("Knob Goblin Harem Girl Disguise")) ||
 			(my_location() == $location[Wartime Frat House (Hippy Disguise)]) && !have_outfit("Frat Warrior Fatigues") &&
