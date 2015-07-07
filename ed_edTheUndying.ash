@@ -62,7 +62,11 @@ void ed_initializeDay(int day)
 			equipBaseline();
 			ovenHandle();
 			set_property("ed_renenutetBought", 0);
-			hermit(10, $item[ten-leaf clover]);
+			if((my_meat() > 500))
+			{
+				buyUpTo(1, $item[Hermit Permit]);
+				cli_execute("hermit * clover");
+			}
 			set_property("ed_day2_init", "finished");
 		}
 	}
@@ -71,7 +75,11 @@ void ed_initializeDay(int day)
 		if(get_property("ed_day3_init") == "")
 		{
 			set_property("ed_renenutetBought", 0);
-			hermit(10, $item[ten-leaf clover]);
+			if((my_meat() > 500))
+			{
+				buyUpTo(1, $item[Hermit Permit]);
+				cli_execute("hermit * clover");
+			}
 			set_property("ed_day3_init", "finished");
 		}
 	}
@@ -227,7 +235,7 @@ boolean ed_doResting()
 	{
 		return false;
 	}
-	if(have_effect($effect[Prayer of Seshat]).to_int() > 300)
+	if(have_effect($effect[Prayer of Seshat]).to_int() >= 300)
 	{
 		return false;
 	}
@@ -845,7 +853,7 @@ boolean ed_shopping()
 		}
 	}
 	
-	if(((my_spleen_use() + 5) <= spleen_limit()) && ((my_adventures() < 15) || have_skill($skill[More Elemental Wards])))
+	if(((my_spleen_use() + 5) <= spleen_limit()) && ((my_adventures() < 25) || have_skill($skill[More Elemental Wards])))
 	{
 		int canEat = (spleen_limit() - my_spleen_use()) / 5;
 		canEat = canEat - item_amount($item[Mummified Beef Haunch]);
