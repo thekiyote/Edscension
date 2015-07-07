@@ -15,7 +15,6 @@ void handlePostAdventure()
 
 	if(last_monster() == $monster[writing desk])
 	{
-		set_property("writingDesksDefeated", (get_property("writingDesksDefeated").to_int() + 1));
 		print("Fought " + get_property("writingDesksDefeated") + " writing desks.", "blue");
 	}
 	if(last_monster() == $monster[ninja snowman assassin])
