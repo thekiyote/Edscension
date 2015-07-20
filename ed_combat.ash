@@ -288,7 +288,13 @@ string ed_edCombatHandler(int round, string opp, string text)
 	{
 		print("ed_combatHandler: " + round, "brown");
 		set_property("ed_combatHandler", "");
-		if(get_property("ed_edCombatStage").to_int() == 0)
+		if(get_property("ed_edCombatStage").to_int() == 0 && (item_amount($item[rock band flyers]) == 1))
+		{
+			set_property("ed_edCombatCount", 1 + get_property("ed_edCombatCount").to_int());
+			set_property("ed_edCombatStage", 1);
+			set_property("ed_edStatus", "UNDYING!");
+		}
+		else if(get_property("ed_edCombatStage").to_int() == 0)
 		{
 			set_property("ed_edCombatCount", 1 + get_property("ed_edCombatCount").to_int());
 			set_property("ed_edCombatStage", 1);
@@ -942,6 +948,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 	{
 		fightStat = fightStat - 50;
 	}
+	
 	if((fightStat > monster_defense()) && (round < 20) && ((expected_damage() * 1.1) < my_hp()))
 	{
 		return "attack with weapon";
@@ -958,6 +965,14 @@ string ed_edCombatHandler(int round, string opp, string text)
 	}
 
 	if((enemy.physical_resistance >= 100) || (round >= 25) || ((expected_damage() * 1.25) >= my_hp()))
+	{
+		if((my_mp() >= 5) && have_skill($skill[Fist of the Mummy]))
+		{
+			return "skill Fist of the Mummy";
+		}
+	}
+	
+	if(last_monster().id == 1185)
 	{
 		if((my_mp() >= 5) && have_skill($skill[Fist of the Mummy]))
 		{

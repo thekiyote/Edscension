@@ -27,11 +27,6 @@ void ed_initializeSettings()
 
 void ed_initializeDay(int day)
 {
-	if(my_path() != "Actually Ed the Undying")
-	{
-		return;
-	}
-	
 	if(day == 1)
 	{
 		if(get_property("ed_day1_init") != "finished")
@@ -88,7 +83,7 @@ void ed_initializeDay(int day)
 		if(get_property("ed_day4_init") == "")
 		{
 			set_property("ed_renenutetBought", 0);
-			hermit(10, $item[ten-leaf clover]);
+			cli_execute("hermit * clover");
 			set_property("ed_day4_init", "finished");
 		}
 	}
@@ -896,10 +891,22 @@ boolean ed_shopping()
 		}
 	} else if(!get_property("ed_dickstab").to_boolean() && (item_amount($item[Holy Spring Water]) < 3))
 	{
-		while((item_amount($item[Holy Spring Water]) < 3) && (coins > 2))
+		while((item_amount($item[Holy Spring Water]) < 3) && (coins > 1) && (my_maxMP() < 80))
 		{
 			print("Buying Holy Spring Water", "green");
 			visit_url("shop.php?pwd=&whichshop=edunder_shopshop&action=buyitem&quantity=1&whichrow=436", true);
+			coins -= 1;
+		}
+		while((item_amount($item[spirit beer]) < 3) && (coins > 2) && (my_maxMP() < 180) && (my_maxMP() > 79))
+		{
+			print("Buying Spirit Beer", "green");
+			visit_url("shop.php?pwd=&whichshop=edunder_shopshop&action=buyitem&quantity=1&whichrow=432", true);
+			coins -= 1;
+		}
+		while((item_amount($item[sacramental wine]) < 3) && (coins > 3) && (my_maxMP() > 179))
+		{
+			print("Buying Sacramental Wine", "green");
+			visit_url("shop.php?pwd=&whichshop=edunder_shopshop&action=buyitem&quantity=1&whichrow=433", true);
 			coins -= 1;
 		}
 	} else if(!have_skill($skill[More Legs]) && !get_property("ed_dickstab").to_boolean())
@@ -993,6 +1000,10 @@ boolean ed_shopping()
 			print("Buying Elemental Wards", "green");
 			skillBuy = 44;
 		}
+	} else if(!have_skill($skill[Tougher Skin]) && (my_daycount() > 1) && (coins > 20))
+	{
+		print("Buying Tougher Skin (10)", "green");
+		skillBuy = 39;
 	} else if(!have_skill($skill[More Elemental Wards]))
 	{
 		if(coins >= 20)
@@ -1007,14 +1018,39 @@ boolean ed_shopping()
 			print("Buying Even More Elemental Wards", "green");
 			skillBuy = 46;
 		}
+	} else if(have_skill($skill[Okay Seriously, This is the Last Spleen]))
+	{
+		while((item_amount($item[Linen Bandages]) < 4) && (coins >= 4))
+		{
+			print("Buying Linen Bandages", "green");
+			visit_url("shop.php?pwd=&whichshop=edunder_shopshop&action=buyitem&quantity=1&whichrow=429", true);
+			#buy(1, $item[Linen Bandages]);
+			coins -= 1;
+		}
+		while((item_amount($item[Talisman of Horus]) < 3) && (coins >= 5))
+		{
+			print("Buying Talisman of Horus", "green");
+			visit_url("shop.php?pwd=&whichshop=edunder_shopshop&action=buyitem&quantity=1&whichrow=693", true);
+			#buy(1, $item[Talisman of Horus]);
+			coins -= 5;
+		}
+		if(((item_amount($item[Soft Green Echo Eyedrop Antidote]) + item_amount($item[Ancient Cure-All])) < 2) && (coins >= 30))
+		{
+			print("Buying Ancient Cure-all", "green");
+			visit_url("shop.php?pwd=&whichshop=edunder_shopshop&action=buyitem&quantity=1&whichrow=435", true);
+			#buy(1, $item[Ancient Cure-all]);
+			coins -= 3;
+		}
+		while((item_amount($item[sacramental wine]) < 3) && (coins > 3))
+		{
+			print("Buying Sacramental Wine", "green");
+			visit_url("shop.php?pwd=&whichshop=edunder_shopshop&action=buyitem&quantity=1&whichrow=433", true);
+			coins -= 1;
+		}
 	} else if(!have_skill($skill[Upgraded Arms]) && (my_daycount() > 1) && (coins > 20))
 	{
 		print("Buying Upgraded Arms (20)", "green");
 		skillBuy = 37;
-	} else if(!have_skill($skill[Tougher Skin]) && (my_daycount() > 1) && (coins > 20))
-	{
-		print("Buying Tougher Skin (10)", "green");
-		skillBuy = 39;
 	} else if(!have_skill($skill[Armor Plating]) && (my_daycount() > 1) && (coins > 20))
 	{
 		print("Buying Armor Plating (10)", "green");
@@ -1029,43 +1065,6 @@ boolean ed_shopping()
 		{
 			print("Buying Healing Scarabs", "green");
 			skillBuy = 43;
-		}
-	} else if(have_skill($skill[Okay Seriously, This is the Last Spleen]))
-	{
-		while((item_amount($item[Linen Bandages]) < 4) && (coins >= 4))
-		{
-			print("Buying Linen Bandages", "green");
-			visit_url("shop.php?pwd=&whichshop=edunder_shopshop&action=buyitem&quantity=1&whichrow=429", true);
-			#buy(1, $item[Linen Bandages]);
-			coins -= 1;
-		}
-		while((item_amount($item[Holy Spring Water]) < 1) && (coins >= 2))
-		{
-			print("Buying Holy Spring Water", "green");
-			visit_url("shop.php?pwd=&whichshop=edunder_shopshop&action=buyitem&quantity=1&whichrow=436", true);
-			#buy(1, $item[Holy Spring Water]);
-			coins -= 1;
-		}
-		while((item_amount($item[Talisman of Horus]) < 3) && (coins >= 5))
-		{
-			print("Buying Talisman of Horus", "green");
-			visit_url("shop.php?pwd=&whichshop=edunder_shopshop&action=buyitem&quantity=1&whichrow=693", true);
-			#buy(1, $item[Talisman of Horus]);
-			coins -= 5;
-		}
-		while((item_amount($item[Spirit Beer]) == 0) && (coins >= 30))
-		{
-			print("Buying Spirit Beer", "green");
-			visit_url("shop.php?pwd=&whichshop=edunder_shopshop&action=buyitem&quantity=1&whichrow=432", true);
-			#buy(1, $item[Spirit Beer]);
-			coins -= 1;
-		}
-		if(((item_amount($item[Soft Green Echo Eyedrop Antidote]) + item_amount($item[Ancient Cure-All])) < 2) && (coins >= 30))
-		{
-			print("Buying Ancient Cure-all", "green");
-			visit_url("shop.php?pwd=&whichshop=edunder_shopshop&action=buyitem&quantity=1&whichrow=435", true);
-			#buy(1, $item[Ancient Cure-all]);
-			coins -= 3;
 		}
 	}
 
@@ -1089,7 +1088,7 @@ boolean ed_handleAdventureServant(location loc)
 	{
 		reassign = true;
 	}
-	if((my_daycount() >= 3) && (my_adventures() >= 20) && (my_level() >= 12))
+	if((my_daycount() > 2) || (my_level() > 11))
 	{
 		reassign = true;
 	}
@@ -1104,22 +1103,10 @@ boolean ed_handleAdventureServant(location loc)
 		{
 			handleServant($servant[Cat]);
 		}
-		else if(!have_skill($skill[Gift of the Maid]) && have_servant($servant[Maid]) && (get_property("ed_nuns") != "finished") && (get_property("ed_nuns") != "done") && (have_skill($skill[Curse of Fortune])))
-		{
-			handleServant($servant[Maid]);
-		}
-		else if((have_servant($servant[Belly-Dancer])))
-		{
-			handleServant($servant[Belly-Dancer]);
-		}
 		else
 		{
 			handleServant($servant[Cat]);
 		}
-	}
-	if((loc == $location[The Secret Government Laboratory]) && (my_daycount() == 1))
-	{
-		handleServant($servant[Priest]);
 	}
 
 	if((loc == $location[The Defiled Nook]) ||
@@ -1147,20 +1134,14 @@ boolean ed_handleAdventureServant(location loc)
 		{
 			if(!handleServant($servant[Cat]))
 			{
-				if(!handleServant($servant[Scribe]))
-				{
-					handleServant($servant[Maid]);
-				}
+				handleServant($servant[Scribe]);
 			}
 		}
 		else
 		{
 			if(!handleServant($servant[Scribe]))
 			{
-				if(!handleServant($servant[Cat]))
-				{
-					handleServant($servant[Maid]);
-				}
+				handleServant($servant[Cat]);
 			}
 		}
 	}
@@ -1172,26 +1153,21 @@ boolean ed_handleAdventureServant(location loc)
 		(loc == $location[The Haunted Ballroom]) ||
 		(loc == $location[The Haunted Billiards Room]) ||
 		(loc == $location[The Haunted Kitchen]) ||
-		(loc == $location[The Haunted Bathroom]))
+		(loc == $location[The Haunted Bathroom]) ||
+		(loc == $location[The Haunted Library]))
 	{
 		if(!handleServant($servant[Scribe]))
 		{
-			if(!handleServant($servant[Cat]))
-			{
-				handleServant($servant[Maid]);
-			}
+			handleServant($servant[Cat]);
 		}
 	}
 
 	if(loc == $location[The Themthar Hills])
 	{
-		if(!handleServant($servant[Maid]))
-		{
-			handleServant($servant[Scribe]);
-		}
+		handleServant($servant[Maid]);
 	}
 
-//The cat is swapped in at the shrines while matcheing them because your servant still gets xp points, also sparrows. :D
+//The cat is swapped in at the shrines while macheteing them because your servant still gets xp points, also sparrows. :D
 	if((loc == $location[Next To That Barrel With Something Burning In It]) ||
 		(loc == $location[Out By That Rusted-Out Car]) ||
 		(loc == $location[Over Where The Old Tires Are]) ||

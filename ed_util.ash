@@ -355,7 +355,7 @@ boolean buffMaintain(effect buff, int mp_min, int casts, int turns)
 	case $effect[Neutered Nostrils]:			useItem = $item[Polysniff Perfume];				break;
 	case $effect[Oiled-Up]:						useItem = $item[Pec Oil];						break;
 	case $effect[One Very Clear Eye]:			useItem = $item[Cyclops Eyedrops];				break;
-	case $effect[Perceptive Pressure]:			useItem = $item[Pressurized Potion of Perception];	break;
+	case $effect[Perceptive Pressure]:			useItem = $item[Pressurized Potion of Perception];break;
 	case $effect[Pill Party!]:					useItem = $item[Pill Cup];						break;
 	case $effect[Prayer of Seshat]:				useSkill = $skill[Prayer of Seshat];			break;
 	case $effect[Polar Express]:				useItem = $item[Cloaca Cola Polar];				break;
@@ -386,6 +386,7 @@ boolean buffMaintain(effect buff, int mp_min, int casts, int turns)
 	case $effect[Wisdom of Thoth]:				useSkill = $skill[Wisdom of Thoth];				break;
 	case $effect[Woad Warrior]:					useItem = $item[Pygmy Pygment];					break;
 	case $effect[You Read the Manual]:			useItem = $item[O\'Rly Manual];					break;
+	case $effect[Silent Running]:				visit_url("clan_viplounge.php?preaction=goswimming&subaction=submarine");break;
 	default: abort("Effect (" + buff + ") is not known to us. Beep.");							break;
 	}
 
