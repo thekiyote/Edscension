@@ -14,7 +14,7 @@ int fastenerCount();
 int lumberCount();
 string tryBeerPong();
 boolean buyUpTo(int num, item it);
-boolean buffMaintain(effect buff, int mp_min, int cases, int turns);
+boolean buffMaintain(effect buff, int mp_min, int casts, int turns);
 boolean ed_deleteMail(kmessage msg);
 void woods_questStart();			//From Bale\'s woods.ash relay mod.
 int howLongBeforeHoloWristDrop();
@@ -275,7 +275,7 @@ boolean buyUpTo(int num, item it)
 
 boolean buffMaintain(skill source, effect buff, int mp_min, int casts, int turns)
 {
-	if((!have_skill(source)) || (have_effect(buff) >= turns))
+	if((!have_skill(source)) || (have_effect(buff) > turns))
 	{
 		return false;
 	}

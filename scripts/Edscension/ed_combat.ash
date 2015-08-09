@@ -164,7 +164,7 @@ string ccsJunkyard(int round, string opp, string text)
 
 	if(!get_property("ed_gremlinMoly").to_boolean())
 	{
-		if(get_property("ed_edCombatStage").to_int() >= 2)
+		if(get_property("ed_edCombatStage").to_int() > 2)
 		{
 			string banisher = findBanisher(opp);
 			if(banisher != "attack with weapon")
@@ -179,7 +179,7 @@ string ccsJunkyard(int round, string opp, string text)
 		}
 	}
 
-	if((!contains_text(combatState, "flyers")) && (my_location() != $location[The Battlefield (Frat Uniform)]))
+	if((!contains_text(combatState, "flyers")) && (my_location() != $location[The Battlefield (Frat Uniform)]) && (get_property("ed_edCombatStage").to_int() < 3))
 	{
 		if((item_amount($item[rock band flyers]) > 0) && (get_property("flyeredML").to_int() < 10000))
 		{
@@ -187,19 +187,11 @@ string ccsJunkyard(int round, string opp, string text)
 			return "item rock band flyers";
 		}
 	}
-	if(get_property("ed_edCombatStage").to_int() == 1 && (my_location() != $location[The Battlefield (Frat Uniform)]) && (!contains_text(combatState, "flyers2")))
+	if(get_property("ed_edCombatStage").to_int() > 2 && (my_location() != $location[The Battlefield (Frat Uniform)]) && (!contains_text(combatState, "flyers")) && ((expected_damage() * 1.1) <= my_hp()))
 	{
 		if((item_amount($item[rock band flyers]) > 0) && (get_property("flyeredML").to_int() < 10000))
 		{
-			set_property("ed_combatHandler", combatState + "(flyers2)");
-			return "item rock band flyers";
-		}
-	}
-	if(get_property("ed_edCombatStage").to_int() == 2 && (my_location() != $location[The Battlefield (Frat Uniform)]) && (expected_damage() * 1.15) < my_hp() && (!contains_text(combatState, "flyers3")))
-	{
-		if((item_amount($item[rock band flyers]) > 0) && (get_property("flyeredML").to_int() < 10000))
-		{
-			set_property("ed_combatHandler", combatState + "(flyers3)");
+			set_property("ed_combatHandler", combatState + "(flyers)");
 			return "item rock band flyers";
 		}
 	}
@@ -288,24 +280,19 @@ string ed_edCombatHandler(int round, string opp, string text)
 	{
 		print("ed_combatHandler: " + round, "brown");
 		set_property("ed_combatHandler", "");
-		if(get_property("ed_edCombatStage").to_int() == 0 && (item_amount($item[rock band flyers]) == 1))
+		if(get_property("ed_edCombatStage").to_int() < 3 && (item_amount($item[rock band flyers]) == 1))
 		{
 			set_property("ed_edCombatCount", 1 + get_property("ed_edCombatCount").to_int());
-			set_property("ed_edCombatStage", 1);
 			set_property("ed_edStatus", "UNDYING!");
+			print("test1", "red");
 		}
-		else if(get_property("ed_edCombatStage").to_int() == 0)
+		else if(get_property("ed_edCombatStage").to_int() < 3)
 		{
 			set_property("ed_edCombatCount", 1 + get_property("ed_edCombatCount").to_int());
-			set_property("ed_edCombatStage", 1);
 			set_property("ed_edStatus", "dying");
-		}
-		else
-		{
-			set_property("ed_edCombatStage", 1 + get_property("ed_edCombatStage").to_int());
+			print("test4", "red");
 		}
 	}
-	set_property("ed_edCombatRoundCount", 1 + get_property("ed_edCombatRoundCount").to_int());
 
 	set_property("ed_diag_round", round);
 
@@ -319,12 +306,11 @@ string ed_edCombatHandler(int round, string opp, string text)
 	string combatState = get_property("ed_combatHandler");
 	string edCombatState = get_property("ed_edCombatHandler");
 	
-	if((item_amount($item[ka coin]) > 30) && !have_skill($skill[Healing Scarabs]) && (get_property("_edDefeats").to_int() == 0))
+	if((item_amount($item[ka coin]) > 30) && (!have_skill($skill[Healing Scarabs]) || (my_spleen_use() < spleen_limit())) && (get_property("_edDefeats").to_int() == 0) &&
+	(!contains_text(edCombatState, "talismanofrenenutet") || contains_text(edCombatState, "insults") || !contains_text(edCombatState, "curse of fortune")))
 	{
 		set_property("ed_edStatus", "UNDYING!");
-	} else if((item_amount($item[ka coin]) > 30) && !have_skill($skill[Healing Scarabs]) && (get_property("_edDefeats").to_int() > 0))
-	{
-		set_property("ed_edStatus", "dying");
+		print("test5", "red");
 	}
 	
 	if((enemy == $monster[Pygmy Shaman] && have_effect($effect[Thrice-Cursed]) == 0) ||
@@ -337,19 +323,18 @@ string ed_edCombatHandler(int round, string opp, string text)
 		(enemy == $monster[tipsy pirate] && (get_property("lastPirateInsult1") == false || get_property("lastPirateInsult2") == false || get_property("lastPirateInsult3") == false || get_property("lastPirateInsult4") == false || get_property("lastPirateInsult5") == false || get_property("lastPirateInsult6") == false || get_property("lastPirateInsult7") == false || get_property("lastPirateInsult8") == false)))
 	{
 		set_property("ed_edStatus", "UNDYING!");
+		print("test6", "red");
 	}
 	
-	if((item_amount($item[rock band flyers]) == 1 && get_property("flyeredML") < 10000))
+	if((get_property("ed_edCombatStage").to_int() >= 2) && ((item_amount($item[rock band flyers]) == 0) || (get_property("flyeredML") >= 10000)))
+	{
+		set_property("ed_edStatus", "dying");
+		print("test2", "red");
+	}
+	if((get_property("ed_edCombatStage").to_int() < 4) && (item_amount($item[rock band flyers]) > 0) && (get_property("flyeredML").to_int() < 10000) && (item_amount($item[ka coin]) > 2))
 	{
 		set_property("ed_edStatus", "UNDYING!");
-	}
-	
-	if(get_property("ed_edCombatStage").to_int() >= 5 && (item_amount($item[rock band flyers]) == 1 && get_property("flyeredML") < 10000) && have_skill($skill[Healing Scarabs]))
-	{
-		set_property("ed_edStatus", "dying");
-	} else if(get_property("ed_edCombatStage").to_int() >= 3)
-	{
-		set_property("ed_edStatus", "dying");
+		print("test3", "red");
 	}
 	
 	#Handle different path is monster_level_adjustment() > 150 (immune to staggers?)
@@ -442,14 +427,34 @@ string ed_edCombatHandler(int round, string opp, string text)
 			return "skill curse of fortune";
 		}
 	}
-
-	if((item_amount($item[The Big Book of Pirate Insults]) > 0) && (!contains_text(combatState, "insults")))
+	
+	if(contains_text(edCombatState, "curse of fortune"))
 	{
-		if((my_location() == $location[barrrney\'s barrr]))
+		set_property("ed_edStatus", "dying");
+	}
+
+	if((item_amount($item[The Big Book of Pirate Insults]) > 0) && (!contains_text(combatState, "insults")) && (my_location() == $location[barrrney\'s barrr]))
+	{
+		if(((expected_damage() * 1.1) > my_hp()) && (get_property("ed_edStatus") == "dying"))
 		{
-			set_property("ed_combatHandler", combatState + "(insults)");
-			return "item the big book of pirate insults";
+			if((monster_level_adjustment() < 51) && !contains_text(combatState, "love gnats3") && have_skill($skill[curse of indecision]))
+			{
+				set_property("ed_combatHandler", combatState + "(love gnats3)");
+				return "skill Curse of Indecision";
+			}
+			if(contains_text(combatState, "love gnats3"))
+			{
+				set_property("ed_combatHandler", combatState + "(insults)");
+				return "item the big book of pirate insults";
+			}
+			else
+			{
+				return "storm of the scarab";
+			}
 		}
+
+		set_property("ed_combatHandler", combatState + "(insults)");
+		return "item the big book of pirate insults";
 	}
 
 	if(!contains_text(edCombatState, "curseofstench") && (have_skill($skill[Curse of Stench])) && (my_mp() >= 35) && (get_property("stenchCursedMonster") != opp) && (get_property("ed_edStatus") == "UNDYING!"))
@@ -570,6 +575,10 @@ string ed_edCombatHandler(int round, string opp, string text)
 			doWrath = true;
 		}
 		if(enemy == $monster[knob goblin harem girl] && !possessEquipment($item[knob goblin harem veil]) && !possessEquipment($item[knob goblin harem pants]))
+		{
+			doWrath = true;
+		}
+		if(enemy == $monster[knight (Snake)] && !possessEquipment($item[serpentine sword]) && !possessEquipment($item[snake shield]) && (my_daycount() < 3))
 		{
 			doWrath = true;
 		}
@@ -966,18 +975,18 @@ string ed_edCombatHandler(int round, string opp, string text)
 
 	if((enemy.physical_resistance >= 100) || (round >= 25) || ((expected_damage() * 1.25) >= my_hp()))
 	{
-		if((my_mp() >= 5) && have_skill($skill[Fist of the Mummy]))
-		{
+		if(enemy.raw_hp < 85)
 			return "skill Fist of the Mummy";
-		}
+		else
+			return "skill Storm of the Scarab";
 	}
 	
 	if(last_monster().id == 1185)
 	{
-		if((my_mp() >= 5) && have_skill($skill[Fist of the Mummy]))
-		{
+		if(enemy.raw_hp < 85)
 			return "skill Fist of the Mummy";
-		}
+		else
+			return "skill Storm of the Scarab";
 	}
 
 	if(round >= 29)
@@ -985,5 +994,8 @@ string ed_edCombatHandler(int round, string opp, string text)
 		print("About to UNDYING too much but have no other combat resolution. Please report this.", "red");
 	}
 
-	return "attack with weapon";
+	if(enemy.raw_hp < 85)
+		return "skill Fist of the Mummy";
+	else
+		return "skill Storm of the Scarab";
 }

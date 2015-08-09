@@ -1,0 +1,6 @@
+1	ed_newbieOverride	boolean	ANY	Did you fight a crate? Ugh... Report it please, but if you want the script to try again, set this to true and it'll override it. Once.
+2	ed_edDelayHauntedKitchen	boolean	ANY	Should we delay the Haunted Kitchen until Ed has Even More Elemental Wards?
+3	ed_dickstab	boolean	ANY	Do you want to let the script potentially spend lots of meat just to shave off a few adventures? You probably don't, because this will probably break stuff.
+4	ed_pvpEnable	boolean	PRE	Automatically participate in PvP?
+5	ed_getDinseyGarbageMoney	boolean	ANY	Spend a few turns getting the easy FunBucks during a run?
+8	ed_haveoven	boolean	POST	If you have an oven, this should be true.

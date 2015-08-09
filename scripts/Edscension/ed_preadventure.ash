@@ -151,7 +151,7 @@ void handlePreAdventure()
 		{
 			buffMaintain($effect[Blessing of Serqet], 15, 1, 1);
 		}
-		while(my_mp() > 120)
+		while((my_mp() > 120) && (have_effect($effect[wisdom of thoth]) < 50))
 		{
 			int start = my_mp();
 			buffMaintain($effect[Prayer of Seshat], 5, 1, 300);
@@ -164,6 +164,7 @@ void handlePreAdventure()
 				break;
 			}
 		}
+		
 
 //Handle -combat
 		if((my_location() == $location[The Penultimate Fantasy Airship] && ("The Penultimate Fantasy Airship".to_location().turns_spent >= 10)) ||
@@ -186,7 +187,8 @@ void handlePreAdventure()
 			(my_location() == $location[Wartime Hippy Camp]) ||
 			(my_location() == $location[The Castle in the Clouds in the Sky (Basement)]) ||
 			(my_location() == $location[The Castle in the Clouds in the Sky (Top Floor)]) ||
-			(my_location() == $location[The Castle in the Clouds in the Sky (Ground Floor)]))
+			(my_location() == $location[The Castle in the Clouds in the Sky (Ground Floor)]) ||
+			(my_location() == $location[The Hidden Park]))
 		{
 			if((have_effect($effect[Taunt of Horus]) > 0))
 			{
@@ -196,13 +198,13 @@ void handlePreAdventure()
 				}
 			}
 				
-			buffMaintain($effect[Shelter of Shed], 15, 1, 1);
+			buffMaintain($effect[Shelter of Shed], 15, 1, 0);
 		}
 
 //Handle +combat
 		if((my_location() == $location[Lair of the Ninja Snowmen] && ("Lair of the Ninja Snowmen".to_location().turns_spent >= 1)) ||
 			(my_location() == $location[Sonofa Beach]) ||
-			(my_location() == $location[The f'cle]))
+			(my_location() == $location[The F'c'le]))
 		{
 			if((have_effect($effect[Shelter of Shed]) > 0))
 			{
@@ -300,6 +302,7 @@ void handlePreAdventure()
 	return;
 }
 
-void main(){
+void ed_preadventure()
+{
 	handlePreAdventure();
 }

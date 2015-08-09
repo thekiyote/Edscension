@@ -7,27 +7,42 @@ Written to more fully define and explore the Actually Ed
 the Undying functionalities of said script, and as a skill
 stretching project for Zen00 before attempting an independent
 ascension script for a future Kingdom of Loathing ascension path.
-				V. 1.0.1.0
+				V. 1.0.2.0
 
 					
 Changelog from last version:
-Fixed it delaying doing the ninjas
-Also fixed combat with ninja assassins
-Reordered some more quests
-Testing leveling with giants instead of gallery
-Rewrote some handling code for the ghost necklace (shouldn't cause any changes)
-Fixed Nun Handling, so that it doesn't abort mid-way through them.
-Trying flyering in the giants castle for people without Mr. Store access.
-Trying +ML instead of -combat for Strung-Up Quartet
-Went back to leveling in Gallery (but still flyering in the castle)
-Fixed temple aborting
-Fixed pirate handling of +combat
-Some rearrangement of purchasing and MP support
+Ed now remembers to have -combat for The Hidden Park
+Now supports paying up to 3 ka coins (2 additional undeath/flyering sequences, can do more if people need more) when undying for flyering, more important for those with minimal ML sources
+Doesn't try shopping multiple times per fight now
+Fixed a bug with shopping and single round use items/skills such as curse of fortune and talisman of renenutet
+Shopping should hopefully trigger to fill your spleen always now, but then again, it's death dependent so if you don't die it won't work
+Fixed a bug with pirates quest
+Shut up that nagging message about unreachable code
+A possible fix for not imbueing properly (definite fix after testing)
+YR for snake knight now (hooray for xp!) as well as some MP adjustments to make YRs and Stench happen properly (might cause more "Can't restore" stops)
+Should now support doing The Hidden Temple if you didn't get enough stone wool
+Improved handling of The Hidden Park (to help with obtaining book of matches)
+Servant handling is now much improved, imbuing works properly, and I still don't get regex. :/
+Shopping should be working as normal again, hooray for giant redundant ifs!
+Now buys silk bandages once you hit level 12 (for Boo Peak healing)
+Some slight tweaks to the combat script that should reduce the number of accidental undeaths by trying to attack with weapon when should be summoning scarabs
+More messing around with the shopping list to see if I can get Even More Elemental Wards to be purchased in a timely manner
+Working on the eating/drinking automagically, I swear!
+Should now stop aborting the LFM while still having +combat but no Horus talismen
+Now properly sets your battle action as well as CCS and Mood and Recovery Settings
+Your moxie is now properly taken into account before trying to be a pirate, arrr
+Should now have fewer extra-undeaths while insult gathering
+Should hopefully stop auto-stopping when using Caronch's map and dying on the first round
+RELAY SETTINGS NOW WORK
+SVN support is go!
 
 ********************************************/
 
+/***	svn checkout 		***/
+
 script "Edscension";
 notify Zen00;
+since r16075;
 
 import <ed_combat.ash>
 import <ed_util.ash>
@@ -105,15 +120,11 @@ void initializeSettings()
 		return;
 	}
 	set_property("ed_doneInitialize", my_ascensions());
-
-	set_property("kingLiberatedScript", "kingLiberated.ash");
-	set_property("afterAdventureScript", "postadventure.ash");
-	set_property("betweenAdventureScript", "preadventure.ash");
+	set_property("afterAdventureScript", "ed_postadventure.ash");
 	set_property("chasmBridgeProgress", 0);
 	set_property("ed_abooclover", "");
 	set_property("ed_aftercore", "");
 	set_property("ed_airship", "");
-	set_property("ed_ballroom", "");
 	set_property("ed_ballroomflat", "");
 	set_property("ed_ballroomopen", "");
 	set_property("ed_ballroomsong", "");
@@ -124,7 +135,6 @@ void initializeSettings()
 	set_property("ed_banishes", "");
 	set_property("ed_bat", "");
 	set_property("ed_bean", "");
-	set_property("ed_getBeehive", false);
 	set_property("ed_blackfam", false);
 	set_property("ed_blackmap", "");
 	set_property("ed_boopeak", "");
@@ -139,12 +149,14 @@ void initializeSettings()
 	set_property("ed_day2_init", "");
 	set_property("ed_day3_init", "");
 	set_property("ed_day4_init", "");
+	set_property("delayToDayFour", FALSE);
 	set_property("ed_disableAdventureHandling", "no");
 	set_property("ed_doCombatCopy", "no");
 	set_property("doNunsRegardless", FALSE);
 	set_property("ed_fcle", "");
 	set_property("ed_fratWarOutfit", "");
 	set_property("ed_friars", "");
+	set_property("ed_galleryFarm", FALSE);
 	set_property("ed_gaudy", "");
 	set_property("ed_gaudypiratecount", "");
 	set_property("ed_goblinking", "");
@@ -164,6 +176,7 @@ void initializeSettings()
 	set_property("ed_hugeghuol", "");
 	set_property("ed_ignoreFlyer", "false");
 	set_property("ed_legsbeforebread", "false");
+	set_property("ed_maurice", "");
 	set_property("ed_mcmuffin", "");
 	set_property("ed_mistypeak", "");
 	set_property("ed_modernzmobiecount", "");
@@ -213,6 +226,11 @@ void initializeSettings()
 	ed_initializeSettings();
 }
 
+boolean ed_ccAdv(int num, location loc, string option)
+{
+	return ed_ccAdv(num, loc, option, false);
+}
+
 boolean ccAdv(int num, location loc, string option)
 {
 	return ed_ccAdv(num, loc, option);
@@ -225,7 +243,7 @@ boolean ccAdv(int num, location loc)
 
 boolean ccAdvBypass(string url, location loc)
 {
-	ed_preAdv(1, loc, "");
+	ed_preAdv(1, loc);
 	print("About to start a combat indirectly at " + loc + "...", "blue");
 	string page = visit_url(url);
 	if((my_hp() == 0) || (get_property("_edDefeats").to_int() == 1))
@@ -248,12 +266,12 @@ boolean ccAdvBypass(int snarfblat, location loc)
 
 boolean ccAdvBypass(int snarfblat)
 {
-	return ccAdvBypass(snarfblat, $location[Noob Cave]);
+	return ccAdvBypass(snarfblat, to_location(snarfblat));
 }
 
-boolean ccAdvBypass(string url)
+boolean ccAdvBypass(string loc)
 {
-	return ccAdvBypass(url, $location[Noob Cave]);
+	return ccAdvBypass(loc, $location[noob cave]);
 }
 
 #This is an override so we can add locations while they are not part of a daily mafia build.
@@ -280,7 +298,7 @@ void warOutfit()
 
 void warAdventure()
 {
-	handleServant($servant[Scribe]);
+	use_servant($servant[Scribe]);
 	maximize("exp, outfit frat warrior fatigues", 1, 0, false);
 	ccAdv(1, $location[The Battlefield (Frat Uniform)]);
 }
@@ -333,7 +351,7 @@ boolean doThemtharHills(boolean trickMode)
 	if(my_class() == $class[Ed])
 	{
 		visit_url("charsheet.php");
-		handleServant($servant[maid]);
+		use_servant($servant[maid]);
 	}
 	float meatDropHave = meat_drop_modifier();
 	meatDropHave = meatDropHave + edMeatBonus();
@@ -552,12 +570,6 @@ void sellStuff()
 
 void initializeDay(int day)
 {
-	if(get_property("kingLiberated").to_boolean())
-	{
-		return;
-	}
-	
-	cli_execute("ccs null");
 	if (get_property("chateauAvailable").to_boolean() && !get_property("_chateauDeskHarvested").to_boolean())
 	{
 		visit_url("place.php?whichplace=chateau&action=chateau_desk");
@@ -615,19 +627,6 @@ void doBedtime()
 		setvar("chit.helpers.xiblaxian", true);
 	}
 
-	if(my_class() == $class[Ed])
-	{
-		if(get_property("hpAutoRecoveryItems") == "linen bandages")
-		{
-			set_property("hpAutoRecoveryItems", get_property("ed_hpAutoRecoveryItems"));
-			set_property("hpAutoRecovery", get_property("ed_hpAutoRecovery"));
-			set_property("hpAutoRecoveryTarget", get_property("ed_hpAutoRecoveryTarget"));
-			set_property("ed_hpAutoRecoveryItems", "");
-			set_property("ed_hpAutoRecovery", 0.0);
-			set_property("ed_hpAutoRecoveryTarget", 0.0);
-		}
-	}
-
 	if((my_meat() > 500))
 	{
 		buyUpTo(1, $item[Hermit Permit]);
@@ -638,6 +637,7 @@ void doBedtime()
 	{
 		cli_execute("friars familiar");
 	}
+	
 	if((my_hp() < my_maxhp()) && (get_property("_hotTubSoaks").to_int() < 5))
 	{
 		cli_execute("hottub");
@@ -842,7 +842,7 @@ boolean LX_chateauDailyPainting()
 			if((have_effect($effect[Everything Looks Yellow]) == 0) && have_skill($skill[Wrath of Ra]) && (my_mp() >= 40) &&
 			(oreHave < 3) && (get_property("ed_trapper") == "start"))
 			{
-				handleServant("Scribe");
+				use_servant($servant[scribe]);
 				visit_url("place.php?whichplace=chateau&action=chateau_painting");
 				ccAdvBypass(1, $location[Noob Cave]);
 				return true;
@@ -857,7 +857,7 @@ boolean LX_chateauDailyPainting()
 			{
 				maximize("exp, equip the crown of ed the undying", 0, 0, false);
 				adjustEdHat("weasel");
-				handleServant("Scribe");
+				use_servant($servant[scribe]);
 				visit_url("place.php?whichplace=chateau&action=chateau_painting");
 				ccAdvBypass(1, $location[Noob Cave]);
 				return true;
@@ -882,7 +882,7 @@ boolean LX_chateauDailyPainting()
 			{
 				maximize("exp, equip the crown of ed the undying", 0, 0, false);
 				adjustEdHat("weasel");
-				handleServant("Priest");
+				use_servant($servant[scribe]);
 				visit_url("place.php?whichplace=chateau&action=chateau_painting");
 				ccAdvBypass(1, $location[Noob Cave]);
 				return true;
@@ -906,7 +906,7 @@ boolean LX_chateauDailyPainting()
 			print("Your painting isn't officially supported by this script, but we'll give it the college try.", "red");
 			maximize("HP, equip the crown of ed the undying", 0, 0, false);
 			adjustEdHat("weasel");
-			handleServant("Priest");
+			use_servant($servant[scribe]);
 			visit_url("place.php?whichplace=chateau&action=chateau_painting");
 			ccAdvBypass(1, $location[Noob Cave]);
 			return true;
@@ -949,7 +949,7 @@ boolean L11_hiddenCityZones()
 
 	if(get_property("ed_hiddenzones") == "0")
 	{
-		if(possessEquipment($item[antique machete]))
+		if(possessEquipment($item[antique machete]) && ((item_amount($item[book of matches]) > 0) || ("The Hidden Park".to_location().turns_spent > 9)))
 		{
 			set_property("ed_hiddenzones", "1");
 		}
@@ -1052,17 +1052,24 @@ void fortuneCookieEvent()
 		print("Semi rare time!", "blue");
 		if((get_property("ed_semirare") == "") && (get_property("ed_spookysapling") == "finished"))
 		{
-			if (my_MP() < 8)
+			if(my_mp() < 8)
 			{
-				buyUpTo(1, $item[Doc Galaktik's Invigorating Tonic]);
-				use(1, $item[Doc Galaktik's Invigorating Tonic]);
+				while(my_meat() > 89 && my_mp() < 8)
+				{
+					buyUpTo(1, $item[Doc Galaktik\'s Invigorating Tonic]);
+					use(1, $item[Doc Galaktik\'s Invigorating Tonic]);
+				}
+				
+				if(my_mp() < 8)
+				{
+					abort("Couldn't restore your MP before attempting to grab a semi-rare");
+				}
 			}
 			ccAdv(1, $location[The Hidden Temple]);
 			ccAdv(1, $location[The Hidden Temple]);
 			if(item_amount($item[stone wool]) > 0)
 			{
 				set_property("ed_semirare", "1");
-				set_property("ed_semisub", "wool");
 				print("Wool obtained!", "blue");
 			}
 		}
@@ -1073,38 +1080,28 @@ void fortuneCookieEvent()
 			if(item_amount($item[Mick\'s IcyVapoHotness Inhaler]) > 0)
 			{
 				set_property("ed_castleground", "done");
-				set_property("ed_semisub", "inhaler");
+				set_property("ed_semisub", "limerick");
 				set_property("ed_semirare", "2");
 				print("Inhaler obtained!", "blue");
 			}
 		}
-		else if(get_property("ed_semisub") != "limerick")
+		else if((get_property("ed_semisub") == "limerick") && (get_property("ed_maurice") != "finished"))
 		{
 //Tests for potions obtained from chateau desk so you don't use the semi if not needed
 			if(item_amount($item[cyclops eyedrops]) > 0)
 			{
-				set_property("ed_semisub", "limerick");
+				set_property("ed_semisub", "alley");
 				print("Already got eyedrops, trying something else.", "blue");
 			}
 			ccAdv(1, $location[The Limerick Dungeon]);
 			ccAdv(1, $location[The Limerick Dungeon]);
 			if(item_amount($item[cyclops eyedrops]) > 0)
 			{
-				set_property("ed_semisub", "limerick");
+				set_property("ed_semisub", "alley");
 				print("Eyedrops obtained!", "blue");
 			}
 		}
-		else if(get_property("ed_semisub") != "pantry")
-		{
-			ccAdv(1, $location[The Haunted Pantry]);
-			ccAdv(1, $location[The Haunted Pantry]);
-			if(item_amount($item[tasty tart]) > 0)
-			{
-				print("Tarts got!", "blue");
-				set_property("ed_semisub", "pantry");
-			}
-		}
-		else
+		else if((get_property("ed_semisub") == "limerick") || (get_property("ed_semisub") == "alley"))
 		{
 			ccAdv(1, $location[The Sleazy Back Alley]);
 			ccAdv(1, $location[The Sleazy Back Alley]);
@@ -1112,6 +1109,16 @@ void fortuneCookieEvent()
 			{
 				print("Wine got!", "blue");
 				set_property("ed_semisub", "alley");
+			}
+		}
+		else
+		{
+			ccAdv(1, $location[The Haunted Pantry]);
+			ccAdv(1, $location[The Haunted Pantry]);
+			if(item_amount($item[tasty tart]) > 0)
+			{
+				print("Tarts got!", "blue");
+				set_property("ed_semisub", "pantry");
 			}
 		}
 	}
@@ -1131,38 +1138,60 @@ boolean L11_unlockHiddenCity()
 	{
 		return false;
 	}
-	if(get_property("ed_mcmuffin") != "start")
+	if(get_property("ed_hiddenunlock") == "finished")
 	{
 		return false;
 	}
 
 	print("Searching for the Hidden City", "blue");
 	buffMaintain($effect[Stone-Faced], 0, 1, 1);
-#	string page = visit_url("adventure.php?snarfblat=280");
-#	if(contains_text(page, "Combat"))
-#	{
-#		print("Wandering monster interrupted our attempt at the Hidden City", "red");
-#		ccAdv(1, $location[Noob Cave]);
-#		return true;
-#	}
+	set_property("choiceAdventure584", "4");
+	set_property("choiceAdventure582", "2");
 
 	if(ccAdvBypass(280))
 	{
 		print("Wandering monster interrupted our attempt at the Hidden City", "red");
 		return true;
 	}
-	visit_url("choice.php?whichchoice=582&option=2&pwd");
-	visit_url("choice.php?whichchoice=580&option=2&pwd");
-	visit_url("choice.php?whichchoice=584&option=4&pwd");
-	visit_url("choice.php?whichchoice=580&option=1&pwd");
-	visit_url("choice.php?whichchoice=123&option=2&pwd");
-	visit_url("choice.php");
-	cli_execute("dvorak");
-	visit_url("choice.php?whichchoice=125&option=3&pwd");
-	print("Hidden Temple Unlocked");
-	set_property("ed_hiddenunlock", "finished");
-	set_property("choiceAdventure582", "1");
-	set_property("choiceAdventure579", "3");
+	
+	if(get_property("lastEncounter") == "Fitting In")
+	{
+		visit_url("choice.php?whichchoice=582&option=2&pwd");
+		visit_url("choice.php?whichchoice=580&option=2&pwd");
+		visit_url("choice.php?whichchoice=584&option=4&pwd");
+		visit_url("choice.php?whichchoice=580&option=1&pwd");
+		visit_url("choice.php?whichchoice=123&option=2&pwd");
+		visit_url("choice.php");
+		cli_execute("dvorak");
+		visit_url("choice.php?whichchoice=125&option=3&pwd");
+		print("Hidden Temple Unlocked");
+		set_property("choiceAdventure582", "1");
+		set_property("choiceAdventure579", "3");
+		set_property("ed_hiddenunlock", "finished");
+	}
+	if(get_property("lastEncounter") == "The Hidden Heart of the Hidden Temple")
+	{
+		visit_url("choice.php?whichchoice=580&option=2&pwd");
+		visit_url("choice.php?whichchoice=584&option=4&pwd");
+		visit_url("choice.php?whichchoice=580&option=1&pwd");
+		visit_url("choice.php?whichchoice=123&option=2&pwd");
+		visit_url("choice.php");
+		cli_execute("dvorak");
+		visit_url("choice.php?whichchoice=125&option=3&pwd");
+		print("Hidden Temple Unlocked");
+		set_property("choiceAdventure582", "1");
+		set_property("choiceAdventure579", "3");
+		set_property("ed_hiddenunlock", "finished");
+	}
+	if(get_property("lastEncounter") == "Such Great Heights")
+	{
+		visit_url("choice.php?whichchoice=579&option=1&pwd");
+	}
+	if(get_property("lastEncounter") == "Such Great Depths")
+	{
+		visit_url("choice.php?whichchoice=581&option=3&pwd");
+	}
+	
 	return true;
 }
 
@@ -1188,14 +1217,37 @@ boolean L11_nostrilOfTheSerpent()
 	print("Must get a snake nose.", "blue");
 	set_property("choiceAdventure582", "1");
 	set_property("choiceAdventure579", "2");
-
 	buffMaintain($effect[Stone-Faced], 0, 1, 1);
 	if(have_effect($effect[Stone-Faced]) == 0)
 	{
-		abort("We are not Stone-Faced. Please get a stone wool and run me again.");
+		print("We are not Stone-Faced. Please get a stone wool and run me again or we'll just do this manually.");
+		wait(20);
 	}
-
-	ccAdv(1, $location[The Hidden Temple]);
+	if(ccAdvBypass(280))
+	{
+		print("Wandering monster interrupted our attempt at the Hidden City", "red");
+		return true;
+	}
+	if((get_property("lastEncounter") == "The Hidden Heart of the Hidden Temple (Sun)") ||
+	(get_property("lastEncounter") == "The Hidden Heart of the Hidden Temple (Stone)") ||
+	(get_property("lastEncounter") == "The Hidden Heart of the Hidden Temple (Gargoyle)"))
+	{
+		visit_url("choice.php?whichchoice=580&option=1&pwd");
+	}
+	if(get_property("lastEncounter") == "Such Great Heights")
+	{
+		visit_url("choice.php?whichchoice=579&option=2&pwd");
+	}
+	if(get_property("lastEncounter") == "Such Great Depths")
+	{
+		visit_url("choice.php?whichchoice=581&option=3&pwd");
+	}
+	if(get_property("lastEncounter") == "Fitting In")
+	{
+		visit_url("choice.php?whichchoice=582&option=1&pwd");
+		visit_url("choice.php?whichchoice=579&option=2&pwd");
+	}
+	
 	cli_execute("refresh inv");
 	if(item_amount($item[The Nostril of the Serpent]) == 1)
 	{
@@ -1299,6 +1351,10 @@ boolean LX_spookyravenSecond()
 	{
 		return false;
 	}
+	if(get_property("lastSecondFloorUnlock") == 0)
+	{
+		return false;
+	}
 	
 	print("Starting Spookyraven Second Floor.", "blue");
 	set_property("choiceAdventure876", "2");
@@ -1320,7 +1376,7 @@ boolean LX_spookyravenSecond()
 		{
 			ccAdv(1, $location[The Haunted Ballroom]);
 		}
-		set_property("choiceAdventure106", "1");
+		visit_url("place.php?whichplace=manor3");
 		set_property("ed_ballroomopen", "open");
 		return true;
 	}
@@ -1341,6 +1397,14 @@ boolean LX_spookyravenSecond()
 	set_property("choiceAdventure877", "1");
 	set_property("choiceAdventure879", "1");
 	set_property("choiceAdventure876", "2");
+	if(!possessEquipment($item[serpentine sword]) && !possessEquipment($item[snake shield]))
+	{
+		set_property("choiceAdventure89", "2");
+	}
+	else
+	{
+		set_property("choiceAdventure89", "6");
+	}
 
 	if(get_property("ed_ballroomopen") == "open")
 	{
@@ -1379,6 +1443,19 @@ boolean LX_spookyravenSecond()
 		}
 		if(item_amount($item[Lady Spookyraven\'s Dancing Shoes]) == 0)
 		{
+			if(my_mp() < 40)
+			{
+				while(my_meat() > 89 && my_mp() < 40)
+				{
+					buyUpTo(1, $item[Doc Galaktik\'s Invigorating Tonic]);
+					use(1, $item[Doc Galaktik\'s Invigorating Tonic]);
+				}
+				
+				if(my_mp() < 40)
+				{
+					abort("Couldn't restore your MP before attempting to YR at the gallery");
+				}
+			}
 			set_property("louvreDesiredGoal", "7");
 			print("Spookyraven: Gallery", "blue");
 			ccAdv(1, $location[The Haunted Gallery]);
@@ -1397,7 +1474,10 @@ boolean LX_spookyravenSecond()
 
 boolean L11_mauriceSpookyraven()
 {
-	if(get_property("ed_ballroomflat") == "finished")
+	if(get_property("ed_maurice") != "")
+	{
+		return false;
+	}
 	if(get_property("ed_spookyravennecklace") != "finished")
 	{
 		return false;
@@ -1406,25 +1486,17 @@ boolean L11_mauriceSpookyraven()
 	{
 		return false;
 	}
-	if(get_property("ed_ballroom") != "")
-	{
-		return false;
-	}
 	if(my_level() < 11)
 	{
 		return false;
-	}
-	if(item_amount($item[7962]) == 0)
-	{
-		set_property("ed_ballroom", "finished");
-		return true;
 	}
 
 	if(get_property("ed_ballroomflat") == "")
 	{
 		print("Searching for the basement of Spookyraven", "blue");
-		set_property("choiceAdventure106", "2");
+		set_property("choiceAdventure106", "1");
 		set_property("choiceAdventure90", "3");
+		maximize("exp, -combat", 1, 0, false);
 		
 		if(!ccAdv(1, $location[The Haunted Ballroom]))
 		{
@@ -1442,11 +1514,6 @@ boolean L11_mauriceSpookyraven()
 		equip($slot[acc3], $item[Lord Spookyraven\'s Spectacles]);
 		visit_url("place.php?whichplace=manor4&action=manor4_chamberwall");
 		use(1, $item[recipe: mortar-dissolving solution]);
-
-		if(item_amount($item[Numberwang]) > 0)
-		{
-			equip($slot[acc3], $item[numberwang]);
-		}
 
 		#Cellar, laundry room Lights out ignore
 		set_property("choiceAdventure901", "2");
@@ -1468,28 +1535,22 @@ boolean L11_mauriceSpookyraven()
 	if((item_amount($item[bottle of Chateau de Vinegar]) == 0) && (get_property("ed_winebomb") == ""))
 	{
 		print("Searching for vinegar", "blue");
+		maximize("0.5 exp, item drop", 1, 0, false);
 		ccAdv(1, $location[The Haunted Wine Cellar]);
 		return true;
 	}
 	if((item_amount($item[blasting soda]) == 0) && (get_property("ed_winebomb") == ""))
 	{
 		print("Searching for baking soda, I mean, blasting pop.", "blue");
+		maximize("0.5 exp, item drop", 1, 0, false);
 		ccAdv(1, $location[The Haunted Laundry Room]);
 		return true;
 	}
 
 	if(get_property("ed_winebomb") == "partial")
 	{
-		if(item_amount($item[unstable fulminate]) > 0)
-		{
-			if(weapon_hands(equipped_item($slot[weapon])) != 1)
-			{
-				equip($slot[weapon], $item[none]);
-			}
-			equip($item[unstable fulminate]);
-		}
 		print("Now we mix and heat it up.", "blue");
-		maximize("ML 145 max, equip unstable fulminate", 0, 0, false);
+		maximize("ML 100 max, equip unstable fulminate", 0, 0, false);
 		ccAdv(1, $location[The Haunted Boiler Room]);
 
 		if(item_amount($item[wine bomb]) == 1)
@@ -1502,8 +1563,13 @@ boolean L11_mauriceSpookyraven()
 
 	if(get_property("ed_winebomb") == "finished")
 	{
-		print("Down with the tyrant of Spookyraven!", "blue");
+		print("Down with the brick wall of Spookyraven!", "blue");
 		visit_url("place.php?whichplace=manor4&action=manor4_chamberboss");
+		cli_execute("refresh inventory");
+		if(item_amount($item[7962]) == 0)
+		{
+			set_property("ed_maurice", "finished");
+		}
 		return true;
 	}
 	return false;
@@ -1639,17 +1705,6 @@ boolean L12_sonofaBeach()
 	{
 		return false;
 	}
-	if(!get_property("ed_hippyInstead").to_boolean())
-	{
-		if(get_property("ed_gremlins") != "finished")
-		{
-			return false;
-		}
-	}
-	else if(get_property("fratboysDefeated").to_int() < 64)
-	{
-		return false;
-	}
 	if(item_amount($item[barrel of gunpowder]) >= 5)
 	{
 		return false;
@@ -1660,9 +1715,9 @@ boolean L12_sonofaBeach()
 		return true;
 	}
 
-	if((my_class() == $class[Ed]) && (item_amount($item[Talisman of Horus]) == 0))
+	if((my_class() == $class[Ed]) && (item_amount($item[Talisman of Horus]) == 0) && (have_effect($effect[Taunt of Horus]) == 0))
 	{
-		return false;
+		abort("We ran out of horus talismen for the beach, such bad luck!");
 	}
 
 	if(!uneffect($effect[Shelter of Shed]))
@@ -1684,7 +1739,7 @@ boolean L12_sonofaBeach()
 	ccAdv(1, $location[Sonofa Beach]);
 	set_property("ed_doCombatCopy", "no");
 
-	if((my_class() == $class[Ed]) && (my_hp() == 0))
+	if(my_hp() == 0)
 	{
 		use(1, $item[Linen Bandages]);
 	}
@@ -1790,6 +1845,16 @@ boolean L10_topFloor()
 	{
 		return false;
 	}
+	set_property("choiceAdventure676", 3);
+	set_property("choiceAdventure678", 4);
+	if((item_amount($item[Mohawk Wig]) > 0))
+	{
+		if(my_basestat($stat[muscle]) < 55)
+			return false;
+		equip($item[mohawk wig]);
+		set_property("choiceAdventure676", 4);
+		set_property("choiceAdventure678", 1);
+	}
 
 	print("Castle Top Floor", "blue");
 	maximize("exp, -combat", 0, 0, false);
@@ -1797,14 +1862,6 @@ boolean L10_topFloor()
 	if((item_amount($item[drum 'n' bass 'n' drum 'n' bass record]) > 0))
 	{
 		set_property("choiceAdventure675", 2);
-	}
-	set_property("choiceAdventure676", 3);
-	set_property("choiceAdventure678", 4);
-	if((item_amount($item[Mohawk Wig]) > 0))
-	{
-		equip($item[mohawk wig]);
-		set_property("choiceAdventure676", 4);
-		set_property("choiceAdventure678", 1);
 	}
 	set_property("choiceAdventure677", 1);
 	set_property("choiceAdventure679", 2);
@@ -2493,6 +2550,18 @@ boolean L4_batCave()
 	
 	if(contains_text(batHole, "bathole_bg3"))
 	{
+		if(have_skill($skill[Wrath of Ra]) && (have_effect($effect[Everything Looks Yellow]) == 0))
+		{
+			if(my_mp() < 40)
+			{
+				while(my_meat() > 89 && my_mp() < 40)
+				{
+					buyUpTo(1, $item[Doc Galaktik\'s Invigorating Tonic]);
+					use(1, $item[Doc Galaktik\'s Invigorating Tonic]);
+				}
+			}
+		}
+		
 		ccAdv(1, $location[The Beanbat Chamber]);
 		return true;
 	}
@@ -2574,6 +2643,7 @@ boolean LX_islandAccess()
 	cli_execute("make dinghy plans");
 	buyUpTo(1, $item[dingy planks]);
 	use(1, $item[dinghy plans]);
+	ed_buySkills();
 	return true;
 }
 
@@ -2717,6 +2787,7 @@ boolean L5_getEncryptionKey()
 	}
 	print("Looking for the knob.", "blue");
 	ccAdv(1, $location[the outskirts of cobb\'s knob]);
+	cli_execute("refresh inventory");
 
 	if(item_amount($item[Knob Goblin Encryption Key]) == 1)
 	{
@@ -2769,7 +2840,7 @@ boolean L12_hippyOutfit()
 		}
 		if(my_mp() < 40)
 		{
-			while(my_meat() > 89 || my_mp() < 40)
+			while(my_meat() > 89 && my_mp() < 40)
 			{
 				buyUpTo(1, $item[Doc Galaktik\'s Invigorating Tonic]);
 				use(1, $item[Doc Galaktik\'s Invigorating Tonic]);
@@ -2813,18 +2884,25 @@ boolean L12_getOutfit()
 	maximize("exp", 0, 0, false);
 	outfit("filthy hippy disguise");
 	
-	if(my_mp() < 40)
+	if(have_skill($skill[Wrath of Ra]) && have_effect($effect[Everything Looks Yellow]) == 0)
 	{
-		while(my_meat() > 89 && my_mp() < 40)
-		{
-			buyUpTo(1, $item[Doc Galaktik\'s Invigorating Tonic]);
-			use(1, $item[Doc Galaktik\'s Invigorating Tonic]);
-		}
-		
 		if(my_mp() < 40)
 		{
-			return false;
+			while(my_meat() > 89 && my_mp() < 40)
+			{
+				buyUpTo(1, $item[Doc Galaktik\'s Invigorating Tonic]);
+				use(1, $item[Doc Galaktik\'s Invigorating Tonic]);
+			}
+			
+			if(my_mp() < 40)
+			{
+				return false;
+			}
 		}
+	}
+	else
+	{
+		return false;
 	}
 
 	ccAdv(1, $location[Wartime Frat House]);
@@ -2923,7 +3001,6 @@ boolean L9_aBooPeak()
 	{
 		print("A-Boo Peak: " + get_property("booPeakProgress"), "blue");
 		maximize("item drop, 0.5 exp", 0, 0, false);
-		handleServant($servant[Cat]);
 		ccAdv(1, $location[A-Boo Peak]);
 		return true;
 	}
@@ -3487,6 +3564,7 @@ boolean L11_Palindrome()
 			{
 				abort("We don't have enough meat to buy a photograph!");
 			}
+			maximize("exp, -combat, equip Talisman O' Namsilat", 1, 0, false);
 			ccAdv(1, $location[Inside the Palindome]);
 		}
 		return true;
@@ -3526,7 +3604,7 @@ boolean L11_talismanOfNam()
 	}
 	if((get_property("ed_war") == "finished") || (get_property("ed_prewar") == ""))
 	{
-		equip($slot[acc3], $item[pirate fledges]);
+		maximize("exp, equip pirate fledges", 1, 0, false);
 		set_property("choiceAdventure189", "1");
 		set_property("oceanAction", "continue");
 		set_property("oceanDestination", to_lower_case(my_primestat()));
@@ -3638,6 +3716,7 @@ boolean L11_blackMarket()
 	if(item_amount($item[black map]) == 0)
 	{
 		council();
+		cli_execute("refresh inventory");
 		set_property("ed_blackfam", false);
 	}
 	
@@ -3669,6 +3748,7 @@ boolean L11_blackMarket()
 		set_property("choiceAdventure925", "2");
 	}
 	
+	maximize("exp", 1, 0, false);
 	ccAdv(1, $location[The Black Forest]);
 	if(black_market_available())
 	{
@@ -3780,16 +3860,10 @@ boolean LX_fcle()
 	{
 		return false;
 	}
-
 	if(((have_effect($effect[Taunt of Horus]) > 0) || (item_amount($item[Talisman of Horus]) > 0)) && get_property("ed_dickstab").to_boolean())
 	{
 		buffMaintain($effect[Taunt of Horus], 0, 1, 1);
 	}
-	else
-	{
-		return false;
-	}
-	
 	if(!uneffect($effect[Shelter Of Shed]))
 	{
 		print("Could not uneffect Shelter of Shed for F'C'le, delaying");
@@ -3797,7 +3871,6 @@ boolean LX_fcle()
 	}
 	
 	print("Fcle time!", "blue");
-
 	cli_execute("outfit swashbuckling getup");
 	ccAdv(1, $location[The F\'c\'le]);
 	return true;
@@ -3833,7 +3906,7 @@ boolean LX_nastyBooty()
 		return false;
 	}
 
-	handleServant($servant[Priest]);
+	use_servant($servant[Priest]);
 	if(possessEquipment($item[The Crown of Ed the Undying]))
 	{
 		adjustEdHat("weasel");
@@ -3847,10 +3920,10 @@ boolean LX_nastyBooty()
 	}
 	
 	set_location($location[The Obligatory Pirate\'s Cove]);
-	cli_execute("preadventure.ash");
+	cli_execute("ed_preadventure.ash");
 	set_property("ed_disableAdventureHandling", "yes");
 	visit_url("inv_use.php?pwd=&which=3&whichitem=2950");
-	ccAdv(1, $location[Noob Cave]);
+	ccAdvBypass(1, $location[Noob Cave]);
 	set_property("ed_disableAdventureHandling", "no");
 	return true;
 }
@@ -3908,6 +3981,15 @@ boolean LX_pirateInsults()
 	{
 		return false;
 	}
+	if(my_basestat($stat[moxie]) < 25)
+	{
+		return false;
+	}
+	if(item_amount($item[orcish frat house blueprints]) > 0)
+	{
+		set_property("ed_pirateoutfit", "blueprint");
+		return false;
+	}
 	if(my_maxhp() < 60)
 	{
 		if((item_amount($item[Cap\'m Caronch\'s Map]) != 0) && (item_amount($item[Cap\'m Caronch\'s Nasty Booty]) == 0))
@@ -3941,7 +4023,7 @@ boolean LX_pirateInsults()
 		ccAdv(1, $location[barrrney\'s barrr]);
 		return true;
 	}
-	set_property("ed_pirateoutfit", "blueprint");
+	
 	return false;
 }
 
@@ -4365,6 +4447,16 @@ boolean doTasks()
 		return true;
 	}
 	
+	if(LX_handleSpookyravenFirstFloor())
+	{
+		return true;
+	}
+	
+	if(LX_spookyravenSecond())
+	{
+		return true;
+	}
+	
 	if(L7_crypt())
 	{
 		return true;
@@ -4388,16 +4480,6 @@ boolean doTasks()
 		}
 	}
 
-	if(LX_handleSpookyravenFirstFloor())
-	{
-		return true;
-	}
-	
-	if(LX_spookyravenSecond())
-	{
-		return true;
-	}
-	
 	if(L6_friarsGetParts())
 	{
 		return true;
@@ -4760,7 +4842,7 @@ boolean doTasks()
 
 	if((get_property("ed_gremlins") == "start") && ((get_property("ed_hippyInstead") == "no") || (get_property("fratboysDefeated").to_int() >= 192)))
 	{
-		maximize("-ml, 0.5 hp, -muscle", 0, 0, false);
+		maximize("exp, 0.5 hp, -muscle", 0, 0, false);
 		if(item_amount($item[molybdenum hammer]) == 0)
 		{
 			ccAdv(1, $location[Next to that barrel with something burning in it], "ccsJunkyard");
@@ -4992,12 +5074,17 @@ boolean doTasks()
 		buffMaintain($effect[Purr of the Feline], 0, 1, 1);
 		if(get_property("ed_spookyravennecklace") == "finished")
 		{
+			set_property("ed_galleryFarm", TRUE);
 			maximize("exp, -combat", 0, 0, false);
-			if (have_skill($skill[Even More Elemental Wards]))
-			{
-				handleServant($servant[Scribe]);
-			}
 			set_property("louvreDesiredGoal", "5");
+			if(!possessEquipment($item[serpentine sword]) && !possessEquipment($item[snake shield]))
+			{
+				set_property("choiceAdventure89", "2");
+			}
+			else
+			{
+				set_property("choiceAdventure89", "6");
+			}
 			ccAdv(1, $location[The Haunted Gallery]);
 			return true;
 		}
@@ -5016,7 +5103,7 @@ boolean doTasks()
 		{
 			if (have_skill($skill[Even More Elemental Wards]))
 			{
-				handleServant($servant[Scribe]);
+				use_servant($servant[Scribe]);
 			}
 			maximize("exp, -equip filthy knitted dread sack", 0, 0, false);
 			ccAdv(1, $location[Hippy Camp]);
@@ -5033,6 +5120,7 @@ boolean doTasks()
 		council();
 		if(item_amount($item[Thwaitgold Scarab Beetle Statuette]) > 0)
 		{
+			put_display(item_amount($item[thwaitgold scarab beetle statuette]), $item[thwaitgold scarab beetle statuette]);
 			set_property("ed_sorceress", "finished");
 			council();
 			return true;
@@ -5107,6 +5195,20 @@ boolean doTasks()
 		{
 			ccAdv(1, $location[The Secret Council Warehouse]);
 		}
+		else if(get_property("delayToDayFour").to_boolean() && (item_amount($item[7965]) > 0))
+		{
+			if(my_daycount() > 3)
+			{
+				use(7, $item[mummified beef haunch]);
+				print("Spleened and good to go!", "green");
+				return false;
+			}
+			else
+			{
+				print("Overdrink, eat, etc, burn some turns if you have more than 160, buy some spleen items");
+				return false;
+			}
+		}
 		else
 		{
 			//Complete.
@@ -5123,9 +5225,8 @@ boolean doTasks()
 			print("McMuffin is found!", "blue");
 			print("Ed Combats: " + get_property("ed_edCombatCount"), "blue");
 			print("Ed Combat Rounds: " + get_property("ed_edCombatRoundCount"), "blue");
-
-			return false;
 		}
+		
 		return true;
 	}
 
@@ -5167,16 +5268,6 @@ void ed_begin()
 		print("Switching off CHiT Xiblaxian Counter, will resume during bedtime");
 		set_property("ed_priorXiblaxianMode", 1);
 		setvar("chit.helpers.xiblaxian", false);
-	}
-
-	if(get_property("hpAutoRecoveryItems") != "linen bandages")
-	{
-		set_property("ed_hpAutoRecoveryItems", get_property("hpAutoRecoveryItems"));
-		set_property("ed_hpAutoRecovery", get_property("hpAutoRecovery"));
-		set_property("ed_hpAutoRecoveryTarget", get_property("hpAutoRecoveryTarget"));
-		set_property("hpAutoRecoveryItems", "linen bandages");
-		set_property("hpAutoRecovery", 0.0);
-		set_property("hpAutoRecoveryTarget", 0.0);
 	}
 
 	questOverride();

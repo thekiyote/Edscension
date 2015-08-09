@@ -92,12 +92,34 @@ void generateTrackingData(string tracked, boolean hasSkill)
 	}
 }
 
+void write_styles()
+	{
+	writeln("<style type='text/css'>"+			
+			"body {"+
+			"width: 75%;"+
+			"margin: auto;"+
+			"background: #EAEAEA;"+
+			"text-align:center;"+
+			"padding:0;"+
+			"cursor:default;"+
+			"user-select: none;"+
+			"-webkit-user-select: none;"+
+			"-moz-user-select: text;}"+
+			
+			"heading {"+
+				"font-family:times;"+
+				"font-size:425%;"+
+				"color:#000;}"+
+			"</style>");
+	}
+
 void main()
 {
-	writeln("<html><head><title>cheeseascend (CHEDDAH) Crapulent Manager</title>");
-	writeln("</head><body><h1>cheeseascend (CHEDDAH) Manager</h1>");
+	write_styles();
+	writeln("<html><head><br><title>Edscension Multi-Variable Manager</title></head>");
+	writeln("<body><heading>Edscension Multi-Variable Manager</heading><br><br>");
 
-	file_to_map("cc_ascend_settings.txt", s);
+	file_to_map("ed_ascend_settings.txt", s);
 
 	boolean dickstab = false;
 
@@ -120,14 +142,10 @@ void main()
 				}
 				continue;
 			}
-#			else
-#			{
-#				writeln("Property " + x + " had: " + oldSetting + " now: " + fields[x] + "<br>");
-#			}
 
-			if(x == "cc_dickstab")
+			if(x == "ed_dickstab")
 			{
-				if((fields[x] != get_property("cc_dickstab")) && (fields[x] == "true"))
+				if((fields[x] != get_property("ed_dickstab")) && (fields[x] == "true"))
 				{
 					dickstab = true;
 				}
@@ -142,29 +160,14 @@ void main()
 
 	if(dickstab)
 	{
-		writeln("cc_dickstab was just set to true<br>");
+		writeln("ed_dickstab was just set to true<br>");
 		writeln("Your warranty has been declared void.<br>");
-		set_property("cc_voidWarranty", "rekt");
-		writeln("Togging incompatible settings. You can re-enabled them here if you so desire. This resetting only takes effect upon setting cc_dickstab to true.<br><br>");
-#		if(get_property("cc_getDinseyGarbageMoney").to_boolean())
-#		{
-#			set_property("cc_getDinseyGarbageMoney", false);
-#			writeln("Disabled cc_getDinseyGarbageMoney.<br>");
-#		}
-		if(get_property("cc_hippyInstead").to_boolean())
+		set_property("ed_voidWarranty", "rekt");
+		writeln("Togging incompatible settings. You can re-enabled them here if you so desire. This resetting only takes effect upon setting ed_dickstab to true.<br><br>");
+		if(!get_property("ed_edDelayHauntedKitchen").to_boolean())
 		{
-			set_property("cc_hippyInstead", false);
-			writeln("Disabled cc_hippyInstead.<br>");
-		}
-		if(get_property("cc_ignoreFlyer").to_boolean())
-		{
-			set_property("cc_ignoreFlyer", false);
-			writeln("Disabled cc_ignoreFlyer.<br>");
-		}
-		if(!get_property("cc_edDelayHauntedKitchen").to_boolean())
-		{
-			set_property("cc_edDelayHauntedKitchen", true);
-			writeln("Enabled cc_edDelayHauntedKitchen.<br>");
+			set_property("ed_edDelayHauntedKitchen", true);
+			writeln("Enabled ed_edDelayHauntedKitchen.<br>");
 		}
 	}
 
@@ -213,29 +216,25 @@ void main()
 	writeln("</table>");
 
 	writeln("<h2>Banishes</h2>");
-	generateTrackingData("cc_banishes", true);
+	generateTrackingData("ed_banishes", true);
 
 	writeln("<h2>Yellow Rays <img src=\"images/itemimages/eyes.gif\"></h2>");
-	generateTrackingData("cc_yellowRays", true);
+	generateTrackingData("ed_yellowRays", true);
 
 	writeln("<h2>Sniffing</h2>");
-	generateTrackingData("cc_sniffs", true);
+	generateTrackingData("ed_sniffs", true);
 
 	writeln("<h2>Lash of the Cobra <img src=\"images/itemimages/cobrahead.gif\"></h2>");
-	generateTrackingData("cc_lashes", false);
+	generateTrackingData("ed_lashes", false);
 
 	writeln("<h2>Talisman of Renenutet <img src=\"images/itemimages/tal_r.gif\"></h2>");
-	generateTrackingData("cc_renenutet", false);
+	generateTrackingData("ed_renenutet", false);
 
 	writeln("<h2>Info</h2>");
 	writeln("Ascension: " + my_ascensions() + "<br>");
 	writeln("Day: " + my_daycount() + "<br>");
 	writeln("Turns Played: " + my_turncount() + "<br>");
-	writeln("Tavern: " + get_property("tavernLayout") + "<br>");
-	writeln("Combats: " + get_property("cc_edCombatCount") + "<br>");
-	writeln("Combat Rounds: " + get_property("cc_edCombatRoundCount") + "<br>");
-	writeln("Version (790e8b93-0ac5-4690-9eeb-5e64edcd6dc): " + svn_info("790e8b93-0ac5-4690-9eeb-5e64edcd6dc").last_changed_rev + "<br>");
-	writeln("Version (ccascend): " + svn_info("ccascend").last_changed_rev + "<br>");
-	writeln("Version (cheeseascend): " + svn_info("cheeseascend").last_changed_rev + "<br>");
+	writeln("Combats: " + get_property("ed_edCombatCount") + "<br>");
+	writeln("Version: " + svn_info("edscension").last_changed_rev + "<br>");
 	writeln("</body></html>");
 }

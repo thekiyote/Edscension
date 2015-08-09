@@ -1,6 +1,6 @@
 script "postadventure.ash";
 
-//import <floristfriar.ash>
+//import <ed_florist.ash>
 import <zlib.ash>
 import <ed_util.ash>
 
