@@ -9,6 +9,15 @@ void handleYellowRay(monster enemy, skill yellowRay);
 void handleLashes(monster enemy);
 void handleRenenutet(monster enemy);
 
+string whm_stormOrFist() {
+	if (!have_skill($skill[storm of the scarab])) return "fist of the mummy";
+	return "storm of the scarab";
+}
+string whm_stormOrFist(monster enemy) {
+	if (enemy.raw_hp < 85) return "fist of the mummy";
+	return whm_stormOrFist();
+}
+
 void handleBanish(monster enemy, skill banisher)
 {
 	string banishes = get_property("ed_banishes");
@@ -173,7 +182,7 @@ string ccsJunkyard(int round, string opp, string text)
 			}
 			else if(my_mp() >= 8)
 			{
-				return "skill storm of the scarab";
+				return "skill " + whm_stormOrFist();
 			}
 			return banisher;
 		}
@@ -413,7 +422,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 		}
 	}
 
-	if((enemy == $monster[clingy pirate]) && (item_amount($item[cocktail napkin]) > 0))
+	if((enemy == $monster[clingy pirate (female)] || enemy == $monster[clingy pirate (male)]) && (item_amount($item[cocktail napkin]) > 0))
 	{
 		return "item cocktail napkin";
 	}
@@ -449,7 +458,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 			}
 			else
 			{
-				return "storm of the scarab";
+				return whm_stormOrFist();
 			}
 		}
 
@@ -896,7 +905,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 		return "item short writ of habeas corpus";
 	}
 
-	if(!ed_needShop() && (my_level() >= 10) && (item_amount($item[Rock Band Flyers]) == 0) && (my_location() != $location[The Hidden Apartment Building]) && (type != to_phylum("Undead")) && (my_mp() > 20) && (my_location() != $location[Barrrney\'s Barrr]))
+	if(!needShop(ed_buildShoppingList()) && (my_level() >= 10) && (item_amount($item[Rock Band Flyers]) == 0) && (my_location() != $location[The Hidden Apartment Building]) && (type != to_phylum("Undead")) && (my_mp() > 20) && (my_location() != $location[Barrrney\'s Barrr]))
 	{
 		set_property("ed_edStatus", "dying");
 	}
@@ -968,25 +977,26 @@ string ed_edCombatHandler(int round, string opp, string text)
 		return "item ice-cold Cloaca Zero";
 	}
 
-	if((my_mp() >= 8) && have_skill($skill[Storm of the Scarab]) && monster_hp(enemy) > 80)
+	//TODO:  I'm not convinced that casting Storm just because we can is a good idea.  Tweaking the monster_hp threshold!
+	//if((my_mp() >= 8) && have_skill($skill[Storm of the Scarab]) && monster_hp(enemy) > 80)
+	if((my_mp() >= 8) && have_skill($skill[Storm of the Scarab]) && monster_hp(enemy) > 200)
 	{
 		return "skill Storm of the Scarab";
 	}
 
-	if((enemy.physical_resistance >= 100) || (round >= 25) || ((expected_damage() * 1.25) >= my_hp()))
+	if((enemy.physical_resistance >= 100) || (round >= 25))
 	{
-		if(enemy.raw_hp < 85)
-			return "skill Fist of the Mummy";
-		else
-			return "skill Storm of the Scarab";
+		return "skill " + whm_stormOrFist(enemy);
+	}
+	int combatStage = get_property("ed_edCombatStage").to_int();
+ 	if (expected_damage() * 1.25 >= my_hp() && (my_maxhp() < 2*my_hp() || 2 < combatStage ))
+	{
+		return "skill " + whm_stormOrFist(enemy);
 	}
 	
 	if(last_monster().id == 1185)
 	{
-		if(enemy.raw_hp < 85)
-			return "skill Fist of the Mummy";
-		else
-			return "skill Storm of the Scarab";
+		return "skill " + whm_stormOrFist(enemy);
 	}
 
 	if(round >= 29)
@@ -994,8 +1004,5 @@ string ed_edCombatHandler(int round, string opp, string text)
 		print("About to UNDYING too much but have no other combat resolution. Please report this.", "red");
 	}
 
-	if(enemy.raw_hp < 85)
-		return "skill Fist of the Mummy";
-	else
-		return "skill Storm of the Scarab";
+	return "skill fist of the mummy";
 }

@@ -7,11 +7,34 @@ Written to more fully define and explore the Actually Ed
 the Undying functionalities of said script, and as a skill
 stretching project for Zen00 before attempting an independent
 ascension script for a future Kingdom of Loathing ascension path.
-				V. 1.0.2.1
+				V. 1.0.2.0
 
 					
 Changelog from last version:
-Hotfix: Fixed the stupid pirate insult no go bug.
+Ed now remembers to have -combat for The Hidden Park
+Now supports paying up to 3 ka coins (2 additional undeath/flyering sequences, can do more if people need more) when undying for flyering, more important for those with minimal ML sources
+Doesn't try shopping multiple times per fight now
+Fixed a bug with shopping and single round use items/skills such as curse of fortune and talisman of renenutet
+Shopping should hopefully trigger to fill your spleen always now, but then again, it's death dependent so if you don't die it won't work
+Fixed a bug with pirates quest
+Shut up that nagging message about unreachable code
+A possible fix for not imbueing properly (definite fix after testing)
+YR for snake knight now (hooray for xp!) as well as some MP adjustments to make YRs and Stench happen properly (might cause more "Can't restore" stops)
+Should now support doing The Hidden Temple if you didn't get enough stone wool
+Improved handling of The Hidden Park (to help with obtaining book of matches)
+Servant handling is now much improved, imbuing works properly, and I still don't get regex. :/
+Shopping should be working as normal again, hooray for giant redundant ifs!
+Now buys silk bandages once you hit level 12 (for Boo Peak healing)
+Some slight tweaks to the combat script that should reduce the number of accidental undeaths by trying to attack with weapon when should be summoning scarabs
+More messing around with the shopping list to see if I can get Even More Elemental Wards to be purchased in a timely manner
+Working on the eating/drinking automagically, I swear!
+Should now stop aborting the LFM while still having +combat but no Horus talismen
+Now properly sets your battle action as well as CCS and Mood and Recovery Settings
+Your moxie is now properly taken into account before trying to be a pirate, arrr
+Should now have fewer extra-undeaths while insult gathering
+Should hopefully stop auto-stopping when using Caronch's map and dying on the first round
+RELAY SETTINGS NOW WORK
+SVN support is go!
 
 ********************************************/
 
@@ -96,8 +119,10 @@ void initializeSettings()
 	{
 		return;
 	}
-	set_property("ed_doneInitialize", my_ascensions());
+	set_property("ed_oldAfterAdventureScript", get_property("afterAdventureScript"));
+	set_property("ed_oldCounterScript", get_property("counterScript"));
 	set_property("afterAdventureScript", "ed_postadventure.ash");
+	set_property("counterScript", "");
 	set_property("chasmBridgeProgress", 0);
 	set_property("ed_abooclover", "");
 	set_property("ed_aftercore", "");
@@ -201,6 +226,7 @@ void initializeSettings()
 	elementalPlanes_initializeSettings();
 	eudora_initializeSettings();
 	ed_initializeSettings();
+	set_property("ed_doneInitialize", my_ascensions());
 }
 
 boolean ed_ccAdv(int num, location loc, string option)
@@ -261,6 +287,7 @@ boolean tryAdventure(string loc, int snarfblat)
 	}
 	return false;
 }
+
 void warOutfit()
 {
 	if(!get_property("ed_hippyInstead").to_boolean())
@@ -275,7 +302,8 @@ void warOutfit()
 
 void warAdventure()
 {
-	use_servant($servant[Scribe]);
+	//FIXME?:  appears to not honor ed_hippyInstead setting.
+	ed_use_servant($servant[Scribe]);
 	maximize("exp, outfit frat warrior fatigues", 1, 0, false);
 	ccAdv(1, $location[The Battlefield (Frat Uniform)]);
 }
@@ -328,7 +356,7 @@ boolean doThemtharHills(boolean trickMode)
 	if(my_class() == $class[Ed])
 	{
 		visit_url("charsheet.php");
-		use_servant($servant[maid]);
+		ed_use_servant($servant[maid]);
 	}
 	float meatDropHave = meat_drop_modifier();
 	meatDropHave = meatDropHave + edMeatBonus();
@@ -819,7 +847,8 @@ boolean LX_chateauDailyPainting()
 			if((have_effect($effect[Everything Looks Yellow]) == 0) && have_skill($skill[Wrath of Ra]) && (my_mp() >= 40) &&
 			(oreHave < 3) && (get_property("ed_trapper") == "start"))
 			{
-				use_servant($servant[scribe]);
+				ed_use_servant($servant[scribe]);
+				ed_use_servant();
 				visit_url("place.php?whichplace=chateau&action=chateau_painting");
 				ccAdvBypass(1, $location[Noob Cave]);
 				return true;
@@ -834,7 +863,8 @@ boolean LX_chateauDailyPainting()
 			{
 				maximize("exp, equip the crown of ed the undying", 0, 0, false);
 				adjustEdHat("weasel");
-				use_servant($servant[scribe]);
+				ed_use_servant($servant[scribe]);
+				ed_use_servant();
 				visit_url("place.php?whichplace=chateau&action=chateau_painting");
 				ccAdvBypass(1, $location[Noob Cave]);
 				return true;
@@ -859,7 +889,8 @@ boolean LX_chateauDailyPainting()
 			{
 				maximize("exp, equip the crown of ed the undying", 0, 0, false);
 				adjustEdHat("weasel");
-				use_servant($servant[scribe]);
+				ed_use_servant($servant[scribe]);
+				ed_use_servant();
 				visit_url("place.php?whichplace=chateau&action=chateau_painting");
 				ccAdvBypass(1, $location[Noob Cave]);
 				return true;
@@ -883,7 +914,8 @@ boolean LX_chateauDailyPainting()
 			print("Your painting isn't officially supported by this script, but we'll give it the college try.", "red");
 			maximize("HP, equip the crown of ed the undying", 0, 0, false);
 			adjustEdHat("weasel");
-			use_servant($servant[scribe]);
+			ed_use_servant($servant[scribe]);
+			ed_use_servant();
 			visit_url("place.php?whichplace=chateau&action=chateau_painting");
 			ccAdvBypass(1, $location[Noob Cave]);
 			return true;
@@ -992,10 +1024,10 @@ boolean L11_hiddenCityZones()
 		if(contains_text(get_property("lastEncounter"), "Temple of the Legend in the Hidden City"))
 		{
 			set_property("choiceAdventure1002", "1");
-			set_property("choiceAdventure781", "2");
-			set_property("choiceAdventure785", "2");
-			set_property("choiceAdventure783", "2");
-			set_property("choiceAdventure787", "2");
+			set_property("choiceAdventure781", "1");
+			set_property("choiceAdventure785", "1");
+			set_property("choiceAdventure783", "1");
+			set_property("choiceAdventure787", "1");
 			set_property("ed_hiddenzones", "finished");
 		}
 		return true;
@@ -1042,6 +1074,7 @@ void fortuneCookieEvent()
 					abort("Couldn't restore your MP before attempting to grab a semi-rare");
 				}
 			}
+			set_property("choiceAdventure579", "2");
 			ccAdv(1, $location[The Hidden Temple]);
 			ccAdv(1, $location[The Hidden Temple]);
 			if(item_amount($item[stone wool]) > 0)
@@ -1134,19 +1167,9 @@ boolean L11_unlockHiddenCity()
 	if(get_property("lastEncounter") == "Fitting In")
 	{
 		visit_url("choice.php?whichchoice=582&option=2&pwd");
-		visit_url("choice.php?whichchoice=580&option=2&pwd");
-		visit_url("choice.php?whichchoice=584&option=4&pwd");
-		visit_url("choice.php?whichchoice=580&option=1&pwd");
-		visit_url("choice.php?whichchoice=123&option=2&pwd");
-		visit_url("choice.php");
-		cli_execute("dvorak");
-		visit_url("choice.php?whichchoice=125&option=3&pwd");
-		print("Hidden Temple Unlocked");
-		set_property("choiceAdventure582", "1");
-		set_property("choiceAdventure579", "3");
-		set_property("ed_hiddenunlock", "finished");
 	}
-	if(get_property("lastEncounter") == "The Hidden Heart of the Hidden Temple")
+	if(get_property("lastEncounter") == "Fitting In"
+		|| get_property("lastEncounter") == "The Hidden Heart of the Hidden Temple")
 	{
 		visit_url("choice.php?whichchoice=580&option=2&pwd");
 		visit_url("choice.php?whichchoice=584&option=4&pwd");
@@ -1186,6 +1209,7 @@ boolean L11_nostrilOfTheSerpent()
 	{
 		return false;
 	}
+	//TODO:  check mafia's quest tracking, and set ed_hiddenunlock, as appropriate.  (questOverride is probably supposed to do that.)
 	if(get_property("ed_hiddenunlock") != "")
 	{
 		return false;
@@ -2879,7 +2903,7 @@ boolean L12_getOutfit()
 	}
 	else
 	{
-		return false;
+		if (have_skill($skill[Wrath of Ra])) return false;  // (wait for cooldown to end)
 	}
 
 	ccAdv(1, $location[Wartime Frat House]);
@@ -3104,6 +3128,7 @@ boolean L9_aBooPeak()
 
 			set_property("choiceAdventure611", "1");
 			use(1, $item[A-Boo clue]);
+			visit_url("adventure.php?snarfblat=296");
 			ccAdv(1, $location[A-Boo Peak]);
 			if((my_class() == $class[Ed]) && (my_hp() == 0))
 			{
@@ -3774,11 +3799,11 @@ boolean L5_haremOutfit()
 
 boolean LX_getDictionary()
 {
-	if(item_amount($item[abridged dictionary]) == 1)
+	if(item_amount($item[abridged dictionary]) >= 1)
 	{
 		return false;
 	}
-	if(item_amount($item[dictionary]) == 1)
+	if(item_amount($item[dictionary]) >= 1)
 	{
 		return false;
 	}
@@ -3882,8 +3907,9 @@ boolean LX_nastyBooty()
 	{
 		return false;
 	}
+	if(my_maxhp() < 70) return false;
 
-	use_servant($servant[Priest]);
+	ed_use_servant($servant[Priest]);
 	if(possessEquipment($item[The Crown of Ed the Undying]))
 	{
 		adjustEdHat("weasel");
@@ -3895,7 +3921,8 @@ boolean LX_nastyBooty()
 		buffMaintain($effect[Butt-Rock Hair], 0, 1, 1);
 		buffMaintain($effect[Go Get \'Em\, Tiger!], 0, 1, 1);
 	}
-	
+
+	ed_use_servant();
 	set_location($location[The Obligatory Pirate\'s Cove]);
 	cli_execute("ed_preadventure.ash");
 	set_property("ed_disableAdventureHandling", "yes");
@@ -3916,6 +3943,11 @@ boolean LX_pirateBlueprint()
 	if(LX_nastyBooty())
 	{
 		return true;
+	}
+	if(item_amount($item[Cap\'m Caronch\'s Nasty Booty]) == 0
+		&& item_amount($item[orcish frat house blueprints]) == 0)
+	{
+		return false;
 	}
 	if(item_amount($item[orcish frat house blueprints]) == 0)
 	{
@@ -3962,8 +3994,12 @@ boolean LX_pirateInsults()
 	{
 		return false;
 	}
-	if(get_property("ed_pirateoutfit") == "blueprint")
+	if(numPirateInsults() >= 7)
 	{
+		//WHM:  removed item_amount($item[orcish frat house blueprints]) > 0 condition,
+		// in order to avoid extra equipment changes.  Note that LX_pirateBlueprint() will
+		// handle getting them.
+		set_property("ed_pirateoutfit", "blueprint");
 		return false;
 	}
 	if(my_maxhp() < 60)
@@ -3998,10 +4034,6 @@ boolean LX_pirateInsults()
 	{
 		ccAdv(1, $location[barrrney\'s barrr]);
 		return true;
-	}
-	if(item_amount($item[orcish frat house blueprints]) > 0)
-	{
-		set_property("ed_pirateoutfit", "blueprint");
 	}
 	
 	return false;
@@ -5005,9 +5037,10 @@ boolean doTasks()
 			}
 		}
 
+		warOutfit();
 		while($coinmaster[Dimemaster].available_tokens >= 5)
 		{
-			cli_execute("make fancy seashell necklace");
+			cli_execute("make " + ($coinmaster[Dimemaster].available_tokens / 5) + " fancy seashell necklace");
 		}
 		while($coinmaster[Dimemaster].available_tokens >= 2)
 		{
@@ -5020,7 +5053,7 @@ boolean doTasks()
 
 		while($coinmaster[Quartersmaster].available_tokens >= 5)
 		{
-			cli_execute("make commemorative war stein");
+			cli_execute("make " + ($coinmaster[Quartersmaster].available_tokens / 5) + " commemorative war stein");
 		}
 		while($coinmaster[Quartersmaster].available_tokens >= 2)
 		{
@@ -5083,7 +5116,7 @@ boolean doTasks()
 		{
 			if (have_skill($skill[Even More Elemental Wards]))
 			{
-				use_servant($servant[Scribe]);
+				ed_use_servant($servant[Scribe]);
 			}
 			maximize("exp, -equip filthy knitted dread sack", 0, 0, false);
 			ccAdv(1, $location[Hippy Camp]);
@@ -5100,7 +5133,7 @@ boolean doTasks()
 		council();
 		if(item_amount($item[Thwaitgold Scarab Beetle Statuette]) > 0)
 		{
-			put_display(item_amount($item[thwaitgold scarab beetle statuette]), $item[thwaitgold scarab beetle statuette]);
+			if (have_display()) put_display(item_amount($item[thwaitgold scarab beetle statuette]), $item[thwaitgold scarab beetle statuette]);
 			set_property("ed_sorceress", "finished");
 			council();
 			return true;
