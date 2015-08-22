@@ -20,7 +20,7 @@ import <ed_equipment.ash>
 import <ed_edTheUndying.ash>
 import <ed_eudora.ash>
 import <ed_elementalPlanes.ash>
-import <zlib.ash>
+//import <zlib.ash>
 
 boolean LX_chateauDailyPainting();
 boolean LX_handleSpookyravenFirstFloor();
@@ -83,17 +83,42 @@ boolean L12_gremlins();
 boolean L12_gremlinStart();
 boolean questOverride();
 
+void ed_replacePublicSettings() {
+	if (!to_boolean(get_property("ed_settingsReplaced"))) {
+		set_property("ed_oldAfterAdventureScript", get_property("afterAdventureScript"));
+		set_property("ed_oldCounterScript", get_property("counterScript"));
+		set_property("ed_settingsReplaced", "true");
+		set_property("afterAdventureScript", "ed_postadventure.ash");
+		set_property("counterScript", "");
+	} else {
+		if (
+			get_property("afterAdventureScript") != "ed_postadventure.ash"
+			|| get_property("counterScript") != ""
+		) {
+			abort("Inconsistent automation script settings for running ed_ascend.ash");
+		}
+	}
+}
+
+void ed_restorePublicSettings() {
+	if (to_boolean(get_property("ed_settingsReplaced"))) {
+		set_property("afterAdventureScript", get_property("ed_oldAfterAdventureScript"));
+		set_property("counterScript", get_property("ed_oldCounterScript"));
+		set_property("ed_settingsReplaced", "false");
+	}
+}
+
 void initializeSettings()
 {
+	ed_replacePublicSettings();
 	if(my_ascensions() <= get_property("ed_doneInitialize").to_int())
 	{
 		return;
 	}
-	set_property("ed_oldAfterAdventureScript", get_property("afterAdventureScript"));
-	set_property("ed_oldCounterScript", get_property("counterScript"));
-	set_property("afterAdventureScript", "ed_postadventure.ash");
-	set_property("counterScript", "");
 	set_property("chasmBridgeProgress", 0);
+	set_property("delayToDayFour", FALSE);
+	set_property("doNunsRegardless", FALSE);
+	set_property("writingDesksDefeated", "0");
 	set_property("ed_abooclover", "");
 	set_property("ed_aftercore", "");
 	set_property("ed_airship", "");
@@ -121,10 +146,8 @@ void initializeSettings()
 	set_property("ed_day2_init", "");
 	set_property("ed_day3_init", "");
 	set_property("ed_day4_init", "");
-	set_property("delayToDayFour", FALSE);
 	set_property("ed_disableAdventureHandling", "no");
 	set_property("ed_doCombatCopy", "no");
-	set_property("doNunsRegardless", FALSE);
 	set_property("ed_fcle", "");
 	set_property("ed_fratWarOutfit", "");
 	set_property("ed_friars", "");
@@ -186,7 +209,6 @@ void initializeSettings()
 	set_property("ed_twinpeakprogress", "");
 	set_property("ed_war", "");
 	set_property("ed_winebomb", "");
-	set_property("writingDesksDefeated", "0");
 	set_property("ed_yellowRay_day1", "");
 	set_property("ed_yellowRay_day2", "");
 	set_property("ed_yellowRay_day3", "");
@@ -556,6 +578,8 @@ void initializeDay(int day)
 void doBedtime()
 {
 	print("Starting bedtime.", "blue");
+
+	ed_restorePublicSettings();
 
 	if(get_property("lastEncounter") == "Like a Bat Into Hell")
 	{
@@ -928,17 +952,18 @@ boolean L11_hiddenCityZones()
 
 	if(get_property("ed_hiddenzones") == "0")
 	{
+		//TODO:  why do we abandon the park after 10 adventures there??  Fewer janitors in the hospital and bowling alley is a good idea!
 		if(possessEquipment($item[antique machete]) && ((item_amount($item[book of matches]) > 0) || ("The Hidden Park".to_location().turns_spent > 9)))
 		{
 			set_property("ed_hiddenzones", "1");
 		}
 		else
 		{
+			ccAdv(1, $location[The Hidden Park]);
 			if(contains_text(get_property("lastEncounter"), "Where Does The Lone Ranger Take His Garbagester"))
 			{
 				set_property("choiceAdventure789", "1");
 			}
-			ccAdv(1, $location[The Hidden Park]);
 			return true;
 		}
 	}
@@ -1247,6 +1272,19 @@ boolean LX_handleSpookyravenFirstFloor()
 		print("Delaying kitchen till you got some more resistance", "blue");
 		return false;
 	}
+	if(item_amount($item[Lady Spookyraven\'s Necklace]) > 0)
+	{
+		visit_url("place.php?whichplace=manor1&action=manor1_ladys");
+		visit_url("main.php");
+		cli_execute("refresh inv");
+	}
+	if(item_amount($item[Ghost of a Necklace]) > 0)
+	{
+		visit_url("place.php?whichplace=manor2&action=manor2_ladys");
+		set_property("ed_spookyravennecklace", "finished");
+		return true;
+	}
+	
 	if(get_property("writingDesksDefeated").to_int() >= 5)
 	{
 		abort("Mafia reports 5 or more writing desks defeated yet we are still looking for them? Give Lady Spookyraven her necklace?");
@@ -1295,18 +1333,6 @@ boolean LX_handleSpookyravenFirstFloor()
 		}
 		buffMaintain($effect[Hide of Sobek], 10, 1, 1);
 		ccAdv(1, $location[The Haunted Kitchen]);
-	}
-	
-	if(item_amount($item[Lady Spookyraven\'s Necklace]) > 0)
-	{
-		visit_url("place.php?whichplace=manor1&action=manor1_ladys");
-		visit_url("main.php");
-		cli_execute("refresh inv");
-	}
-	if(item_amount($item[Ghost of a Necklace]) > 0)
-	{
-		visit_url("place.php?whichplace=manor2&action=manor2_ladys");
-		set_property("ed_spookyravennecklace", "finished");
 	}
 	
 	return true;
@@ -1904,7 +1930,7 @@ boolean L10_basement()
 	{
 		set_property("choiceAdventure669", "4");
 	}
-	set_property("choiceAdventure670", "5");
+	set_property("choiceAdventure670", "5");  //FIXME:  choice 5 is not valid, says Mafia.  Why does this seem to work??
 	set_property("choiceAdventure671", "4");
 
 	buyUpTo(1, $item[Ben-Gal&trade; Balm]);
@@ -2311,15 +2337,17 @@ boolean L8_trapperYeti()
 			}
 
 			print("Time to take out Gargle", "blue");
-			if((item_amount($item[Winged Yeti Fur]) == 0) && (get_property("questL08Trapper").to_int() < 5))
-			{
+			string questStatus = get_property("questL08Trapper");
 //Lets mafia know what step you are on if for some reason its fallen out of sync
-				visit_url("place.php?whichplace=mclargehuge&action=trappercabin");
+			visit_url("place.php?whichplace=mclargehuge&action=trappercabin");
+			if ("step" == questStatus.substring(0,4)) questStatus = substring(questStatus, 4);
+			if ("finished" == questStatus) questStatus = "step5";
+			if((item_amount($item[Winged Yeti Fur]) == 0) && (questStatus.to_int() < 5))
+			{
 				ccAdv(1, $location[Mist-shrouded Peak]);
 			}
 			else
 			{
-				visit_url("place.php?whichplace=mclargehuge&action=trappercabin");
 				set_property("ed_trapper", "finished");
 				council();
 			}
