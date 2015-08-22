@@ -1162,11 +1162,15 @@ boolean ed_handleAdventureServant(location loc)
 		(loc == $location[An Overgrown Shrine (Northeast)]) ||
 		(loc == $location[An Overgrown Shrine (Southwest)]) ||
 		(loc == $location[An Overgrown Shrine (Southeast)]) ||
-		(loc == $location[A Massive Ziggurat] && item_amount($item[stone triangle]) == 0))
+		(loc == $location[A Massive Ziggurat] && item_amount($item[stone triangle]) == 0) ||
+		(loc == $location[The Hatching Chamber]) ||
+		(loc == $location[The Feeding Chamber]) ||
+		(loc == $location[The Royal Guard Chamber]))
 	{
 		ed_use_servant($servant[Cat]);
 	}
-	
+
+	if ($servant[Scribe] == ed_servant && 13 <= my_level()) ed_use_servant($servant[Priest]);
 	return false;
 }
 
