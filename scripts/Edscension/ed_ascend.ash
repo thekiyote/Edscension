@@ -1,48 +1,18 @@
 /********************************************
 
 				Edscension
+By: chown (a.k.a. wmarkham), who forked it from one:
 By: Zen00, a fork of the Cheeseascend (now deprecated)
 script by Cheesecookie ( http://sourceforge.net/p/cheeseascend/svn/HEAD/tree/ )
 Written to more fully define and explore the Actually Ed
 the Undying functionalities of said script, and as a skill
 stretching project for Zen00 before attempting an independent
 ascension script for a future Kingdom of Loathing ascension path.
-				V. 1.0.2.0
 
-					
-Changelog from last version:
-Ed now remembers to have -combat for The Hidden Park
-Now supports paying up to 3 ka coins (2 additional undeath/flyering sequences, can do more if people need more) when undying for flyering, more important for those with minimal ML sources
-Doesn't try shopping multiple times per fight now
-Fixed a bug with shopping and single round use items/skills such as curse of fortune and talisman of renenutet
-Shopping should hopefully trigger to fill your spleen always now, but then again, it's death dependent so if you don't die it won't work
-Fixed a bug with pirates quest
-Shut up that nagging message about unreachable code
-A possible fix for not imbueing properly (definite fix after testing)
-YR for snake knight now (hooray for xp!) as well as some MP adjustments to make YRs and Stench happen properly (might cause more "Can't restore" stops)
-Should now support doing The Hidden Temple if you didn't get enough stone wool
-Improved handling of The Hidden Park (to help with obtaining book of matches)
-Servant handling is now much improved, imbuing works properly, and I still don't get regex. :/
-Shopping should be working as normal again, hooray for giant redundant ifs!
-Now buys silk bandages once you hit level 12 (for Boo Peak healing)
-Some slight tweaks to the combat script that should reduce the number of accidental undeaths by trying to attack with weapon when should be summoning scarabs
-More messing around with the shopping list to see if I can get Even More Elemental Wards to be purchased in a timely manner
-Working on the eating/drinking automagically, I swear!
-Should now stop aborting the LFM while still having +combat but no Horus talismen
-Now properly sets your battle action as well as CCS and Mood and Recovery Settings
-Your moxie is now properly taken into account before trying to be a pirate, arrr
-Should now have fewer extra-undeaths while insult gathering
-Should hopefully stop auto-stopping when using Caronch's map and dying on the first round
-RELAY SETTINGS NOW WORK
-SVN support is go!
+see http://github.com/wmarkham/Edscension for changelogs, etc.
 
 ********************************************/
 
-/***	svn checkout 		***/
-
-script "Edscension";
-notify Zen00;
-since r16075;
 
 import <ed_combat.ash>
 import <ed_util.ash>
