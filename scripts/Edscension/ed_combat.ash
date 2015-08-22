@@ -9,13 +9,42 @@ void handleYellowRay(monster enemy, skill yellowRay);
 void handleLashes(monster enemy);
 void handleRenenutet(monster enemy);
 
-string whm_stormOrFist() {
+int ed_fistDamage() {  // (ignores physical resistance, 5 MP)
+	// (see http://kol.coldfront.net/thekolwiki/index.php/Calculating_Spell_Damage)
+	float baseDamage = min(my_buffedstat($stat[mysticality]), 50);
+	float multiplier = 1.0; //FIXME
+	float spellDamagePercent = numeric_modifier("Spell Damage Percent");
+	return ceil(baseDamage * multiplier * (1+spellDamagePercent/100.0));
+}
+
+int ed_howlDamage() {  // (spooky damage, 10 MP)
+	// (see http://kol.coldfront.net/thekolwiki/index.php/Calculating_Spell_Damage)
+	float baseDamage = min(my_buffedstat($stat[mysticality]), 96);
+	float multiplier = 1.0; //FIXME
+	float spellDamagePercent = numeric_modifier("Spell Damage Percent");
+	return ceil(baseDamage * multiplier * (1+spellDamagePercent/100.0));
+}
+
+// roar:  hot damage, 15 MP
+
+int ed_stormDamage() {  // (prismatic damage, 8 MP)
+	// (see http://kol.coldfront.net/thekolwiki/index.php/Calculating_Spell_Damage)
+	float baseDamage = min(my_buffedstat($stat[mysticality])*1.7, 330);  //FIXME
+	if (last_monster().defense_element != $element[none]) baseDamage *= 1.2;
+	float multiplier = 1.0; //FIXME
+	float spellDamagePercent = numeric_modifier("Spell Damage Percent");
+	return ceil(baseDamage * multiplier * (1+spellDamagePercent/100.0));
+}
+
+string ed_stormIfPossible() {
+	// When we get here, we would use storm if we had it.  Using fist instead.
 	if (!have_skill($skill[storm of the scarab])) return "fist of the mummy";
+	if (my_mp() < mp_cost($skill[storm of the scarab])) return "fist of the mummy";
 	return "storm of the scarab";
 }
-string whm_stormOrFist(monster enemy) {
-	if (enemy.raw_hp < 85) return "fist of the mummy";
-	return whm_stormOrFist();
+string ed_stormOrFist() {
+	if (monster_hp() < ed_fistDamage()) return "fist of the mummy";
+	return ed_stormIfPossible();
 }
 
 void handleBanish(monster enemy, skill banisher)
@@ -56,6 +85,10 @@ string findBanisher(string opp)
 	print("In findBanisher for: " + opp, "green");
 	monster enemy = to_monster(opp);
 
+	if (0 < item_amount($item[Harold's Bell])) {  //WHM:  added this.
+		handleBanish(enemy, $item[Harold's Bell]);
+		return "item Harold's Bell";
+	}
 	if(have_skill($skill[Curse of Vacation]) && my_mp() >= 35)
 	{
 		handleBanish(enemy, $skill[Curse of Vacation]);
@@ -82,6 +115,10 @@ string ccsJunkyard(int round, string opp, string text)
 	string edCombatState = get_property("ed_edCombatHandler");
 
 	if(contains_text(edCombatState, "gremlinNeedBanish"))
+	{
+		set_property("ed_gremlinMoly", false);
+	}
+	if(opp == "A.M.C. gremlin")
 	{
 		set_property("ed_gremlinMoly", false);
 	}
@@ -171,23 +208,6 @@ string ccsJunkyard(int round, string opp, string text)
 		return "skill summon love gnats";
 	}
 
-	if(!get_property("ed_gremlinMoly").to_boolean())
-	{
-		if(get_property("ed_edCombatStage").to_int() > 2)
-		{
-			string banisher = findBanisher(opp);
-			if(banisher != "attack with weapon")
-			{
-				return banisher;
-			}
-			else if(my_mp() >= 8)
-			{
-				return "skill " + whm_stormOrFist();
-			}
-			return banisher;
-		}
-	}
-
 	if((!contains_text(combatState, "flyers")) && (my_location() != $location[The Battlefield (Frat Uniform)]) && (get_property("ed_edCombatStage").to_int() < 3))
 	{
 		if((item_amount($item[rock band flyers]) > 0) && (get_property("flyeredML").to_int() < 10000))
@@ -207,7 +227,22 @@ string ccsJunkyard(int round, string opp, string text)
 
 	if(!get_property("ed_gremlinMoly").to_boolean())
 	{
-		if(get_property("ed_edCombatStage").to_int() >= 2)
+		//WHM:  doesn't this mean that there's no chance of getting the Moly item?  Just kill the thing!
+			string banisher = findBanisher(opp);
+			if (banisher == "attack with weapon" && my_mp() >= 8) {
+				return "skill " + ed_stormIfPossible();
+			}
+			return banisher;
+/*
+		if(get_property("ed_edCombatStage").to_int() > 2)
+		{
+			string banisher = findBanisher(opp);
+			if (banisher == "attack with weapon" && my_mp() >= 8) {
+				return "skill " + ed_stormIfPossible();
+			}
+			return banisher;
+		}
+		else if(get_property("ed_edCombatStage").to_int() == 2)
 		{
 			return findBanisher(opp);
 		}
@@ -215,6 +250,7 @@ string ccsJunkyard(int round, string opp, string text)
 		{
 			return "item dictionary";
 		}
+*/
 	}
 
 
@@ -224,7 +260,7 @@ string ccsJunkyard(int round, string opp, string text)
 		{
 			return "skill Storm of the Scarab";
 		}
-		return "attack with weapon";
+		return "attack with weapon";  //TODO:  not Fist?
 	}
 
 	if(item_amount($item[dictionary]) > 0)
@@ -310,11 +346,23 @@ string ed_edCombatHandler(int round, string opp, string text)
 		abort("Somehow got to 60 rounds.... aborting");
 	}
 
-	monster enemy = to_monster(opp);
-	phylum type = monster_phylum(enemy);
+	monster enemy = last_monster();
+	phylum type = monster_phylum();
 	string combatState = get_property("ed_combatHandler");
 	string edCombatState = get_property("ed_edCombatHandler");
-	
+
+	int combatStage = get_property("ed_edCombatStage").to_int();
+	float damagePerRound = expected_damage();
+	if ($monster[Your winged yeti] == last_monster()) damagePerRound *= 3;  // (Mafia appears to be inaccurate?  Also, he appears to have some damage reduction applied to my Fist spells....)
+	if (damagePerRound == 0.0) damagePerRound = my_hp() + 1;  // A kludge, to ensure that we treat unknown enemies with respect!  And, avoid dividing by zero!!
+	int roundsLeftThisStage = 1 + floor(my_hp() / damagePerRound);
+	int roundsPerStage = (jump_chance() < 100 ? 0 : 1) + floor(my_maxhp() / damagePerRound);
+	int roundsBeforeKa = roundsLeftThisStage + roundsPerStage * (2 - combatStage);
+
+	print("combat stage " + combatStage + ", round " + round + ":  " + roundsLeftThisStage + " more 'til underworld, " + roundsBeforeKa + " more 'til we need to spend Ka.", "blue");
+	print("opponent has about " + monster_hp() + " HP.  Ed has " + my_hp() + ".  Fist does " + ed_fistDamage() + ", Storm does (?) " + ed_stormDamage() + ", opponent does " + damagePerRound, "blue");
+	if (get_property("_edDefeats").to_int() != combatStage) print("Note:  _edDefeats is " + get_property("_edDefeats"), "red");
+
 	if((item_amount($item[ka coin]) > 30) && (!have_skill($skill[Healing Scarabs]) || (my_spleen_use() < spleen_limit())) && (get_property("_edDefeats").to_int() == 0) &&
 	(!contains_text(edCombatState, "talismanofrenenutet") || contains_text(edCombatState, "insults") || !contains_text(edCombatState, "curse of fortune")))
 	{
@@ -458,7 +506,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 			}
 			else
 			{
-				return whm_stormOrFist();
+				return ed_stormIfPossible();
 			}
 		}
 
@@ -650,7 +698,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 		}
 	}
 
-	if(((enemy == $monster[bob racecar]) || (enemy == $monster[racecar bob])) && item_amount($item[disposable instant camera]) > 0)
+	if(((enemy == $monster[bob racecar]) || (enemy == $monster[racecar bob])) && item_amount($item[disposable instant camera]) > 0 && 0 == item_amount($item[photograph of a dog]))
 	{
 		set_property("ed_combatHandler", combatState + "(disposable instant camera)");
 		return "item disposable instant camera";
@@ -819,28 +867,44 @@ string ed_edCombatHandler(int round, string opp, string text)
 	if((item_amount($item[Tattered Scrap of Paper]) > 0) && (!contains_text(combatState, "tatters")))
 	{
 		if((enemy == $monster[Demoninja]) ||
-			(enemy == $monster[Drunken Rat]) ||
-			(enemy == $monster[Bunch of Drunken Rats]) ||
-			(enemy == $monster[Knob Goblin Elite Guard]) ||
-			(enemy == $monster[Drunk Goat]) ||
-			(enemy == $monster[Sabre-Toothed Goat]) ||
-			(enemy == $monster[Bubblemint Twins]) ||
-			(enemy == $monster[Creepy Ginger Twin]) ||
-			(enemy == $monster[Mismatched Twins]) ||
+			(enemy == $monster[banshee librarian]) ||  // (is there a reason why Ed might want to fight undead foes?)
+			(enemy == $monster[Drunken Rat]) ||  // 1 Ka
+			(enemy == $monster[Bunch of Drunken Rats]) ||  // 1 Ka
+			(enemy == $monster[Knob Goblin Elite Guard]) ||  // 1 Ka
+			(enemy == $monster[Drunk Goat]) ||  // 1 Ka
+			(enemy == $monster[Sabre-Toothed Goat]) ||  // 1 Ka
+			(enemy == $monster[Bubblemint Twins]) ||  // 2 Ka
+			(enemy == $monster[Creepy Ginger Twin]) ||  // 2 Ka
+			(enemy == $monster[Mismatched Twins]) ||  // 2 Ka
 			(enemy == $monster[Coaltergeist]) ||
 			(enemy == $monster[L imp]) ||
 			(enemy == $monster[W imp]) ||
 			(enemy == $monster[Hellion]) ||
 			(enemy == $monster[Fallen Archfiend]))
 		{
+			//TODO:  note than some of those give Ka.  If we have reason to worry about getting Ka, we might want to fight them.
 			set_property("ed_combatHandler", combatState + "(tatters)");
 			return "item tattered scrap of paper";
 		}
 	}
 
+	boolean forceStasis = false;
 	if((!contains_text(edCombatState, "talismanofrenenutet")) && (item_amount($item[Talisman of Renenutet]) > 0))
 	{
 		boolean doRenenutet = false;
+		//TODO:  dairy goat?
+		if(enemy == $monster[Larval Filthworm] && (item_amount($item[filthworm hatchling scent gland]) == 0))
+		{
+			doRenenutet = (item_amount($item[Talisman of Renenutet]) > 3);
+		}
+		if(enemy == $monster[Filthworm Drone] && (item_amount($item[filthworm drone scent gland]) == 0))
+		{
+			doRenenutet = (item_amount($item[Talisman of Renenutet]) > 2);
+		}
+		if(enemy == $monster[Filthworm Royal Guard] && (item_amount($item[filthworm royal guard scent gland]) == 0))
+		{
+			doRenenutet = true;
+		}
 		if((enemy == $monster[Cleanly Pirate]) && (item_amount($item[Rigging Shampoo]) == 0))
 		{
 			doRenenutet = true;
@@ -891,6 +955,33 @@ string ed_edCombatHandler(int round, string opp, string text)
 		{
 			doRenenutet = true;
 		}
+		if (roundsPerStage < 2) {
+			doRenenutet = false;  // we could only ever use it successfully against this opponent
+				// if we were to get lucky.
+				// (if this happens, we probably want to add some checks in the adventuring logic
+				// to avoid it.)
+		}
+		//TODO:  there may still be 2-round fights where Ed ought to soften up the opponent
+		//       in this fight, so that he is guaranteed to finish the next fight with Renenutet
+		//       active.  We need the stasis logic
+		//       to support that. first, before we can really do anything about it here.  For
+		//       now, I'll avoid using renenutets:
+		if (2 == roundsLeftThisStage && ed_fistDamage() < monster_hp()) {
+			print("Using a talisman of Renenutet right now would be risky!", "blue");
+			if (!doRenenutet) print("TODO:  fix the above message to only appear if we would otherwise use one!", "blue");
+			doRenenutet = false;
+		}
+
+		if (roundsLeftThisStage < 30 && roundsLeftThisStage + 1 < roundsPerStage && combatStage < 2) {
+			// defer until another combat, in order to buy more time.  (note that this logic might belong outside of the renenutet logic; it is more generally applicable!)
+			print("Ed will defer until another combat, in order to heal & buy time.  (This is the new forceStasis logic)", "blue");
+			if (my_maxhp() < my_hp() * 1.1) print("forceStasis activating with full HP!!?!", "red");
+			forceStasis = true;
+			doRenenutet = false;
+		}
+		if (roundsLeftThisStage < 2) {
+			doRenenutet = false;
+		}
 		if(doRenenutet)
 		{
 			set_property("ed_edCombatHandler", edCombatState + "(talismanofrenenutet)");
@@ -905,12 +996,12 @@ string ed_edCombatHandler(int round, string opp, string text)
 		return "item short writ of habeas corpus";
 	}
 
-	if(!needShop(ed_buildShoppingList()) && (my_level() >= 10) && (item_amount($item[Rock Band Flyers]) == 0) && (my_location() != $location[The Hidden Apartment Building]) && (type != to_phylum("Undead")) && (my_mp() > 20) && (my_location() != $location[Barrrney\'s Barrr]))
+	if(!needShop(ed_buildShoppingList()) && (my_level() >= 10) && (item_amount($item[Rock Band Flyers]) == 0) && (my_location() != $location[The Hidden Apartment Building]) && (type != to_phylum("Undead")) && (my_mp() > 20) && (my_location() != $location[Barrrney\'s Barrr]) && !forceStasis)
 	{
 		set_property("ed_edStatus", "dying");
 	}
 
-	if(get_property("ed_edStatus") == "UNDYING!")
+	if(get_property("ed_edStatus") == "UNDYING!" || forceStasis)
 	{
 		if(my_location() == $location[The Secret Government Laboratory])
 		{
@@ -939,16 +1030,17 @@ string ed_edCombatHandler(int round, string opp, string text)
 			set_property("ed_combatHandler", combatState + "(love scarabs)");
 			return "skill summon love scarabs";
 		}
-		if((item_amount($item[holy spring water]) > 0) && (my_mp() < 5))
+		if((item_amount($item[holy spring water]) > 0) && (my_mp() < mp_cost($skill[fist of the mummy])))
 		{
 			return "item holy spring water";
 		}
-		
+
+		//TODO:  if opponent has high current hp, we might want to soften it up a bit.
 		if(item_amount($item[Dictionary]) > 0)
 		{
 			return "item dictionary";
 		}
-		
+
 		return "skill Mild Curse";
 	}
 
@@ -976,27 +1068,52 @@ string ed_edCombatHandler(int round, string opp, string text)
 	{
 		return "item ice-cold Cloaca Zero";
 	}
+	//TODO:  other mp restores??
 
-	//TODO:  I'm not convinced that casting Storm just because we can is a good idea.  Tweaking the monster_hp threshold!
-	//if((my_mp() >= 8) && have_skill($skill[Storm of the Scarab]) && monster_hp(enemy) > 80)
-	if((my_mp() >= 8) && have_skill($skill[Storm of the Scarab]) && monster_hp(enemy) > 200)
+	if (my_mp() < mp_cost($skill[fist of the mummy]))
 	{
-		return "skill Storm of the Scarab";
+		print("We aren't able to restore enough MP to cast a real spell!  Attacking might be better than Mild Curse", "red");
+		return "attack with weapon";
 	}
 
-	if((enemy.physical_resistance >= 100) || (round >= 25))
+	if(round >= 25)
 	{
-		return "skill " + whm_stormOrFist(enemy);
+		print("This combat is taking too long.  Trying to finish it.", "red");
+		return "skill " + ed_stormIfPossible();
 	}
-	int combatStage = get_property("ed_edCombatStage").to_int();
- 	if (expected_damage() * 1.25 >= my_hp() && (my_maxhp() < 2*my_hp() || 2 < combatStage ))
-	{
-		return "skill " + whm_stormOrFist(enemy);
+
+	if (roundsBeforeKa * ed_fistDamage() < monster_hp()) {
+		print("This combat would eventually cost Ka if we only use fist.  Trying to expedite it.", "blue");
+		return "skill " + ed_stormIfPossible();
 	}
-	
-	if(last_monster().id == 1185)
+
+	if (monster_hp() > 300)
 	{
-		return "skill " + whm_stormOrFist(enemy);
+		print("This opponent is pretty big.  Trying to cut it down to size.", "blue");
+		return "skill " + ed_stormIfPossible();
+	}
+
+ 	if (
+		expected_damage() * 1.25 >= my_hp() && (
+			1 < combatStage
+			|| contains_text(edCombatState, "talismanofrenenutet")
+			//TODO:  are there other reasons not to die?
+		)
+	) {
+		print("This opponent could kill me this round, and I'd rather not visit the underworld right now.", "blue");
+		return "skill " + ed_stormIfPossible();
+	}
+
+	if(last_monster().id == 1185)  // (why does this need special logic?)
+	{
+		print("This opponent is a ninja snowman assassin.", "blue");
+		return "skill " + ed_stormOrFist();
+	}
+
+	if ((1 + floor(monster_hp() / ed_fistDamage())) * mp_cost($skill[fist of the mummy])
+		> (1 + floor(monster_hp() / ed_stormDamage())) * mp_cost($skill[storm of the scarab]))
+	{
+		return "skill " + ed_stormIfPossible();
 	}
 
 	if(round >= 29)
