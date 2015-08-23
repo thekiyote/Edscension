@@ -61,7 +61,7 @@ void handlePreAdventure()
 	boolean dobreak = false;
 	while(!doBreak)
 	{
-//Restore MP
+		// Restore MP
 		if(item_amount($item[Magical Mystery Juice]) > 0 && (my_mp() < 20))
 		{
 			use(1, $item[Magical Mystery Juice]);
@@ -92,9 +92,10 @@ void handlePreAdventure()
 		}
 		else if(item_amount($item[Holy Spring Water]) > 0 && (my_mp() < 20))
 		{
+			//TODO:  if we have meat, but not organs, favor the Doc's Tonic.
 			use(1, $item[Holy Spring Water]);
 		}
-		else if((my_mp() < 20) && my_meat() > 180)
+		else if((my_mp() < 20) && my_meat() > 180 && my_mp() + 11 <= my_maxmp())
 		{
 			buyUpTo(1, $item[Doc Galaktik\'s Invigorating Tonic]);
 			use(1, $item[Doc Galaktik\'s Invigorating Tonic]);
@@ -292,6 +293,13 @@ void handlePreAdventure()
 			{
 				doBreak = true;
 			}
+		} else if (my_maxmp() < 30 && my_mp() > 2 * mp_cost($skill[fist of the mummy]))
+		{
+			doBreak = true;
+		} else if (my_mp() < 15 && 180 < my_meat())
+		{
+			buyUpTo(1, $item[Doc Galaktik\'s Invigorating Tonic]);
+			use(1, $item[Doc Galaktik\'s Invigorating Tonic]);
 		} else if(my_mp() > 14)
 		{
 			doBreak = true;
