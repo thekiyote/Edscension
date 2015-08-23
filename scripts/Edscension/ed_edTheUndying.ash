@@ -185,7 +185,7 @@ boolean ed_doResting()
 	
 	if ((my_mp() + 110) < my_maxMP())
 	{
-	doRest();
+		doRest();
 	}
 	
 	if(monster_level_adjustment() > 50)
@@ -541,6 +541,7 @@ boolean ed_eatStuff()
 		chew(canEat, $item[Mummified Beef Haunch]);
 	}
 
+	//TODO:  the code below doesn't seem to "respect" the "dickstab" option....
 	string cookie = get_counters("Fortune Cookie", 0, 200);
 	if(cookie != "Fortune Cookie")
 	{
@@ -679,7 +680,7 @@ record ed_ShoppingList {
 	boolean[skill] skillsToBuy;
 };
 
-ed_ShoppingList ed_buildShoppingList() {
+ed_ShoppingList ed_buildShoppingList_old() {
 	ed_ShoppingList result;
 
 	int coins = item_amount($item[Ka Coin]);
@@ -961,6 +962,202 @@ ed_ShoppingList ed_buildShoppingList() {
 	}
 
 	return result;
+}
+
+ed_ShoppingList ed_buildShoppingList(int kaAdjustment, int adventuresAdjustment) {
+	ed_ShoppingList result;
+//FIXME:  bought spleen & items w/o ka on hand for haunch.  budget was okay, though.  is that a bug?
+
+	int coins = item_amount($item[Ka Coin]) + kaAdjustment;
+	int adventures = my_adventures() + adventuresAdjustment;
+
+	// Top priority is ensuring access the Hippy Camp, in order to guarantee 2Ka/adv.
+	if (!have_skill($skill[Upgraded Legs])) {
+		if (10 <= coins) result.skillsToBuy[$skill[Upgraded Legs]] = true;
+		return result;
+	}
+
+	int haunchesToBuy = (spleen_limit() - my_spleen_use()) / 5 - item_amount($item[Mummified Beef Haunch]);
+	if (0 < haunchesToBuy && adventures < 50 && 15 <= coins) {
+		//result.itemsToBuy[$item[Mummified Beef Haunch]] = min(coins/15, haunchesToBuy);
+		result.itemsToBuy[$item[Mummified Beef Haunch]] = 1;
+		return result;
+	}
+
+	int futureKa = max(0, adventures - 5) * 0.5;  // A heuristic guess as to how much Ka we could spend today.
+	int budget = coins + futureKa;
+
+	if (0 < haunchesToBuy) budget -= 15;  // reserved for a future haunch
+
+	// buying organs.  unlike Planned Parenthood, we expect to profit from them.
+	if (!have_skill($skill[Extra Spleen])) {
+		if (coins >= 5 + 15 && budget >= 5 + 15) {
+			result.skillsToBuy[$skill[Extra Spleen]] = true;
+			return result;
+		}
+	} else if (!have_skill($skill[Another Extra Spleen])) {
+		if(coins >= 10 + 15 && budget >= 10 + 15)
+		{
+			result.skillsToBuy[$skill[Another Extra Spleen]] = true;
+			return result;
+		}
+	}
+
+	if (!have_skill($skill[Yet Another Extra Spleen])) {
+		budget -= 15 + 15;
+		if (coins >= 15 && budget >= 0)
+		{
+			result.skillsToBuy[$skill[Yet Another Extra Spleen]] = true;
+			coins -= 15;
+		}
+	}
+	if (!have_skill($skill[Replacement Stomach])) {
+		budget -= 30;
+		if (coins >= 30 && budget >= 0) {
+			result.skillsToBuy[$skill[Replacement Stomach]] = true;
+			coins -= 30;
+		}
+	}
+	if (!have_skill($skill[Still Another Extra Spleen])) {
+		budget -= 20 + 15;
+		if (coins >= 20 && budget >= 0) {
+			result.skillsToBuy[$skill[Still Another Extra Spleen]] = true;
+			coins -= 20;
+		}
+	}
+	if (!have_skill($skill[Just One More Extra Spleen])) {
+		budget -= 25 + 15;
+		if (coins >= 25 && budget >= 0) {
+			result.skillsToBuy[$skill[Just One More Extra Spleen]] = true;
+			coins -= 25;
+		}
+	}
+	if (!have_skill($skill[Replacement Liver])) {
+		budget -= 30;
+		if (coins >= 30 && budget >= 0) {
+			result.skillsToBuy[$skill[Replacement Liver]] = true;
+			coins -= 30;
+		}
+	}
+	if (!have_skill($skill[Okay Seriously, This is the Last Spleen])) {
+		budget -= 30 + 15;
+		if (coins >= 30 && budget >= 0) {
+			result.skillsToBuy[$skill[Okay Seriously, This is the Last Spleen]] = true;
+			coins -= 30;
+		}
+	}
+
+	if (!have_skill($skill[More Legs])) {
+		budget -= 20;
+		if (coins >= 20) {
+			result.skillsToBuy[$skill[More Legs]] = true;
+			coins -= 20;
+		}
+	}
+
+	coins = max(0, min(coins, budget));
+
+	if (get_property("ed_renenutetBought").to_int() < 7 && 1 < coins) {
+		int renenutetToBuy = 7 - to_int(get_property("ed_renenutetBought"));
+		if (my_spleen_use() < 30) renenutetToBuy = min(renenutetToBuy, max(0,2-item_amount($item[talisman of Renenutet])));
+			// (Don't bother keeping more than a couple on hand, unless we might risk losing out on our daily allowance)
+			//TODO:  we do need to make sure that we don't risk missing out on organs, though.
+		renenutetToBuy = min(coins, renenutetToBuy);
+		if (0 < renenutetToBuy) result.itemsToBuy[$item[talisman of Renenutet]] = renenutetToBuy;
+		coins -= renenutetToBuy;
+	}
+
+	int springWaterToBuy = 1 - item_amount($item[Holy Spring Water]);
+	while (0 < springWaterToBuy && 1 <= coins) {
+		result.itemsToBuy[$item[Holy Spring Water]] += 1;
+		springWaterToBuy -= 1;
+		coins -= 1;
+	}
+
+	int spiritBeerToBuy = (my_maxMP() < 80 ? 0 : my_maxMP() < 180 ? 2 : 0)
+		- item_amount($item[spirit beer]);
+	while (0 < spiritBeerToBuy && 2 <= coins) {
+		result.itemsToBuy[$item[spirit beer]] += 1;
+		spiritBeerToBuy -= 1;
+		coins -= 2;
+	}
+
+	int wineToBuy = (my_maxMP() < 180 ? 0 : 3) - item_amount($item[sacramental wine]);
+	while (0 < wineToBuy && 3 <= coins) {
+		result.itemsToBuy[$item[sacramental wine]] += 1;
+		wineToBuy -= 1;
+		coins -= 3;
+	}
+
+	if (!have_skill($skill[Elemental Wards])) {
+		if (coins >= 10) {
+			result.skillsToBuy[$skill[Elemental Wards]] = true;
+			coins -= 10;
+		}
+	} else if (!have_skill($skill[More Elemental Wards])) {
+		if (coins >= 20) {
+			result.skillsToBuy[$skill[More Elemental Wards]] = true;
+			coins -= 20;
+		}
+	} else if (!have_skill($skill[Even More Elemental Wards])) {
+		if (coins >= 30) {
+			result.skillsToBuy[$skill[Even More Elemental Wards]] = true;
+			coins -= 30;
+		}
+	}
+
+	if (
+		!have_skill($skill[Tougher Skin])
+		&& (1 < my_daycount() || 50 < monster_level_adjustment())
+		&& 10 <= coins
+	) {
+		result.skillsToBuy[$skill[Tougher Skin]] = true;
+		coins -= 10;
+	}
+
+
+	if (!have_skill($skill[Armor Plating]) && (my_daycount() > 1) && (coins > 20)) {
+		result.skillsToBuy[$skill[Armor Plating]] = true;
+		coins -= 20;
+	} else if (!have_skill($skill[Upgraded Spine]) && (my_daycount() > 1) && (coins > 20)) {
+		result.skillsToBuy[$skill[Upgraded Spine]] = true;
+		coins -= 20;
+	}
+	/* else if (!have_skill($skill[Upgraded Arms]) && (my_daycount() > 1) && (coins > 20)) {
+		result.skillsToBuy[$skill[Upgraded Arms]] = true;
+		coins -= 20;
+	} else if ((!have_skill($skill[Healing Scarabs])) && (my_daycount() > 1) && (coins > 20)) {
+		result.skillsToBuy[$skill[Healing Scarabs]] = true;
+		coins -= 20;
+	} */  // these just seem counterproductive to me.  What are they for?
+
+	int linenToBuy = (my_maxHP() / 30) - item_amount($item[linen bandages]);
+		// (that's enough for one full heal)
+	while (0 < linenToBuy && 1 <= coins) {
+		result.itemsToBuy[$item[linen bandages]] += 1;
+		linenToBuy -= 1;
+		coins -= 1;
+	}
+
+	int horusToBuy = 2 - item_amount($item[talisman of Horus]);
+	while (0 < horusToBuy && 5 <= coins) {
+		result.itemsToBuy[$item[talisman of Horus]] += 1;
+		horusToBuy -= 1;
+		coins -= 5;
+	}
+
+	//int cureAllsToBuy = 2 - item_amount($item[ancient cure-all]) - item_amount($item[Soft Green Echo Eyedrop Antidote]);
+	int cureAllsToBuy = 0;  //FIXME:  need to fix cureall wastage, first!
+	while (0 < cureAllsToBuy && 5 <= coins) {
+		result.itemsToBuy[$item[ancient cure-all]] += 1;
+		cureAllsToBuy -= 1;
+		coins -= 3;
+	}
+
+	return result;
+}
+ed_ShoppingList ed_buildShoppingList() {
+	return ed_buildShoppingList(0, 0);
 }
 
 void display(ed_ShoppingList l) {
@@ -1261,7 +1458,7 @@ boolean ed_ccAdv(int num, location loc, string option, boolean skipFirstLife)
 		}
 
 		string page = visit_url("main.php");
-		if(contains_text(page, "whichchoice value=1023"))
+		if(contains_text(page, "whichchoice value=1023") || contains_text(page, "<b>The Underworld</b>"))
 		{
 			print("Ed has UNDYING once!" , "blue");
 			if(!ed_shopping())
@@ -1376,3 +1573,8 @@ boolean ed_ccAdv(int num, location loc, string option, boolean skipFirstLife)
 	}
 	return status;
 }
+
+void ed_resume() {
+	ed_ccAdv(1, my_location(), "", true);
+}
+
