@@ -354,7 +354,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 	int combatStage = get_property("ed_edCombatStage").to_int();
 	float damagePerRound = expected_damage();
 	if ($monster[Your winged yeti] == last_monster()) damagePerRound *= 3;  // (Mafia appears to be inaccurate?  Also, he appears to have some damage reduction applied to my Fist spells....)
-	if (damagePerRound == 0.0) damagePerRound = my_hp() + 1;  // A kludge, to ensure that we treat unknown enemies with respect!  And, avoid dividing by zero!!
+	if (damagePerRound < 1.0) damagePerRound = my_hp()/2 + 1;  // A kludge, to ensure that we treat unknown enemies with respect!  And, avoid dividing by zero!!
 	int roundsLeftThisStage = 1 + floor(my_hp() / damagePerRound);
 	int roundsPerStage = (jump_chance() < 100 ? 0 : 1) + floor(my_maxhp() / damagePerRound);
 	int roundsBeforeKa = roundsLeftThisStage + roundsPerStage * (2 - combatStage);
@@ -895,7 +895,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 		//TODO:  dairy goat?
 		if(enemy == $monster[Larval Filthworm] && (item_amount($item[filthworm hatchling scent gland]) == 0))
 		{
-			doRenenutet = (item_amount($item[Talisman of Renenutet]) > 3);
+			doRenenutet = (item_amount($item[Talisman of Renenutet]) > 4);
 		}
 		if(enemy == $monster[Filthworm Drone] && (item_amount($item[filthworm drone scent gland]) == 0))
 		{
@@ -972,7 +972,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 			doRenenutet = false;
 		}
 
-		if (roundsLeftThisStage < 30 && roundsLeftThisStage + 1 < roundsPerStage && combatStage < 2) {
+		if (roundsPerStage < 20 && roundsLeftThisStage + 1 < roundsPerStage && combatStage < 2) {
 			// defer until another combat, in order to buy more time.  (note that this logic might belong outside of the renenutet logic; it is more generally applicable!)
 			print("Ed will defer until another combat, in order to heal & buy time.  (This is the new forceStasis logic)", "blue");
 			if (my_maxhp() < my_hp() * 1.1) print("forceStasis activating with full HP!!?!", "red");
@@ -995,6 +995,8 @@ string ed_edCombatHandler(int round, string opp, string text)
 	{
 		return "item short writ of habeas corpus";
 	}
+
+	if (needShop(ed_buildShoppingList()) && monster_hp() / ed_fistDamage() < roundsPerStage) forceStasis = true;
 
 	if(!needShop(ed_buildShoppingList()) && (my_level() >= 10) && (item_amount($item[Rock Band Flyers]) == 0) && (my_location() != $location[The Hidden Apartment Building]) && (type != to_phylum("Undead")) && (my_mp() > 20) && (my_location() != $location[Barrrney\'s Barrr]) && !forceStasis)
 	{
