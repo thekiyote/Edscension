@@ -280,6 +280,16 @@ boolean tryAdventure(string loc, int snarfblat)
 	return false;
 }
 
+boolean ed_buy(int quantity, item which) {
+	if (which.seller != $coinmaster[none]) return buy(which.seller, quantity, which);
+	return buy(quantity, which);
+}
+
+boolean ed_acquire(int quantity, item which) {
+	int quantityToBuy = quantity - item_amount(which);
+	return ed_buy(quantityToBuy, which);
+}
+
 void warOutfit()
 {
 	if(!get_property("ed_hippyInstead").to_boolean())
@@ -496,7 +506,7 @@ void handleMCD()
 {
 	if(knoll_available() && (item_amount($item[detuned radio]) == 0) && (my_meat() > 300))
 	{
-		buy(1, $item[detuned radio]);
+		ed_acquire(1, $item[detuned radio]);
 		change_mcd(10);
 		visit_url("choice.php?pwd&whichchoice=835&option=2", true);
 	} else if(!knoll_available())
