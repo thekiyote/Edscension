@@ -2406,20 +2406,22 @@ boolean L8_trapperYeti()
 		{
 			adjustEdHat("weasel");
 		}
-		else if(jump_chance($monster[ninja snowman assassin]) < 50)
+		else if(jump_chance($monster[ninja snowman assassin]) < 70)
 		{
 			maximize("-ml, 0.1 hp, cold res, init", 1, 0, false);
 			change_mcd(0);
 			
-			if(jump_chance($monster[ninja snowman assassin]) < 50)
+			if(jump_chance($monster[ninja snowman assassin]) < 70)
 			{
 				if(!uneffect($effect[Blessing of Serqet]))
 				{
-					if((my_maxhp() < 85) && (elemental_resist($element[cold]) < 5))
-					{
-						print("Could not uneffect Blessing of Serqet for ninja snowmen, delaying until you can survive an encounter...");
-						return false;
-					}
+					print("Could not uneffect Blessing of Serqet for ninja snowmen, delaying until you can survive an encounter...");
+					return false;
+				}
+				if((my_maxhp() < expected_damage($monster[ninja snowman assassin])) && (elemental_resist($element[cold]) < 5))
+				{
+					print("Delaying snowmen until you can survive an encounter...");
+					return false;
 				}
 			}
 		}
