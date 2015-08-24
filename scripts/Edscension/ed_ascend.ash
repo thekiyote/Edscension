@@ -373,7 +373,9 @@ boolean doThemtharHills(boolean trickMode)
 	{
 		buffMaintain($effect[Sinuses For Miles], 0, 1, 1);
 	}
-	// Target 1000 + 400% = 5000 meat per brigand. Of course we want more, but don\'t bother unless we can get this.
+	// Target 1000 + 400% = 5000 meat per brigand. Of course we want more, but don't bother unless we can get this.
+	//TODO:  that target might be slightly high; I believe that in the normal flow of things (i.o., no nuns trick)
+	//  5 subquests versus 4 subquests nets more than 20 turns in savings....
 	float meat_need = 400.00;
 	if(item_amount($item[Mick\'s IcyVapoHotness Inhaler]) > 0)
 	{
@@ -2114,17 +2116,15 @@ boolean L7_crypt()
 
 boolean L1_LegDay()
 {
-	if(!LX_islandAccess() || item_amount($item[Dingy Dinghy]) > 0)
-	{
-	} else
-	{
+	if (LX_islandAccess() && 0 == item_amount($item[Dingy Dinghy])) {
 		abort("You don't have a Dinghy you ding-head!");
 	}
 	if(!have_skill($skill[Upgraded Legs]))
 	{
 		set_property("ed_legsbeforebread", "true");
 	}
-//This should allow us  to pick up the semi-rare in the Outskirts for some low level food/drink
+
+	//This should allow us to pick up the semi-rare in the Outskirts for some low level food/drink
 	if(get_counters("Semirare window end", 0, 10) == "Semirare window end")
 	{
 		if(L5_getEncryptionKey())
@@ -2132,7 +2132,7 @@ boolean L1_LegDay()
 			return true;
 		}
 	}
-	
+
 	if(item_amount($item[Ka Coin]) < 10 && !have_skill($skill[Upgraded Legs]))
 	{
 		if(jump_chance($monster[Rushing Bum]) < 70 && my_maxhp() < 30)
@@ -4326,17 +4326,20 @@ boolean L3_tavern()
 
 boolean doTasks()
 {
-//Handles MCD setting to 10 or 11
+	// Handles MCD setting to 10 or 11
 	handleMCD();
-//Autosells junk items to help generate MP
+
+	// Autosells junk items to help generate MP
 	sellStuff();
-//Checks to make sure you have all the latest quests up to date
+
+	// Checks to make sure you have all the latest quests up to date
 	if(my_level() > get_property("lastCouncilVisit").to_int())
 	{
 		council();
 	}
-//Noob override that makes sure you don't accidentally go to the Noob Cave, and if you do aborts so you can see what went wrong.
-	if(last_monster() == $monster[Crate])
+
+	// Noob override that makes sure you don't accidentally go to the Noob Cave, and if you do aborts so you can see what went wrong.
+	if (last_monster() == $monster[Crate])
 	{
 		if(get_property("ed_newbieOverride").to_boolean())
 		{
@@ -4351,18 +4354,22 @@ boolean doTasks()
 	{
 		set_property("ed_newbieOverride", false);
 	}
-//Using +stat buffs
+
+	//Using +stat buffs
 	buffMaintain($effect[From Nantucket], 0, 1, 1);
 	buffMaintain($effect[Squatting and Thrusting], 0, 1, 1);
 	buffMaintain($effect[You Read the Manual], 0, 1, 1);
-//Eating before fortune handling, so you can pick up the semirare number
+
+	//Eating before fortune handling, so you can pick up the semirare number
 	if(ed_eatStuff())
 	{
 		return true;
 	}
-//Purchase skills from pyramid and releases servants each level
+
+	//Purchase skills from pyramid and releases servants each level
 	ed_buySkills();
-//Heals
+
+	//Heals
 	if(my_hp() == 0)
 	{
 		if(item_amount($item[linen bandages]) > 0)
@@ -4370,8 +4377,9 @@ boolean doTasks()
 			use(1, $item[linen bandages]);
 		}
 	}
-//Fortune cookie handling here instead of as a pre-adventure due to the chance of a semi-rare being off (from wrong fortune cookie numbers)
-//and thus combat, plus baabaabaran and such
+
+	//Fortune cookie handling here instead of as a pre-adventure due to the chance of a semi-rare being off (from wrong fortune cookie numbers)
+	//and thus combat, plus baabaabaran and such
 	fortuneCookieEvent();
 
 	if(LX_chateauDailyPainting())
@@ -4379,7 +4387,7 @@ boolean doTasks()
 		return true;
 	}
 
-	if(L1_edVacation(0) || l1_edIslandFallback())
+	if(L1_edVacation(0) || L1_edIslandFallback())
 	{
 		return true;
 	}
@@ -4388,7 +4396,7 @@ boolean doTasks()
 	{
 		return true;
 	}
-	
+
 	if(get_property("ed_dickstab").to_boolean())
 	{
 		if(L4_batCave())
@@ -4396,17 +4404,17 @@ boolean doTasks()
 			return true;
 		}
 	}
-	
+
 	if(L12_hippyOutfit())
 	{
 		return true;
 	}
-	
+
 	if(L4_batCave())
 	{
 		return true;
 	}
-	
+
 	if(L2_mosquito() || L2_treeCoin() || L2_spookyMap() || L2_spookyFertilizer() || L2_spookySapling())
 	{
 		return true;
