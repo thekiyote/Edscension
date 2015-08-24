@@ -3965,7 +3965,7 @@ boolean LX_nastyBooty()
 	{
 		return false;
 	}
-	if(my_maxhp() < 70) return false;
+	if(my_maxhp() < expected_damage($monster[booty crab]) && jump_chance($monster[booty crab]) < 60) return false;
 
 	ed_use_servant($servant[Priest]);
 	if(possessEquipment($item[The Crown of Ed the Undying]))
