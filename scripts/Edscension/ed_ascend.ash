@@ -1042,7 +1042,7 @@ boolean L11_hiddenCityZones()
 
 void fortuneCookieEvent()
 {
-	if((get_property("ed_orchard") == "finished"))
+	if(get_property("ed_dickstab").to_boolean() && (get_property("ed_orchard") == "finished"))
 	{
 		if(get_counters("Fortune Cookie", 0, 200) != "")
 		{
@@ -1060,12 +1060,15 @@ void fortuneCookieEvent()
 		}
 		return;
 	}
-	
+
 	if(get_counters("Fortune Cookie", 0, 0) == "Fortune Cookie")
 	{
 		print("Semi rare time!", "blue");
-		if((get_property("ed_semirare") == "") && (get_property("ed_spookysapling") == "finished"))
-		{
+		if (
+			(get_property("ed_semirare") == "")
+			&& (get_property("ed_spookysapling") == "finished")
+			&& $location[The Hidden Temple] != to_location(get_property("semirareLocation"))
+		) {
 			if(my_mp() < 8)
 			{
 				while(my_meat() > 89 && my_mp() < 8)
@@ -1087,9 +1090,12 @@ void fortuneCookieEvent()
 				set_property("ed_semirare", "1");
 				print("Wool obtained!", "blue");
 			}
-		}
-		else if((get_property("ed_semirare") == "1") && (get_property("ed_castleground") == "finished") && (get_property("ed_nuns") != "done"))
-		{
+		} else if (
+			(get_property("ed_semirare") == "1")
+			&& (get_property("ed_castleground") == "finished")
+			&& (get_property("ed_nuns") != "done")
+			&& $location[The Castle in the Clouds in the Sky (Top Floor)] != to_location(get_property("semirareLocation"))
+		) {
 			ccAdv(1, $location[The Castle in the Clouds in the Sky (Top Floor)]);
 			ccAdv(1, $location[The Castle in the Clouds in the Sky (Top Floor)]);
 			if(item_amount($item[Mick\'s IcyVapoHotness Inhaler]) > 0)
@@ -1099,15 +1105,12 @@ void fortuneCookieEvent()
 				set_property("ed_semirare", "2");
 				print("Inhaler obtained!", "blue");
 			}
-		}
-		else if((get_property("ed_semisub") == "limerick") && (get_property("ed_maurice") != "finished"))
-		{
-//Tests for potions obtained from chateau desk so you don't use the semi if not needed
-			if(item_amount($item[cyclops eyedrops]) > 0)
-			{
-				set_property("ed_semisub", "alley");
-				print("Already got eyedrops, trying something else.", "blue");
-			}
+		} else if (
+			(get_property("ed_semisub") == "limerick")
+			&& (get_property("ed_maurice") != "finished")
+			&& $location[The Limerick Dungeon] != to_location(get_property("semirareLocation"))
+			&& 0 == item_amount($item[cyclops eyedrops])
+		) {
 			ccAdv(1, $location[The Limerick Dungeon]);
 			ccAdv(1, $location[The Limerick Dungeon]);
 			if(item_amount($item[cyclops eyedrops]) > 0)
@@ -1115,9 +1118,9 @@ void fortuneCookieEvent()
 				set_property("ed_semisub", "alley");
 				print("Eyedrops obtained!", "blue");
 			}
-		}
-		else if((get_property("ed_semisub") == "limerick") || (get_property("ed_semisub") == "alley"))
-		{
+		} else if (
+			$location[The Sleazy Back Alley] != to_location(get_property("semirareLocation"))
+		) {
 			ccAdv(1, $location[The Sleazy Back Alley]);
 			ccAdv(1, $location[The Sleazy Back Alley]);
 			if(item_amount($item[distilled fortified wine]) > 0)
