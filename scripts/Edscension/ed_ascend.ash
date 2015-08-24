@@ -3142,7 +3142,7 @@ boolean L9_aBooPeak()
 		) {
 			use(1, $item[linen bandages]);
 		}
-		if (my_hp() < totalDamage)
+		if (doThisBoo && my_hp() < totalDamage)
 		{
 			abort("Failed to achieve target HP by using linen bandages!");
 		}
