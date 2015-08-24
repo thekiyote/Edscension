@@ -2995,7 +2995,7 @@ boolean L9_aBooPeak()
 	{
 		return false;
 	}
-//Allows you to grab the boo-clues you need before finishing off the peak, so you can get the xp from the ghosts you fight, etc.
+	// Allows you to grab the boo-clues you need before finishing off the peak, so you can get the xp from the ghosts you fight, etc.
 	if(get_property("booPeakProgress") > 90)
 	{
 		print("A-Boo Peak: " + get_property("booPeakProgress"), "blue");
@@ -3012,7 +3012,6 @@ boolean L9_aBooPeak()
 	print("A-Boo Peak: " + get_property("booPeakProgress"), "blue");
 	if(item_amount($item[a-boo clue]) > 0)
 	{
-		boolean doThisBoo = false;
 		buffMaintain($effect[Go Get \'Em\, Tiger!], 0, 1, 1);
 		
 		if(item_amount($item[Linen Bandages]) == 0)
@@ -3026,16 +3025,17 @@ boolean L9_aBooPeak()
 			adjustEdHat("bear");
 		} else
 		{
+			//TODO:  use speculation feature of maximizer
 			maximize("spooky res, cold res, 0.075 HP", 0, 0, false);
 		}
 		int coldResist = elemental_resist($element[cold]);
 		int spookyResist = elemental_resist($element[spooky]);
 
-		if(item_amount($item[Spooky Powder]) > 0)
+		if(item_amount($item[Spooky Powder]) > 0 && 0 == have_effect($effect[Spookypants]))
 		{
 			spookyResist = spookyResist + 1;
 		}
-		if(item_amount($item[Cold Powder]) > 0)
+		if(item_amount($item[Cold Powder]) > 0 && 0 == have_effect($effect[Insulated Trousers]))
 		{
 			coldResist = coldResist + 1;
 		}
@@ -3043,41 +3043,37 @@ boolean L9_aBooPeak()
 		{
 			buyUpTo(1, $item[Can of Black Paint]);
 		}
-		if(item_amount($item[Can of Black Paint]) > 0)
+		if(item_amount($item[Can of Black Paint]) > 0 && 0 == have_effect($effect[Red Door Syndrome]))
 		{
 			spookyResist = spookyResist + 2;
 			coldResist = coldResist + 2;
 		}
-		if(item_amount($item[Oil of Parrrlay]) > 0)
+		if(item_amount($item[Oil of Parrrlay]) > 0 && 0 == have_effect($effect[Well-Oiled]))
 		{
 			spookyResist = spookyResist + 1;
 			coldResist = coldResist + 1;
 		}
-		if(item_amount($item[Pec Oil]) > 0)
+		if(item_amount($item[Pec Oil]) > 0 && 0 == have_effect($effect[Oiled-Up]))
 		{
 			spookyResist = spookyResist + 2;
 			coldResist = coldResist + 2;
 		}
-		if(have_skill($skill[hide of sobek]))
-		{
+		if (
+			have_skill($skill[hide of sobek])
+			&& 0 == have_effect($effect[Hide of Sobek])
+			&& mp_cost($skill[hide of sobek]) + 10 <= my_mp()
+		) {
 			spookyResist = spookyResist + 1;
 			coldResist = coldResist + 1;
 		}
 		
-		#Calculate how much boo peak damage does per unit resistance.
-		int estimatedCold = (13+25+50+125+250) * ((100.0 - elemental_resist_value(coldResist)) / 100.0);
-		int estimatedSpooky = (13+25+50+125+250) * ((100.0 - elemental_resist_value(spookyResist)) / 100.0);
+		// Calculate how much boo peak damage does per unit resistance.
+		int estimatedCold = 5 + (13+25+50+125+250) * ((100.0 - elemental_resist_value(coldResist)) / 100.0);
+		int estimatedSpooky = 5 + (13+25+50+125+250) * ((100.0 - elemental_resist_value(spookyResist)) / 100.0);
 		print("Current HP: " + my_hp() + "/" + my_maxhp(), "blue");
-		print("Expected cold damage: " + estimatedCold + " Expected spooky damage: " + estimatedSpooky, "blue");int totalDamage = estimatedCold + estimatedSpooky;
-		int mp_need = 40;
-		if((my_hp() - totalDamage) > 200)
-		{
-			mp_need = mp_need - 20;
-		}
-		if((my_hp() - totalDamage) > 300)
-		{
-			mp_need = mp_need - 10;
-		}
+		print("Expected cold resistance level: " + coldResist + " Expected spooky resistance level: " + spookyResist, "blue");
+		print("Expected cold damage: " + estimatedCold + " Expected spooky damage: " + estimatedSpooky, "blue");
+		int totalDamage = estimatedCold + estimatedSpooky + 10;  // (+ 10 should allow for rounding errors)
 		if(my_turncount() == get_property("ed_lastABooConsider").to_int())
 		{
 			set_property("ed_lastABooCycleFix", get_property("ed_lastABooCycleFix").to_int() + 1);
@@ -3091,43 +3087,63 @@ boolean L9_aBooPeak()
 			set_property("ed_lastABooConsider", my_turncount());
 			set_property("ed_lastABooCycleFix", 0);
 		}
-		if(get_property("booPeakProgress").to_int() == 0)
-		{
-			doThisBoo = true;
+
+		boolean doThisBoo = true;
+		if (my_maxhp() < totalDamage) doThisBoo = false;
+		if (my_hp() + 20 * item_amount($item[linen bandages]) <= totalDamage) {
+			// Don't bother using up the bandages unless we are completely certain to hit the target HP.
+			doThisBoo = false;
 		}
-//Restore HP roughly
-		if((my_maxhp() >= totalDamage) && (my_hp() <= totalDamage))
-		{
-			use(1, $item[silk bandages]);
+		// Restore enough HP to pass:
+		while (
+			doThisBoo
+			&& 0 < item_amount($item[linen bandages])
+			&& my_hp() <= totalDamage
+		) {
 			use(1, $item[linen bandages]);
 		}
-		if(((my_maxhp() >= 400) && (my_mp() >= mp_need)) || ((my_hp() >= totalDamage) && (my_mp() >= 20)))
+		if (my_hp() < totalDamage)
 		{
-			doThisBoo = true;
+			abort("Failed to achieve target HP by using linen bandages!");
 		}
-		if(doThisBoo)
-		{
-			if(item_amount($item[Lihc Face]) > 0)
-			{
-				equip($item[Lihc Face]);
-			}
-			if(item_amount($item[ghost of a necklace]) > 0)
-			{
-				equip($slot[acc2], $item[ghost of a necklace]);
-			}
+		if (doThisBoo) {
+			print("Ready to use A-Boo clue, with " + my_hp() + " HP.", "blue");
+
 			buffMaintain($effect[Spookypants], 0, 1, 1);
 			buffMaintain($effect[Insulated Trousers], 0, 1, 1);
+			buffMaintain($effect[Red Door Syndrome], 0, 1, 1);
+			buffMaintain($effect[Well-Oiled], 0, 1, 1);
+			buffMaintain($effect[Oiled-Up], 0, 1, 1);
+			buffMaintain($effect[Hide of Sobek], 0, 1, 1);
 
-			if(my_class() == $class[Ed])
-			{
-				buffMaintain($effect[Red Door Syndrome], 0, 1, 1);
-				buffMaintain($effect[Well-Oiled], 0, 1, 1);
+			float coldFactor = elemental_resistance($element[cold])/100.0;
+			float spookyFactor = elemental_resistance($element[spooky])/100.0;
+			int damageFrom(int base, float factor) {
+				return max(1, base - floor(factor*(base<30?30:base)+0.5));
 			}
+			int expectedDamage =
+				damageFrom(13, coldFactor)
+				+ damageFrom(25, coldFactor)
+				+ damageFrom(50, coldFactor)
+				+ damageFrom(125, coldFactor)
+				+ damageFrom(250, coldFactor)
+				+ damageFrom(13, spookyFactor)
+				+ damageFrom(25, spookyFactor)
+				+ damageFrom(50, spookyFactor)
+				+ damageFrom(125, spookyFactor)
+				+ damageFrom(250, spookyFactor);
+			print("At cold resistance level: " + numeric_modifier("cold resistance") + ", spooky resistance level: " + numeric_modifier("spooky resistance"), "blue");
+			print("Expected damage is:  " + expectedDamage, "blue");
+			if (my_hp() <= expectedDamage) abort("Failed to prepare properly for The Horror!");
 
 			set_property("choiceAdventure611", "1");
 			use(1, $item[A-Boo clue]);
+			int hpBefore = my_hp();
 			visit_url("adventure.php?snarfblat=296");
 			ccAdv(1, $location[A-Boo Peak]);
+			if (hpBefore - my_hp() != expectedDamage) {
+				print("Calculations predicted " + expectedDamage + " damage, but we took " + (hpBefore - my_hp()) + ".  Need to fix the accuracy!", "red");
+			}
 			if((my_class() == $class[Ed]) && (my_hp() == 0))
 			{
 				use(1, $item[Linen Bandages]);
