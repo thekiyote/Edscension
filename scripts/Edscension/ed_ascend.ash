@@ -5016,76 +5016,59 @@ boolean doTasks()
 	if(get_property("ed_war") == "done")
 	{
 		equip($slot[hat], $item[none]);
-		if(possessEquipment($item[Reinforced Beaded Headband]) && possessEquipment($item[Bullet-Proof Corduroys]) && possessEquipment($item[Round Purple Sunglasses]))
-		{
+		if (have_outfit("War Hippy Fatigues")) {
 			print("Getting dimes.", "blue");
+			outfit("War Hippy Fatigues");
 			sell($item[padl phone].buyer, item_amount($item[padl phone]), $item[padl phone]);
 			sell($item[red class ring].buyer, item_amount($item[red class ring]), $item[red class ring]);
 			sell($item[blue class ring].buyer, item_amount($item[blue class ring]), $item[blue class ring]);
 			sell($item[white class ring].buyer, item_amount($item[white class ring]), $item[white class ring]);
 		}
-		
-		print("Getting quarters.", "blue");
-		sell($item[pink clay bead].buyer, item_amount($item[pink clay bead]), $item[pink clay bead]);
-		sell($item[purple clay bead].buyer, item_amount($item[purple clay bead]), $item[purple clay bead]);
-		sell($item[green clay bead].buyer, item_amount($item[green clay bead]), $item[green clay bead]);
-		sell($item[communications windchimes].buyer, item_amount($item[communications windchimes]), $item[communications windchimes]);
 
-		if(!get_property("ed_hippyInstead").to_boolean())
-		{
+		if (have_outfit("Frat Warrior Fatigues")) {
+			print("Getting quarters.", "blue");
+			outfit("Frat Warrior Fatigues");
+			sell($item[pink clay bead].buyer, item_amount($item[pink clay bead]), $item[pink clay bead]);
+			sell($item[purple clay bead].buyer, item_amount($item[purple clay bead]), $item[purple clay bead]);
+			sell($item[green clay bead].buyer, item_amount($item[green clay bead]), $item[green clay bead]);
+			sell($item[communications windchimes].buyer, item_amount($item[communications windchimes]), $item[communications windchimes]);
+		}
+
+		if (have_outfit("War Hippy Fatigues")) {
+			print("Spending dimes.", "blue");
+			outfit("War Hippy Fatigues");
+
+			while($coinmaster[Dimemaster].available_tokens >= 5)
+			{
+				ed_buy($coinmaster[Dimemaster].available_tokens / 5, $item[fancy seashell necklace]);
+			}
 			while($coinmaster[Dimemaster].available_tokens >= 2)
 			{
-				cli_execute("make filthy poultice");
+				ed_buy($coinmaster[Dimemaster].available_tokens / 2, $item[filthy poultice]);
 			}
+			while($coinmaster[Dimemaster].available_tokens >= 1)
+			{
+				ed_buy(1, $item[water pipe bomb]);
+			}
+			if (0 < $coinmaster[Dimemaster].available_tokens) abort("Script failure:  no dimes should remain!");
 		}
-		else
-		{
+
+		if (have_outfit("Frat Warrior Fatigues")) {
+			print("Spending quarters.", "blue");
+			outfit("Frat Warrior Fatigues");
+			while($coinmaster[Quartersmaster].available_tokens >= 5)
+			{
+				ed_buy($coinmaster[Quartersmaster].available_tokens / 5, $item[commemorative war stein]);
+			}
 			while($coinmaster[Quartersmaster].available_tokens >= 2)
 			{
-				cli_execute("make gauze garter");
+				ed_buy($coinmaster[Quartersmaster].available_tokens / 2, $item[gauze garter]);
 			}
-		}
-		int have = item_amount($item[filthy poultice]) + item_amount($item[gauze garter]);
-		if(have < 10)
-		{
-			int need = 10 - have;
-			if(!get_property("ed_hippyInstead").to_boolean())
+			while($coinmaster[Quartersmaster].available_tokens >= 1)
 			{
-				need = min(need, $coinmaster[Quartersmaster].available_tokens / 2);
-				cli_execute("make " + need + " gauze garter");
+				ed_buy(1, $item[beer bomb]);
 			}
-			else
-			{
-				need = min(need, $coinmaster[Dimemaster].available_tokens / 2);
-				cli_execute("make " + need + " filthy poultice");
-			}
-		}
-
-		warOutfit();
-		while($coinmaster[Dimemaster].available_tokens >= 5)
-		{
-			cli_execute("make " + ($coinmaster[Dimemaster].available_tokens / 5) + " fancy seashell necklace");
-		}
-		while($coinmaster[Dimemaster].available_tokens >= 2)
-		{
-			cli_execute("make filthy poultice");
-		}
-		while($coinmaster[Dimemaster].available_tokens >= 1)
-		{
-			cli_execute("make water pipe bomb");
-		}
-
-		while($coinmaster[Quartersmaster].available_tokens >= 5)
-		{
-			cli_execute("make " + ($coinmaster[Quartersmaster].available_tokens / 5) + " commemorative war stein");
-		}
-		while($coinmaster[Quartersmaster].available_tokens >= 2)
-		{
-			cli_execute("make gauze garter");
-		}
-		while($coinmaster[Quartersmaster].available_tokens >= 1)
-		{
-			cli_execute("make beer bomb");
+			if (0 < $coinmaster[Quartersmaster].available_tokens) abort("Script failure:  no quarters should remain!");
 		}
 
 		warOutfit();
