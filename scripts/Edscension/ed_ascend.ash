@@ -2637,10 +2637,13 @@ boolean L4_batCave()
 
 boolean LX_islandAccess()
 {
-	if((item_amount($item[Shore Inc. Ship Trip Scrip]) >= 3) && (item_amount($item[Dingy Dinghy]) == 0) && (my_meat() >= 400))
-	{
-		cli_execute("make dinghy plans");
-		buyUpTo(1, $item[dingy planks]);
+	if (
+		item_amount($item[Dingy Dinghy]) == 0
+		&& (3 <= item_amount($item[Shore Inc. Ship Trip Scrip]) || 0 < item_amount($item[dinghy plans]))
+		&& (400 <= my_meat() || 0 < item_amount($item[dingy planks]))
+	) {
+		ed_acquire(1, $item[dinghy plans]);
+		ed_acquire(1, $item[dingy planks]);
 		use(1, $item[dinghy plans]);
 		return true;
 	}
@@ -2674,8 +2677,8 @@ boolean LX_islandAccess()
 		print("Failed to get enough Shore Scrip for some reason, continuing...", "red");
 		return false;
 	}
-	cli_execute("make dinghy plans");
-	buyUpTo(1, $item[dingy planks]);
+	ed_acquire(1, $item[dinghy plans]);
+	ed_acquire(1, $item[dingy planks]);
 	use(1, $item[dinghy plans]);
 	ed_buySkills();
 	return true;
