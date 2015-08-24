@@ -2031,6 +2031,10 @@ boolean L7_crypt()
 		use(1, $item[chest of the bonerdagon]);
 		return false;
 	}
+
+	if (my_spleen_use() < spleen_limit() && item_amount($item[Ka coin]) + my_adventures() < 15) {
+		print("Delaying the Cyrpt due to low Ka & adventures", "red");
+	}
 	
 	buffMaintain($effect[Browbeaten], 0, 1, 1);
 	buffMaintain($effect[Rosewater Mark], 0, 1, 1);
@@ -2143,7 +2147,8 @@ boolean L1_LegDay()
 
 	if(have_skill($skill[Upgraded Legs]))
 	{
-		if(my_basestat($stat[moxie]) < 24)
+		//if(my_basestat($stat[moxie]) < 24)
+		if (true)
 		{
 			print("Doing leg-day.", "blue");
 			maximize("exp, -equip filthy knitted dread sack", 0, 0, false);
@@ -2151,7 +2156,7 @@ boolean L1_LegDay()
 			{
 				change_mcd(0);
 				buffMaintain($effect[Wisdom of Thoth], 15, 1, 10);
-				buffMaintain($effect[Power of Heka], 15, 1, 10);
+				//buffMaintain($effect[Power of Heka], 15, 1, 10);
 				buffMaintain($effect[Bounty of Renenutet], 35, 1, 10);
 				ccAdv(1, $location[Hippy Camp]);
 				return true;
@@ -2159,7 +2164,7 @@ boolean L1_LegDay()
 			{
 				change_mcd(10);
 				buffMaintain($effect[Wisdom of Thoth], 15, 1, 10);
-				buffMaintain($effect[Power of Heka], 15, 1, 10);
+				//buffMaintain($effect[Power of Heka], 15, 1, 10);  // note that once we have wisdom of thoth, we defeat them with a single spell, crit or otherwise.
 				buffMaintain($effect[Bounty of Renenutet], 35, 1, 10);
 				buffMaintain($effect[Blessing of Serqet], 25, 1, 10);
 				ccAdv(1, $location[Hippy Camp]);
@@ -2273,14 +2278,27 @@ boolean L1_edIslandFallback()
 	{
 		return false;
 	}
+	if (have_skill($skill[More Legs]) && 35 == my_spleen_use()) return false;
 	if((my_level() >= 10) || ((my_level() >= 7) && have_skill($skill[Still Another Extra Spleen])))
 	{
-		return false;
+		float kaPerAdventure = 0.5;
+		int budget = item_amount($item[Ka coin]) + kaPerAdventure * (my_adventures() - 1);
+		if (45 <= budget) return false;
+			// with our current ka & adventures, we expect to buy (at least) the next
+			// spleen, plus a haunch to fill it.
+		if (
+			my_spleen_use() + 5 <= spleen_limit()
+			&& (0 < item_amount($item[mummified beef haunch])
+				|| 15 <= budget)
+		) return false;
+			// with our current ka & adventures, we expect to chew at least one more haunch.
 	}
 	if(elementalPlanes_access($element[stench]))
 	{
 		L1_edDinsey();
 	}
+	//TODO:  if (elementalPlanes_access($element[hot]))
+	//TODO:  also, if (elementalPlanes_access($element[sleaze]))
 	if(L1_LegDay())
 	{
 		return true;
@@ -2293,6 +2311,10 @@ boolean L6_friarsGetParts()
 	if((my_level() < 6) || (get_property("ed_friars") != ""))
 	{
 		return false;
+	}
+
+	if (my_spleen_use() < spleen_limit() && item_amount($item[Ka coin]) + my_adventures() < 15) {
+		print("Delaying the Friars due to low Ka & adventures", "red");
 	}
 
 	if(item_amount($item[box of birthday candles]) == 0)
@@ -3388,6 +3410,10 @@ boolean L9_oilPeak()
 	if(get_property("ed_oilpeak") != "")
 	{
 		return false;
+	}
+
+	if (my_spleen_use() < spleen_limit() && item_amount($item[Ka coin]) + my_adventures() < 15) {
+		print("Delaying the Oil Peak due to low Ka & adventures", "red");
 	}
 
 	print("Oil Peak with ML: " + monster_level_adjustment(), "blue");
