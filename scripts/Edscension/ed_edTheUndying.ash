@@ -993,14 +993,14 @@ ed_ShoppingList ed_buildShoppingList(int kaAdjustment, int adventuresAdjustment)
 	if (!have_skill($skill[Extra Spleen])) {
 		if (coins >= 5 + 15 && budget >= 5 + 15) {
 			result.skillsToBuy[$skill[Extra Spleen]] = true;
-			return result;
 		}
+		return result;  // (or, decrease the budget?)
 	} else if (!have_skill($skill[Another Extra Spleen])) {
 		if(coins >= 10 + 15 && budget >= 10 + 15)
 		{
 			result.skillsToBuy[$skill[Another Extra Spleen]] = true;
-			return result;
 		}
+		return result;
 	}
 
 	if (!have_skill($skill[Yet Another Extra Spleen])) {
