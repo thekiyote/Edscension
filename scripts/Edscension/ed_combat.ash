@@ -388,7 +388,13 @@ string ed_edCombatHandler(int round, string opp, string text)
 		set_property("ed_edStatus", "dying");
 		print("test2", "red");
 	}
-	if((get_property("ed_edCombatStage").to_int() < 4) && (item_amount($item[rock band flyers]) > 0) && (get_property("flyeredML").to_int() < 10000) && (item_amount($item[ka coin]) > 2))
+	if (
+		(get_property("ed_edCombatStage").to_int() < 4)
+		&& (item_amount($item[rock band flyers]) > 0)
+		&& (get_property("flyeredML").to_int() < 10000)
+		&& (item_amount($item[ka coin]) > 2)
+		&& !contains_text(edCombatState, "talismanofrenenutet")
+	)
 	{
 		set_property("ed_edStatus", "UNDYING!");
 		print("test3", "red");
@@ -985,6 +991,14 @@ string ed_edCombatHandler(int round, string opp, string text)
 			doRenenutet = false;
 		}
 		if (roundsLeftThisStage < 2) {
+			doRenenutet = false;
+		}
+		if (
+			doRenenutet
+			&& item_amount($item[rock band flyers]) > 0
+			&& get_property("flyeredML").to_int() < 10000
+			&& to_int(get_property("_edDefeats")) < 2
+		) {
 			doRenenutet = false;
 		}
 		if(doRenenutet)
