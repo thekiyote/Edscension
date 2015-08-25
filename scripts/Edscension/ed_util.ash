@@ -123,10 +123,6 @@ boolean ed_deleteMail(kmessage msg)
 	{
 		return true;
 	}
-	if(msg.fromname == "Lady Spookyraven\\'s Ghost")
-	{
-		return true;
-	}
 	if(msg.fromname == "Lady Spookyraven\'s Ghost")
 	{
 		return true;

@@ -533,17 +533,17 @@ boolean ed_eatStuff()
 	{
 		return false;
 	}
-	
-//Spleens	
+
+	//Spleens
 	canEat = min(canEat, item_amount($item[Mummified Beef Haunch]));
 	if(canEat > 0)
 	{
 		chew(canEat, $item[Mummified Beef Haunch]);
 	}
 
-	//TODO:  the code below doesn't seem to "respect" the "dickstab" option....
+	//TODO:  the code below doesn't "respect" the "dickstab" option....
 	string cookie = get_counters("Fortune Cookie", 0, 200);
-	if(cookie != "Fortune Cookie")
+	if (cookie != "Fortune Cookie")
 	{
 		if(my_turncount() < 81)
 		{
@@ -994,7 +994,7 @@ ed_ShoppingList ed_buildShoppingList(int kaAdjustment, int adventuresAdjustment)
 		if (coins >= 5 + 15 && budget >= 5 + 15) {
 			result.skillsToBuy[$skill[Extra Spleen]] = true;
 		}
-		return result;  // (or, decrease the budget?)
+		return result;
 	} else if (!have_skill($skill[Another Extra Spleen])) {
 		if(coins >= 10 + 15 && budget >= 10 + 15)
 		{
@@ -1003,6 +1003,10 @@ ed_ShoppingList ed_buildShoppingList(int kaAdjustment, int adventuresAdjustment)
 		return result;
 	}
 
+	// note that once we reach this point, we have More Legs, Extra Spleen, and Another Extra Spleen.
+	// if we have many adventures, but only a few actual Ka on hand, then the remaining turngen organs
+	// don't need to be purchased immediately.  We may potentially buy some MP restorers while we are
+	// still waiting to accumulate Ka for bigger purchases.
 	if (!have_skill($skill[Yet Another Extra Spleen])) {
 		budget -= 15 + 15;
 		if (coins >= 15 && budget >= 0)
@@ -1421,14 +1425,13 @@ boolean ed_preAdv(int num, location loc)
 boolean ed_ccAdv(int num, location loc, string option, boolean skipFirstLife)
 {
 	boolean status = false;
-	if(option == "")
-		option = "ed_edCombatHandler";
+	if(option == "") option = "ed_edCombatHandler";  //TODO:  it's always ed_edCombatHandler, right??
 	if(!skipFirstLife)
 	{
 		ed_preAdv(num, loc);
 	}
 	ed_use_servant();
-	
+
 	while(num > 0)
 	{
 		set_property("autoAbortThreshold", "-10.0");
@@ -1438,6 +1441,7 @@ boolean ed_ccAdv(int num, location loc, string option, boolean skipFirstLife)
 			print("This fight and " + num + " more left.", "blue");
 		}
 
+		//FIXME:  replace nested if's with a loop.
 		set_property("ed_disableAdventureHandling", "yes");
 		set_property("ed_edCombatHandler", "");
 		if(!skipFirstLife)
@@ -1451,13 +1455,18 @@ boolean ed_ccAdv(int num, location loc, string option, boolean skipFirstLife)
 				abort("Either a\) We had a connection problem and lost track of the battle, or b\) we were defeated multiple times beyond our usual UNDYING. Manually handle the fight and rerun.");
 			}
 		}
-		
+
 		if(last_monster() == $monster[Crate])
 		{
 			abort("We went to the Noob Cave for reals... uh oh");
 		}
 
 		string page = visit_url("main.php");
+		if (contains_text(page, "<b>Combat!</b>")) {
+			//TODO: are there multi-stage battles where visiting the main map triggers the next one?  Well, I guess Ed works that way, but uh, we don't fight Ed as Ed, do we?  This code assumes that there are no others.
+			adv1(loc, 0, option);
+			page = visit_url("main.php");
+		}
 		if(contains_text(page, "whichchoice value=1023") || contains_text(page, "<b>The Underworld</b>"))
 		{
 			print("Ed has UNDYING once!" , "blue");

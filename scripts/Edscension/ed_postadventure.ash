@@ -1,8 +1,8 @@
 script "postadventure.ash";
 
 //import <ed_florist.ash>
-import <zlib.ash>
-import <ed_util.ash>
+//import <zlib.ash>
+//import <ed_util.ash>
 
 void handlePostAdventure()
 {
