@@ -553,7 +553,12 @@ boolean ed_eatStuff()
 		{
 			cli_execute("drink 1 lucky lindy");
 		}
-		else if((my_meat() >= 40) && have_skill($skill[Replacement Stomach]) && ((my_fullness() == 0) || (fullness_limit() - my_fullness() == 1)))
+		else if (
+			(my_meat() >= 40)
+			&& have_skill($skill[Replacement Stomach])
+			&& ((my_fullness() == 0) || (fullness_limit() - my_fullness() == 1))
+			&& (my_inebriety() == inebriety_limit() || 0 == item_amount($item[Clan VIP Lounge key]))
+		)
 		{
 			buy(1, $item[Fortune Cookie]);
 			eat(1, $item[Fortune Cookie]);
@@ -978,8 +983,11 @@ ed_ShoppingList ed_buildShoppingList(int kaAdjustment, int adventuresAdjustment)
 	}
 
 	int haunchesToBuy = (spleen_limit() - my_spleen_use()) / 5 - item_amount($item[Mummified Beef Haunch]);
-	if (0 < haunchesToBuy && adventures < 50 && 15 <= coins) {
-		//result.itemsToBuy[$item[Mummified Beef Haunch]] = min(coins/15, haunchesToBuy);
+	if (
+		0 < haunchesToBuy
+		&& (adventures + 20*item_amount($item[mummified beef haunch])) < 50
+		&& 15 <= coins
+	) {
 		result.itemsToBuy[$item[Mummified Beef Haunch]] = 1;
 		return result;
 	}
@@ -1003,7 +1011,7 @@ ed_ShoppingList ed_buildShoppingList(int kaAdjustment, int adventuresAdjustment)
 		return result;
 	}
 
-	// note that once we reach this point, we have More Legs, Extra Spleen, and Another Extra Spleen.
+	// note that once we reach this point, we have Upraded Legs, Extra Spleen, and Another Extra Spleen.
 	// if we have many adventures, but only a few actual Ka on hand, then the remaining turngen organs
 	// don't need to be purchased immediately.  We may potentially buy some MP restorers while we are
 	// still waiting to accumulate Ka for bigger purchases.
@@ -1051,14 +1059,6 @@ ed_ShoppingList ed_buildShoppingList(int kaAdjustment, int adventuresAdjustment)
 		}
 	}
 
-	if (!have_skill($skill[More Legs])) {
-		budget -= 20;
-		if (coins >= 20) {
-			result.skillsToBuy[$skill[More Legs]] = true;
-			coins -= 20;
-		}
-	}
-
 	coins = max(0, min(coins, budget));
 
 	if (get_property("ed_renenutetBought").to_int() < 7 && 1 < coins) {
@@ -1071,13 +1071,46 @@ ed_ShoppingList ed_buildShoppingList(int kaAdjustment, int adventuresAdjustment)
 		coins -= renenutetToBuy;
 	}
 
-	int springWaterToBuy = 1 - item_amount($item[Holy Spring Water]);
+	// MP restorers:
+	// 1 Ka:  spring water restores ~50 & regenerates ~30  =>  80 MP/Ka
+	// 2 Ka:  spirit beer restores ~90 & regenerates ~60  =>  75 MP/Ka
+	// 3 Ka:  sacramental wine restores ~180 & regenerates ~90  =>  90 MP/Ka
+
+	int mpUsed(skill s) { return have_skill(s) ? mp_cost(s) : 0; }
+	// Hopefully, this can provide a useful heuristic of how much MP restoration to keep on hand:
+	int mostMpUsedForOneAdventure
+			= 3*mpUsed($skill[Fist of the Mummy])
+			+ mpUsed($skill[Curse of Indecision])
+			+ mpUsed($skill[Lash of the Cobra])
+			+ mpUsed($skill[Wrath of Ra])
+			+ mpUsed($skill[Curse of Vacation])
+			+ mpUsed($skill[Curse of Stench]);
+	mostMpUsedForOneAdventure = min(mostMpUsedForOneAdventure, my_maxmp());
+	mostMpUsedForOneAdventure
+		+= mpUsed($skill[Prayer of Seshat])
+			+ mpUsed($skill[Wisdom of Thoth])
+			+ mpUsed($skill[Power of Heka])
+			+ mpUsed($skill[Hide of Sobek])
+			+ mpUsed($skill[Blessing of Serqet])
+			+ mpUsed($skill[Shelter of Shed])
+			+ mpUsed($skill[Bounty of Renenutet])
+			+ mpUsed($skill[Purr of the Feline]);
+
+	int wineToBuy = (my_maxMP() < 180 ? 0 : mostMpUsedForOneAdventure / 180 + 1) - item_amount($item[sacramental wine]);
+	while (0 < wineToBuy && 3 <= coins) {
+		result.itemsToBuy[$item[sacramental wine]] += 1;
+		wineToBuy -= 1;
+		coins -= 3;
+	}
+
+	int springWaterToBuy = 1 + (mostMpUsedForOneAdventure - 180 * item_amount($item[sacramental wine]) - 180 * result.itemsToBuy[$item[sacramental wine]]) / 50;
+	springWaterToBuy -= item_amount($item[Holy Spring Water]);
 	while (0 < springWaterToBuy && 1 <= coins) {
 		result.itemsToBuy[$item[Holy Spring Water]] += 1;
 		springWaterToBuy -= 1;
 		coins -= 1;
 	}
-
+/*
 	int spiritBeerToBuy = (my_maxMP() < 80 ? 0 : my_maxMP() < 180 ? 2 : 0)
 		- item_amount($item[spirit beer]);
 	while (0 < spiritBeerToBuy && 2 <= coins) {
@@ -1085,28 +1118,29 @@ ed_ShoppingList ed_buildShoppingList(int kaAdjustment, int adventuresAdjustment)
 		spiritBeerToBuy -= 1;
 		coins -= 2;
 	}
+*/
 
-	int wineToBuy = (my_maxMP() < 180 ? 0 : 3) - item_amount($item[sacramental wine]);
-	while (0 < wineToBuy && 3 <= coins) {
-		result.itemsToBuy[$item[sacramental wine]] += 1;
-		wineToBuy -= 1;
-		coins -= 3;
+	if (!have_skill($skill[More Legs])) {
+		coins -= 20;
+		if (coins >= 0) {
+			result.skillsToBuy[$skill[More Legs]] = true;
+		}
 	}
 
 	if (!have_skill($skill[Elemental Wards])) {
-		if (coins >= 10) {
+		coins -= 10;
+		if (coins >= 0) {
 			result.skillsToBuy[$skill[Elemental Wards]] = true;
-			coins -= 10;
 		}
 	} else if (!have_skill($skill[More Elemental Wards])) {
-		if (coins >= 20) {
+		coins -= 20;
+		if (coins >= 0) {
 			result.skillsToBuy[$skill[More Elemental Wards]] = true;
-			coins -= 20;
 		}
 	} else if (!have_skill($skill[Even More Elemental Wards])) {
-		if (coins >= 30) {
+		coins -= 30;
+		if (coins >= 0) {
 			result.skillsToBuy[$skill[Even More Elemental Wards]] = true;
-			coins -= 30;
 		}
 	}
 
