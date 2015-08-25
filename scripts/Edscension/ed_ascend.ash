@@ -221,6 +221,10 @@ void initializeSettings()
 	set_property("ed_doneInitialize", my_ascensions());
 }
 
+void ed_resumeCombat() {
+	ed_ccAdv(1, my_location(), "", true);
+}
+
 boolean ed_ccAdv(int num, location loc, string option)
 {
 	return ed_ccAdv(num, loc, option, false);

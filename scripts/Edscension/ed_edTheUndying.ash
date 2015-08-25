@@ -1574,7 +1574,3 @@ boolean ed_ccAdv(int num, location loc, string option, boolean skipFirstLife)
 	return status;
 }
 
-void ed_resume() {
-	ed_ccAdv(1, my_location(), "", true);
-}
-
