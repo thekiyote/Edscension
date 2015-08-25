@@ -88,7 +88,7 @@ void ed_replacePublicSettings() {
 		set_property("ed_oldAfterAdventureScript", get_property("afterAdventureScript"));
 		set_property("ed_oldCounterScript", get_property("counterScript"));
 		set_property("ed_settingsReplaced", "true");
-		set_property("afterAdventureScript", "ed_postadventure.ash");
+		set_property("afterAdventureScript", "ed_postadventure.ash");  //TODO:  does it do anything useful?  Can I just remove it?
 		set_property("counterScript", "");
 	} else {
 		if (
@@ -115,10 +115,10 @@ void initializeSettings()
 	{
 		return;
 	}
-	set_property("chasmBridgeProgress", 0);
+	//set_property("chasmBridgeProgress", 0);
+	//set_property("writingDesksDefeated", "0");
 	set_property("delayToDayFour", FALSE);
 	set_property("doNunsRegardless", FALSE);
-	set_property("writingDesksDefeated", "0");
 	set_property("ed_abooclover", "");
 	set_property("ed_aftercore", "");
 	set_property("ed_airship", "");
@@ -222,7 +222,7 @@ void initializeSettings()
 }
 
 void ed_resumeCombat() {
-	ed_ccAdv(1, my_location(), "", true);
+	ed_ccAdv(min(1, 2-to_int(get_property("_edDefeats"))), my_location(), "", true);
 }
 
 boolean ed_ccAdv(int num, location loc, string option)
@@ -632,7 +632,6 @@ void doBedtime()
 	if(get_property("ed_priorCharpaneMode").to_int() == 1)
 	{
 		print("Resuming Compact Character Mode.");
-		set_property("ed_priorCharpaneMode", 0);
 		visit_url("account.php?am=1&pwd=&action=flag_compactchar&value=1&ajax=0", true);
 	}
 
@@ -660,7 +659,7 @@ void doBedtime()
 
 	//	Also uses "nunsVisits", as long as they were won by the Frat (sidequestNunsCompleted="fratboy").
 	equipRollover();
-	maximize("adv", 1, 0, false, false);
+	maximize("adv", 0, 0, false, false);
 	
 	if((get_property("sidequestArenaCompleted") != "none") && (get_property("concertVisited") == "false"))
 	{
@@ -1089,6 +1088,7 @@ void fortuneCookieEvent()
 				}
 			}
 			set_property("choiceAdventure579", "2");
+			//TODO:  can we add "confirm=on", to avoid the extra call to ccAdv?  Or at least detect if the first call did its thing.
 			ccAdv(1, $location[The Hidden Temple]);
 			ccAdv(1, $location[The Hidden Temple]);
 			if(item_amount($item[stone wool]) > 0)
@@ -2044,10 +2044,16 @@ boolean L7_crypt()
 	
 	buffMaintain($effect[Browbeaten], 0, 1, 1);
 	buffMaintain($effect[Rosewater Mark], 0, 1, 1);
-	if((get_property("cyrptAlcoveEvilness").to_int() > 0) && have_skill($skill[More Legs]) && ((my_maxhp() > 50) || (elemental_resist($element[spooky]) > 3)))
+	if (
+		(get_property("cyrptAlcoveEvilness").to_int() > 0)
+		&& have_skill($skill[More Legs])
+		&& ((my_maxhp() > 50) || (elemental_resist($element[spooky]) > 3))
+		&& 0 == have_effect($effect[Taunt of Horus])
+	)
 	{
 		print("The Alcove! (" + initiative_modifier() + ") init.", "blue");
 		maximize("initiative, 0.25 exp, -combat", 0, 0, false);
+		//TODO:  Shelter of Shed?
 		buyUpTo(1, $item[Ben-Gal&trade; Balm]);
 		buffMaintain($effect[Go Get \'Em\, Tiger!], 0, 1, 1);
 		buyUpTo(1, $item[Hair Spray]);
@@ -2137,6 +2143,7 @@ boolean L1_LegDay()
 		}
 	}
 
+	//TODO:  I'm a bit curious to know what happens if we have 10 Ka and no Upgraded Legs....
 	if(item_amount($item[Ka Coin]) < 10 && !have_skill($skill[Upgraded Legs]))
 	{
 		if(jump_chance($monster[Rushing Bum]) < 70 && my_maxhp() < 30)
@@ -2151,30 +2158,17 @@ boolean L1_LegDay()
 
 	if(have_skill($skill[Upgraded Legs]))
 	{
-		//if(my_basestat($stat[moxie]) < 24)
-		if (true)
-		{
-			print("Doing leg-day.", "blue");
-			maximize("exp, -equip filthy knitted dread sack", 0, 0, false);
-			if(!have_skill($skill[More Legs]) && !possessEquipment($item[The Crown of Ed the Undying]))
-			{
-				change_mcd(0);
-				buffMaintain($effect[Wisdom of Thoth], 15, 1, 10);
-				//buffMaintain($effect[Power of Heka], 15, 1, 10);
-				buffMaintain($effect[Bounty of Renenutet], 35, 1, 10);
-				ccAdv(1, $location[Hippy Camp]);
-				return true;
-			} else
-			{
-				change_mcd(10);
-				buffMaintain($effect[Wisdom of Thoth], 15, 1, 10);
-				//buffMaintain($effect[Power of Heka], 15, 1, 10);  // note that once we have wisdom of thoth, we defeat them with a single spell, crit or otherwise.
-				buffMaintain($effect[Bounty of Renenutet], 35, 1, 10);
-				buffMaintain($effect[Blessing of Serqet], 25, 1, 10);
-				ccAdv(1, $location[Hippy Camp]);
-				return true;
-			}
-		}
+		print("Doing leg-day.", "blue");
+		maximize("exp, -equip filthy knitted dread sack", 0, 0, false);
+
+		handleMCD();  //TODO: (isn't that the default?)
+		buffMaintain($effect[Wisdom of Thoth], 15, 1, 10);
+		//buffMaintain($effect[Power of Heka], 15, 1, 10);
+			// note that once we have wisdom of thoth, we defeat them with a single spell, crit or otherwise.
+		buffMaintain($effect[Bounty of Renenutet], 35, 1, 10);
+		buffMaintain($effect[Blessing of Serqet], 25, 1, 10);
+		ccAdv(1, $location[Hippy Camp]);
+		return true;
 	}
 	
 	return false;
@@ -2365,8 +2359,9 @@ boolean L8_trapperYeti()
 
 	if((item_amount($item[Ninja Rope]) > 0) && (item_amount($item[Ninja Carabiner]) > 0) && (item_amount($item[Ninja Crampons]) > 0))
 	{
-		if(elemental_resist($element[cold]) > 3)
+		if (elemental_resist($element[cold]) + (0 == have_effect($effect[Hide of Sobek]) ? 1 : 0) >= 5)
 		{
+			//TODO:  Oil of Parrrlay?
 			buffMaintain($effect[Hide of Sobek], 10, 1, 1);
 			if(get_property("ed_mistypeak") == "")
 			{
@@ -2376,11 +2371,10 @@ boolean L8_trapperYeti()
 			}
 
 			print("Time to take out Gargle", "blue");
-			string questStatus = get_property("questL08Trapper");
-//Lets mafia know what step you are on if for some reason its fallen out of sync
 			visit_url("place.php?whichplace=mclargehuge&action=trappercabin");
-			if ("step" == questStatus.substring(0,4)) questStatus = substring(questStatus, 4);
+			string questStatus = get_property("questL08Trapper");
 			if ("finished" == questStatus) questStatus = "step5";
+			if ("step" == questStatus.substring(0,4)) questStatus = substring(questStatus, 4);
 			if((item_amount($item[Winged Yeti Fur]) == 0) && (questStatus.to_int() < 5))
 			{
 				ccAdv(1, $location[Mist-shrouded Peak]);
@@ -2395,14 +2389,15 @@ boolean L8_trapperYeti()
 	}
 	else
 	{
-		if(!uneffect($effect[Shelter Of Shed]))
-		{
-			print("Could not uneffect Shelter of Shed for ninja snowmen, delaying...");
-			return false;
-		}
+		//FIXME:  Okay, so we check to see if we have a talisman.  when do we actually use it??
 		if((have_effect($effect[taunt of horus]) == 0) && (item_amount($item[talisman of horus]) == 0))
 		{
 			print("No +combat = no assassins, delaying...");
+			return false;
+		}
+		if(!uneffect($effect[Shelter Of Shed]))
+		{
+			print("Could not uneffect Shelter of Shed for ninja snowmen, delaying...");
 			return false;
 		}
 
@@ -2414,17 +2409,22 @@ boolean L8_trapperYeti()
 		{
 			maximize("-ml, 0.1 hp, cold res, init", 1, 0, false);
 			change_mcd(0);
-			
+
 			if(jump_chance($monster[ninja snowman assassin]) < 70)
 			{
 				if(!uneffect($effect[Blessing of Serqet]))
 				{
 					print("Could not uneffect Blessing of Serqet for ninja snowmen, delaying until you can survive an encounter...");
+					handleMcd();
+					maximize("exp", 1, 0, false);
 					return false;
 				}
 				if((my_maxhp() < expected_damage($monster[ninja snowman assassin])) && (elemental_resist($element[cold]) < 5))
 				{
+					//TODO:  it would have been nice to detect this before using up to two SGEAA items.  (and potentially a talisman of Horus?)
 					print("Delaying snowmen until you can survive an encounter...");
+					handleMcd();
+					maximize("exp", 1, 0, false);
 					return false;
 				}
 			}
@@ -2757,9 +2757,11 @@ boolean L2_spookySapling()
 	set_property("choiceAdventure503", "3");
 	set_property("choiceAdventure504", "3");
 
+	//TODO:  need to do servant switching, maintain buffs, etc.
 #	cli_execute("aa none");
 	if(contains_text(visit_url("adventure.php?snarfblat=15"), "Combat"))
 	{
+		//TODO:  ccAdv does servant switching & buff maintenance, which produces "You are currently in a fight."  get rid of that.
 		ccAdv(1, $location[The Spooky Forest]);
 	}
 	else
@@ -2836,7 +2838,7 @@ boolean L5_getEncryptionKey()
 	{
 		set_property("ed_day1_cobb", "finished");
 		council();
-		change_mcd(10);
+		handleMCD();
 	}
 	return true;
 }
@@ -3185,7 +3187,7 @@ boolean L9_aBooPeak()
 			int hpBefore = my_hp();
 			visit_url("adventure.php?snarfblat=296");
 			ccAdv(1, $location[A-Boo Peak]);
-			if (hpBefore - my_hp() != expectedDamage) {
+			if (hpBefore - my_hp() < expectedDamage - 5 || expectedDamage + 5 < hpBefore - my_hp()) {
 				print("Calculations predicted " + expectedDamage + " damage, but we took " + (hpBefore - my_hp()) + ".  Need to fix the accuracy!", "red");
 			}
 			if((my_class() == $class[Ed]) && (my_hp() == 0))
@@ -3195,7 +3197,7 @@ boolean L9_aBooPeak()
 			return true;
 		}
 
-		maximize("exp", 0, 0, false);
+		maximize("exp", 1, 0, false);
 	}
 	else if((get_property("ed_abooclover") == "") && (get_property("booPeakProgress").to_int() >= 40))
 	{
@@ -3584,7 +3586,7 @@ boolean L9_chasmStart()
 			print("Looks like we've already been here.", "blue");
 		}
 		set_property("ed_chasmBusted", true);
-		set_property("chasmBridgeProgress", 0);
+		//set_property("chasmBridgeProgress", 0);
 		return true;
 	}
 	return false;
@@ -3609,17 +3611,17 @@ boolean L11_Palindrome()
 		total = total + item_amount($item[Photograph Of An Ostrich Egg]);
 		total = total + item_amount($item[Photograph Of God]);
 		total = total + item_amount($item[Photograph Of A Dog]);
-		boolean lovemeDone = (item_amount($item[&quot;I Love Me\, Vol. I&quot;]) > 0);
+		if (item_amount($item[&quot;I Love Me\, Vol. I&quot;]) > 0) {
+			use(1, $item[&quot;I Love Me\, Vol. I&quot;]);
+		}
+		buffer palindomePage = visit_url("place.php?whichplace=palindome");
+		boolean lovemeDone = contains_text(palindomePage, "pal_drlabel");
 		print("In the palindome", "blue");
-		if(loveMeDone)
+		if(loveMeDone && 4 == total)
 		{
-			if(item_amount($item[&quot;I Love Me\, Vol. I&quot;]) > 0)
-			{
-				use(1, $item[&quot;I Love Me\, Vol. I&quot;]);
-			}
 			visit_url("place.php?whichplace=palindome&action=pal_drlabel");
 			visit_url("choice.php?pwd&whichchoice=872&option=1&photo1=2259&photo2=7264&photo3=7263&photo4=7265");
-			set_property("ed_palindome", "finished");
+			if (0 == item_amount($item[Staff of Fats])) set_property("ed_palindome", "finished");
 			return true;
 		}
 		else
@@ -4312,7 +4314,7 @@ boolean L3_tavern()
 		set_property("choiceAdventure496", "1");
 	}
 
-	change_mcd(10);
+	handleMCD();
 
 	while(ed_tavern())
 	{
