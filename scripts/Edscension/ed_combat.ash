@@ -966,9 +966,14 @@ string ed_edCombatHandler(int round, string opp, string text)
 		//       active.  We need the stasis logic
 		//       to support that. first, before we can really do anything about it here.  For
 		//       now, I'll avoid using renenutets:
-		if (2 == roundsLeftThisStage && ed_fistDamage() < monster_hp()) {
+		if (
+			doRenenutet
+			&& 2 == roundsLeftThisStage
+			&& (ed_stormDamage() < monster_hp()
+				|| ed_fistDamage() < monster_hp() && !have_skill($skill[Storm of the Scarab])
+			)
+		) {
 			print("Using a talisman of Renenutet right now would be risky!", "blue");
-			if (!doRenenutet) print("TODO:  fix the above message to only appear if we would otherwise use one!", "blue");
 			doRenenutet = false;
 		}
 
