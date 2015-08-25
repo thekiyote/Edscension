@@ -107,14 +107,9 @@ void handlePreAdventure()
 		{
 			buffMaintain($effect[Prayer of Seshat], 5, 1, 10);
 		}
-		if(my_location() == $location[The Secret Government Laboratory])
+		buffMaintain($effect[Wisdom of Thoth], 5, 1, 5);
+		if (4 < my_level() && 1000 < my_meat())
 		{
-			buffMaintain($effect[Wisdom of Thoth], 5, 1, 5);
-			buffMaintain($effect[Power of Heka], 10, 1, 5);
-		}
-		else
-		{
-			buffMaintain($effect[Wisdom of Thoth], 5, 1, 5);
 			buffMaintain($effect[Power of Heka], 10, 1, 5);
 		}
 		if(my_location() == $location[Guano Junction])
@@ -145,11 +140,7 @@ void handlePreAdventure()
 		{
 			buffMaintain($effect[Purr of the Feline], 10, 1, 5);
 		}
-		if(my_level() > 4 && item_amount($item[The Crown of Ed the Undying]) == 0)
-		{
-			buffMaintain($effect[Blessing of Serqet], 15, 1, 1);
-		} else if(item_amount($item[The Crown of Ed the Undying]) > 0)
-		{
+		if (my_location() != $location[Lair of the Ninja Snowmen]) {
 			buffMaintain($effect[Blessing of Serqet], 15, 1, 1);
 		}
 		while((my_mp() > 120) && (have_effect($effect[wisdom of thoth]) < 50))
