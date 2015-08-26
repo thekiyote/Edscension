@@ -901,7 +901,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 		//TODO:  dairy goat?
 		if(enemy == $monster[Larval Filthworm] && (item_amount($item[filthworm hatchling scent gland]) == 0))
 		{
-			doRenenutet = (item_amount($item[Talisman of Renenutet]) > 4);
+			doRenenutet = (item_amount($item[Talisman of Renenutet]) > 7);
 		}
 		if(enemy == $monster[Filthworm Drone] && (item_amount($item[filthworm drone scent gland]) == 0))
 		{
