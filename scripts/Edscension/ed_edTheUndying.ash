@@ -1463,8 +1463,8 @@ boolean ed_ccAdv(int num, location loc, string option, boolean skipFirstLife)
 	if(!skipFirstLife)
 	{
 		ed_preAdv(num, loc);
+		ed_use_servant();
 	}
-	ed_use_servant();
 
 	while(num > 0)
 	{
