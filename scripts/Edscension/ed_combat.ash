@@ -171,6 +171,7 @@ string ccsJunkyard(int round, string opp, string text)
 	if(!contains_text(edCombatState, "gremlinNeedBanish") && !get_property("ed_gremlinMoly").to_boolean())
 	{
 		set_property("ed_edCombatHandler", "(gremlinNeedBanish)");
+			//TODO:  should that be appended to the state??
 	}
 
 	if(contains_text(text, "It whips out a hammer") || contains_text(text, "He whips out a crescent") || contains_text(text, "It whips out a pair") || contains_text(text, "It whips out a screwdriver"))
@@ -363,9 +364,14 @@ string ed_edCombatHandler(int round, string opp, string text)
 	print("opponent has about " + monster_hp() + " HP.  Ed has " + my_hp() + ".  Fist does " + ed_fistDamage() + ", Storm does (?) " + ed_stormDamage() + ", opponent does " + damagePerRound, "blue");
 	if (get_property("_edDefeats").to_int() != combatStage) print("Note:  _edDefeats is " + get_property("_edDefeats"), "red");
 
-	if((item_amount($item[ka coin]) > 30) && (!have_skill($skill[Healing Scarabs]) || (my_spleen_use() < spleen_limit())) && (get_property("_edDefeats").to_int() == 0) &&
-	(!contains_text(edCombatState, "talismanofrenenutet") || contains_text(edCombatState, "insults") || !contains_text(edCombatState, "curse of fortune")))
-	{
+	if (
+		(item_amount($item[ka coin]) > 30)
+		&& (!have_skill($skill[Healing Scarabs]) || (my_spleen_use() < spleen_limit()))
+		&& (get_property("_edDefeats").to_int() == 0)
+		&& (!contains_text(edCombatState, "talismanofrenenutet") && !contains_text(edCombatState, "curse of fortune") || contains_text(edCombatState, "insults"))
+	) {
+		//TODO:  why?  is this to go shopping?  I think I've handled that elsewhere.
+		//TODO:  fixed (!renenutet)-or-(!fortune) to be !(renenutet-or-fortune)
 		set_property("ed_edStatus", "UNDYING!");
 		print("test5", "red");
 	}
