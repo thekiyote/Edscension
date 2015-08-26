@@ -2831,8 +2831,10 @@ boolean L5_getEncryptionKey()
 		maximize("exp, -ml", 0, 0, false);
 	}
 	print("Looking for the knob.", "blue");
-	ccAdv(1, $location[the outskirts of cobb\'s knob]);
-	cli_execute("refresh inventory");
+	if (0 == item_amount($item[Knob Goblin Encryption Key])) {
+		ccAdv(1, $location[the outskirts of cobb\'s knob]);
+		cli_execute("refresh inventory");
+	}
 
 	if(item_amount($item[Knob Goblin Encryption Key]) == 1)
 	{
