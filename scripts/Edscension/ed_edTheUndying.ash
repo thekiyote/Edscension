@@ -1161,10 +1161,12 @@ ed_ShoppingList ed_buildShoppingList(int kaAdjustment, int adventuresAdjustment)
 		result.skillsToBuy[$skill[Upgraded Spine]] = true;
 		coins -= 20;
 	}
-	/* else if (!have_skill($skill[Upgraded Arms]) && (my_daycount() > 1) && (coins > 20)) {
+	else if (!have_skill($skill[Upgraded Arms]) && (my_daycount() > 1) && (coins > 20)) {
 		result.skillsToBuy[$skill[Upgraded Arms]] = true;
 		coins -= 20;
-	} else if ((!have_skill($skill[Healing Scarabs])) && (my_daycount() > 1) && (coins > 20)) {
+	}
+	/*
+	else if ((!have_skill($skill[Healing Scarabs])) && (my_daycount() > 1) && (coins > 20)) {
 		result.skillsToBuy[$skill[Healing Scarabs]] = true;
 		coins -= 20;
 	} */  // these just seem counterproductive to me.  What are they for?
