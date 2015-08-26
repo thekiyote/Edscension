@@ -1,0 +1,47 @@
+
+TODO:
+  horus, shed, sgeea, cure-all, etc.  not sure what things need to be done, exactly....  but we need to avoid unnecessary use of cure-alls.
+  Decision to do nuns might not be quite right.  I count a difference of about
+25 turns on the battlefield.  Of course, an inhaler only lasts for 10, so some
+actual calculations are needed to do it right.
+  disable auto-recovery?  (uh, it already does that, i think.  In ed_ccAdv)
+  don't bother with buying bandages until we might encounter The Horror or Zerg Rush.
+  handle opening of Hidden City, if we get Such Great Heights unexpectedly when looking for a semi-rare.  (should we still get the semi-rare, in order to have stone wool to finish the quest?  I think so.  It's easy enough to do, anyway.)
+  don't try to open Hidden City if it is already open
+  support clover use for levelling?
+  odd aborts at You the Adventurer
+  aborts from deaths at wisniewski
+  spent a Ka at You the Adventurer
+  spent a Ka at Hidden Apartment Building
+  beaten up by a Zerg Rush  (uh, yeah, that happens.  just make sure the
+script buys some linen bandages, and doesn't abort.)
+  automate screwdriver quest for mys/mus signs
+  (any other needed support for non-muscle signs)
+  use renenutet (and/or cat) in Harem?  (check other uses of lash, too.  probably anywhere we use lash is a good candidate for a renenutet as well)
+  use cat at f'c'le.  oh?  maybe we need Ka, though.  Well, still, I think cat
+would be better.
+  after starting battle with You, aborted with "We can't find the jerk
+adventurer" upon first death.  dunno what was up with that.
+  got "Hit Ed defeat threshold" on second death @ Hippy Camp.
+  double-check that we still work okay with astral mask
+  avoid getting Winklered if we aren't doing nuns.
+  use friar buff @ goatlet
+  avoid extending the Prayer of Seshat +ml buff, when it's time to fight
+ninja.  Let it run out.
+  avoid adventuring twice for a semi-rare, if the first attempt didn't
+auto-stop.  (this can happen if the user manually encounters the warning
+before running the script, or has the bad luck to interrupt the script just
+after it hits the warning.)
+  Are we currently buying Renenutets when budget easily allows it?  Some
+additional tweaks might be nice.
+  fix attempts to equip the same item in all three accessory slots.
+  "Invalid setting 5 for choiceAdventure670"
+  "That area is not available" while trying to get to The mist-shrouded peak!
+(fixed already?)
+  more priority to Even More Elemental Wards. don't buy Armor Plating before
+it.  Fixed, I think.
+  "You are currently in a choice" from pre-adventure for The Horror
+  "You are currently in a fight" at spooky forest.
+  Don't use cat for filthworms, if we have Lash
+  why the 10-turn limit at the hidden park?
+
