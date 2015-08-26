@@ -1496,14 +1496,22 @@ boolean ed_ccAdv(int num, location loc, string option, boolean skipFirstLife)
 		}
 
 		string page = visit_url("main.php");
-		if (contains_text(page, "<b>Combat!</b>")) {
+		matcher m = create_matcher("<input type=hidden name=whichchoice value=([0-9]+)>", page);
+		int whichChoice = m.find() ? m.group(1).to_int() : -1;
+		if (
+			contains_text(page, "<b>Combat!</b>")
+			|| -1 != whichChoice && 1023 != whichChoice && 1024 != whichChoice
+		) {
 			//TODO: are there multi-stage battles where visiting the main map triggers the next one?  Well, I guess Ed works that way, but uh, we don't fight Ed as Ed, do we?  This code assumes that there are no others.
 			adv1(loc, 0, option);
 			page = visit_url("main.php");
 		}
-		if(contains_text(page, "whichchoice value=1023") || contains_text(page, "<b>The Underworld</b>"))
+		if (1023 == whichChoice || 1024 == whichChoice || contains_text(page, "<b>The Underworld</b>"))
 		{
 			print("Ed has UNDYING once!" , "blue");
+			if (1024 == whichChoice) {
+				visit_url("choice.php?pwd=&whichchoice=1024&option=3", true);
+			}
 			if(!ed_shopping())
 			{
 				visit_url("choice.php?pwd=&whichchoice=1023&option=2", true);
