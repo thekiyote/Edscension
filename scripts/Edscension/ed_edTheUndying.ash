@@ -1161,10 +1161,12 @@ ed_ShoppingList ed_buildShoppingList(int kaAdjustment, int adventuresAdjustment)
 		result.skillsToBuy[$skill[Upgraded Spine]] = true;
 		coins -= 20;
 	}
-	/* else if (!have_skill($skill[Upgraded Arms]) && (my_daycount() > 1) && (coins > 20)) {
+	else if (!have_skill($skill[Upgraded Arms]) && (my_daycount() > 1) && (coins > 20)) {
 		result.skillsToBuy[$skill[Upgraded Arms]] = true;
 		coins -= 20;
-	} else if ((!have_skill($skill[Healing Scarabs])) && (my_daycount() > 1) && (coins > 20)) {
+	}
+	/*
+	else if ((!have_skill($skill[Healing Scarabs])) && (my_daycount() > 1) && (coins > 20)) {
 		result.skillsToBuy[$skill[Healing Scarabs]] = true;
 		coins -= 20;
 	} */  // these just seem counterproductive to me.  What are they for?
@@ -1400,7 +1402,9 @@ boolean ed_handleAdventureServant(location loc)
 		(loc == $location[A Massive Ziggurat] && item_amount($item[stone triangle]) == 0) ||
 		(loc == $location[The Hatching Chamber]) ||
 		(loc == $location[The Feeding Chamber]) ||
-		(loc == $location[The Royal Guard Chamber]))
+		(loc == $location[The Royal Guard Chamber]) ||
+		(loc == $location[Wartime Frat House] && !have_skill($skill[Wrath of Ra]))
+	)
 	{
 		ed_use_servant($servant[Cat]);
 	}
@@ -1463,8 +1467,8 @@ boolean ed_ccAdv(int num, location loc, string option, boolean skipFirstLife)
 	if(!skipFirstLife)
 	{
 		ed_preAdv(num, loc);
+		ed_use_servant();
 	}
-	ed_use_servant();
 
 	while(num > 0)
 	{
@@ -1496,14 +1500,22 @@ boolean ed_ccAdv(int num, location loc, string option, boolean skipFirstLife)
 		}
 
 		string page = visit_url("main.php");
-		if (contains_text(page, "<b>Combat!</b>")) {
+		matcher m = create_matcher("<input type=hidden name=whichchoice value=([0-9]+)>", page);
+		int whichChoice = m.find() ? m.group(1).to_int() : -1;
+		if (
+			contains_text(page, "<b>Combat!</b>")
+			|| -1 != whichChoice && 1023 != whichChoice && 1024 != whichChoice
+		) {
 			//TODO: are there multi-stage battles where visiting the main map triggers the next one?  Well, I guess Ed works that way, but uh, we don't fight Ed as Ed, do we?  This code assumes that there are no others.
 			adv1(loc, 0, option);
 			page = visit_url("main.php");
 		}
-		if(contains_text(page, "whichchoice value=1023") || contains_text(page, "<b>The Underworld</b>"))
+		if (1023 == whichChoice || 1024 == whichChoice || contains_text(page, "<b>The Underworld</b>"))
 		{
 			print("Ed has UNDYING once!" , "blue");
+			if (1024 == whichChoice) {
+				visit_url("choice.php?pwd=&whichchoice=1024&option=3", true);
+			}
 			if(!ed_shopping())
 			{
 				visit_url("choice.php?pwd=&whichchoice=1023&option=2", true);

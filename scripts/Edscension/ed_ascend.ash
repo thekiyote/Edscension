@@ -2831,8 +2831,10 @@ boolean L5_getEncryptionKey()
 		maximize("exp, -ml", 0, 0, false);
 	}
 	print("Looking for the knob.", "blue");
-	ccAdv(1, $location[the outskirts of cobb\'s knob]);
-	cli_execute("refresh inventory");
+	if (0 == item_amount($item[Knob Goblin Encryption Key])) {
+		ccAdv(1, $location[the outskirts of cobb\'s knob]);
+		cli_execute("refresh inventory");
+	}
 
 	if(item_amount($item[Knob Goblin Encryption Key]) == 1)
 	{
@@ -3042,7 +3044,7 @@ boolean L9_aBooPeak()
 		return false;
 	}
 	// Allows you to grab the boo-clues you need before finishing off the peak, so you can get the xp from the ghosts you fight, etc.
-	if(get_property("booPeakProgress") > 90)
+	if (to_int(get_property("booPeakProgress")) > 90)
 	{
 		print("A-Boo Peak: " + get_property("booPeakProgress"), "blue");
 		maximize("item drop, 0.5 exp", 0, 0, false);
@@ -3056,7 +3058,7 @@ boolean L9_aBooPeak()
 	}
 
 	print("A-Boo Peak: " + get_property("booPeakProgress"), "blue");
-	if(item_amount($item[a-boo clue]) > 0)
+	if(item_amount($item[a-boo clue]) > 0 && to_int("booPeakProgress") > 2)
 	{
 		buffMaintain($effect[Go Get \'Em\, Tiger!], 0, 1, 1);
 		
@@ -3186,7 +3188,7 @@ boolean L9_aBooPeak()
 			use(1, $item[A-Boo clue]);
 			int hpBefore = my_hp();
 			visit_url("adventure.php?snarfblat=296");
-			ccAdv(1, $location[A-Boo Peak]);
+			ed_ccAdv(1, $location[A-Boo Peak], "", true);
 			if (hpBefore - my_hp() < expectedDamage - 5 || expectedDamage + 5 < hpBefore - my_hp()) {
 				print("Calculations predicted " + expectedDamage + " damage, but we took " + (hpBefore - my_hp()) + ".  Need to fix the accuracy!", "red");
 			}
