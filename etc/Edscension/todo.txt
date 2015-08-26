@@ -9,6 +9,8 @@ done?
 - use renenutet and/or cat for filthworms, if we don't have Lash.
 - buy spleens & haunches more aggressively, if there is a chance that we might
   not utilize them otherwise.
+- ed_resumeCombat ought to work from the Underworld, or from either of the two
+  choices arriving & departing there.
 
 
 TODO:
@@ -74,4 +76,15 @@ it.  Fixed, I think.
 - hot plate occasionally interferes with attempts to go shopping (or heal) in
   the underworld.
 - Improved behavior when low on meat & expensive buffs (Bounty) are available.
+- what's the deal with the red warning message about "boring binder clip
+  doesn't make anything interesting"?
+- oh, and remove the "testX" messages that appear when the dying/UNDYING status is
+  modified.
+- if I am particularly rich in Ka (say, day 4) I can actually affort to spend
+  more of them on flyering....
+- If Wisniewski is likely to cost Ka, check to see if we have some on hand,
+  and automatically pay the first few.  (I've had to pay 15 total on an
+  unskilled character.)
+
+
 
