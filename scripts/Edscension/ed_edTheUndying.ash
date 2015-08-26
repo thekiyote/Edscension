@@ -1400,7 +1400,9 @@ boolean ed_handleAdventureServant(location loc)
 		(loc == $location[A Massive Ziggurat] && item_amount($item[stone triangle]) == 0) ||
 		(loc == $location[The Hatching Chamber]) ||
 		(loc == $location[The Feeding Chamber]) ||
-		(loc == $location[The Royal Guard Chamber]))
+		(loc == $location[The Royal Guard Chamber]) ||
+		(loc == $location[Wartime Frat House] && !have_skill($skill[Wrath of Ra]))
+	)
 	{
 		ed_use_servant($servant[Cat]);
 	}
