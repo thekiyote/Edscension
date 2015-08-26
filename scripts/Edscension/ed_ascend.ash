@@ -3058,7 +3058,7 @@ boolean L9_aBooPeak()
 	}
 
 	print("A-Boo Peak: " + get_property("booPeakProgress"), "blue");
-	if(item_amount($item[a-boo clue]) > 0)
+	if(item_amount($item[a-boo clue]) > 0 && to_int("booPeakProgress") > 2)
 	{
 		buffMaintain($effect[Go Get \'Em\, Tiger!], 0, 1, 1);
 		
@@ -3188,7 +3188,7 @@ boolean L9_aBooPeak()
 			use(1, $item[A-Boo clue]);
 			int hpBefore = my_hp();
 			visit_url("adventure.php?snarfblat=296");
-			ccAdv(1, $location[A-Boo Peak]);
+			ed_ccAdv(1, $location[A-Boo Peak], "", true);
 			if (hpBefore - my_hp() < expectedDamage - 5 || expectedDamage + 5 < hpBefore - my_hp()) {
 				print("Calculations predicted " + expectedDamage + " damage, but we took " + (hpBefore - my_hp()) + ".  Need to fix the accuracy!", "red");
 			}
