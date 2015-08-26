@@ -3044,7 +3044,7 @@ boolean L9_aBooPeak()
 		return false;
 	}
 	// Allows you to grab the boo-clues you need before finishing off the peak, so you can get the xp from the ghosts you fight, etc.
-	if(get_property("booPeakProgress") > 90)
+	if (to_int(get_property("booPeakProgress")) > 90)
 	{
 		print("A-Boo Peak: " + get_property("booPeakProgress"), "blue");
 		maximize("item drop, 0.5 exp", 0, 0, false);
