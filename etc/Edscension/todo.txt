@@ -14,6 +14,7 @@ done?
 
 
 TODO:
+- more issues with stasis after using a renenutet.
 - use friar buff @ goatlet
 - horus, shed, sgeea, cure-all, etc.  not sure what things need to be done, exactly....  but we need to avoid unnecessary use of cure-alls.
 - support for SMOOCH
@@ -76,15 +77,36 @@ it.  Fixed, I think.
 - hot plate occasionally interferes with attempts to go shopping (or heal) in
   the underworld.
 - Improved behavior when low on meat & expensive buffs (Bounty) are available.
+- Also, use meat to maintain buffs when rich in meat, but Ka is tight.
 - what's the deal with the red warning message about "boring binder clip
-  doesn't make anything interesting"?
+  doesn't make anything interesting"?  I'm going to remove it.
 - oh, and remove the "testX" messages that appear when the dying/UNDYING status is
   modified.
-- if I am particularly rich in Ka (say, day 4) I can actually affort to spend
+- if I am particularly rich in Ka (say, day 4, or whatever) I can actually affort to spend
   more of them on flyering....
 - If Wisniewski is likely to cost Ka, check to see if we have some on hand,
   and automatically pay the first few.  (I've had to pay 15 total on an
   unskilled character.)
-
-
+- if we acquire equipment (bum cheek, etc.) at the sleazy back alley, we may
+  want to use it.
+- avoid buying bandages until we might need them.
+- avoid buying talisman of Horus until we might need it.  Avoid keeping a
+  second one around untill we might need it as well.
+- if we abort, (okay, when we abort) should we try to set the charpane back to compact mode?
+- why do we wait until after the war to finish Boo Peak?
+- use lash, renenutets to get a-boo clues.  maybe use wrath, too?
+- may want to use Shed at black forest.  possibly.
+- need to fix equipment when doing hidden city:  why do I have talisman o'
+  namislat and antique machete?
+- use old rosewater cream?
+- use of curse of indecision seems excessive.  not sure yet, but I may need to
+  tweak it.  Yes.  Definitely.  I'm sure.
+- possibly use lianas, bowling balls, The Horror, and other easy-to-trigger
+  adventures to burn off unwanted buffs, rather than using SGEEA-like items.
+- add a proper ed_resume function that does ed_resumeCombat(); ed_ascend()
+- add a reporting function that displays the status of all the quests, plus
+  any useful info like # of Ka, adventures, organ count, skill count.
+- "We should have a Talisman 'O Namislat but we don't know anything about it"
+  (Talisman got made immediately after the message.)
+- Deal more gracefully with low meat situations at the beginning of the run.
 
