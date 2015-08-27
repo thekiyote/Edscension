@@ -1341,7 +1341,7 @@ boolean LX_handleSpookyravenFirstFloor()
 	else
 	{
 		print("Looking for the Billards Room key: Progress " + get_property("manorDrawerCount") + "/24", "blue");
-		if(get_property("manorDrawerCount").to_int() >= 24)
+		if(get_property("manorDrawerCount").to_int() > 24)
 		{
 			cli_execute("refresh inv");
 			if(item_amount($item[Spookyraven Billiards Room Key]) == 0)
@@ -1350,6 +1350,8 @@ boolean LX_handleSpookyravenFirstFloor()
 				wait(10);
 			}
 		}
+		//TODO:  demonskin trousers?  asshat?  (anything else?)
+		maximize("hot res, stench res", 1, 0, false);
 		buffMaintain($effect[Hide of Sobek], 10, 1, 1);
 		ccAdv(1, $location[The Haunted Kitchen]);
 	}
