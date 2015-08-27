@@ -2043,25 +2043,36 @@ boolean L7_crypt()
 	if (my_spleen_use() < spleen_limit() && item_amount($item[Ka coin]) + my_adventures() < 15) {
 		print("Delaying the Cyrpt due to low Ka & adventures", "red");
 	}
-	
+
+	boolean noTauntActive = 0 == have_effect($effect[Taunt of Horus]) && 0 == have_effect($effect[Hippy Stench]);
 	buffMaintain($effect[Browbeaten], 0, 1, 1);
 	buffMaintain($effect[Rosewater Mark], 0, 1, 1);
 	if (
-		(get_property("cyrptAlcoveEvilness").to_int() > 0)
+		(get_property("cyrptAlcoveEvilness").to_int() > 26)
 		&& have_skill($skill[More Legs])
 		&& ((my_maxhp() > 50) || (elemental_resist($element[spooky]) > 3))
-		&& 0 == have_effect($effect[Taunt of Horus])
+		&& noTauntActive
 	)
 	{
 		print("The Alcove! (" + initiative_modifier() + ") init.", "blue");
 		maximize("initiative, 0.25 exp, -combat", 0, 0, false);
-		//TODO:  Shelter of Shed?
+		//TODO:  Shelter of Shed?  I guess preadventure does that?  does it?
 		buyUpTo(1, $item[Ben-Gal&trade; Balm]);
 		buffMaintain($effect[Go Get \'Em\, Tiger!], 0, 1, 1);
 		buyUpTo(1, $item[Hair Spray]);
 		buffMaintain($effect[Butt-Rock Hair], 0, 1, 1);
 		buffMaintain($effect[Well-Swabbed Ear], 0, 1, 1);
 		buffMaintain($effect[Sepia Tan], 0, 1, 1);
+		ccAdv(1, $location[The Defiled Alcove]);
+		return true;
+	}
+	if (
+		(get_property("cyrptAlcoveEvilness").to_int() > 0)
+		&& ((my_maxhp() > 50) || (elemental_resist($element[spooky]) > 3))
+	)
+	{
+		print("The Alcove boss! (or maybe the last guy before him?)", "blue");
+		maximize("exp", 0, 0, false);
 		ccAdv(1, $location[The Defiled Alcove]);
 		return true;
 	}
@@ -2085,9 +2096,10 @@ boolean L7_crypt()
 		return true;
 	}
 
-	if(get_property("cyrptCrannyEvilness").to_int() > 0)
+	if(get_property("cyrptCrannyEvilness").to_int() > 26 && noTauntActive)
 	{
 		print("The Cranny!", "blue");
+		maximize("ml, -combat", 0, 0, false);
 		set_property("choiceAdventure523", "4");
 		buyUpTo(1, $item[Ben-Gal&trade; Balm]);
 		buffMaintain($effect[Go Get \'Em\, Tiger!], 0, 1, 1);
@@ -2097,15 +2109,17 @@ boolean L7_crypt()
 		
 		return true;
 	}
+	if (get_property("cyrptCrannyEvilness").to_int() > 0) {
+		print("The Cranny boss! (okay, yeah, or maybe the last guy before him.)", "blue");
+		maximize("exp", 0, 0, false);
+		set_property("choiceAdventure523", "5");
+		ccAdv(1, $location[The Defiled Cranny]);
+
+		return true;
+	}
 
 	if(get_property("cyrptTotalEvilness").to_int() <= 0)
 	{
-		if(my_primestat() == $stat[Muscle])
-		{
-			buyUpTo(1, $item[Ben-Gal&trade; Balm]);
-			buffMaintain($effect[Go Get \'Em\, Tiger!], 0, 1, 1);
-		}
-
 		boolean tryBoner = ccAdv(1, $location[Haert of the Cyrpt]);
 		if(item_amount($item[chest of the bonerdagon]) == 1)
 		{
