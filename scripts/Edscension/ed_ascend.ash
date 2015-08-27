@@ -2182,7 +2182,7 @@ boolean L1_LegDay()
 		//buffMaintain($effect[Power of Heka], 15, 1, 10);
 			// note that once we have wisdom of thoth, we defeat them with a single spell, crit or otherwise.
 		buffMaintain($effect[Bounty of Renenutet], 35, 1, 10);
-		buffMaintain($effect[Blessing of Serqet], 25, 1, 10);
+		buffMaintain($effect[Blessing of Serqet], 25, 1, 1);
 		ccAdv(1, $location[Hippy Camp]);
 		return true;
 	}
