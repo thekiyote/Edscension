@@ -2405,17 +2405,21 @@ boolean L8_trapperYeti()
 	}
 	else
 	{
-		//FIXME:  Okay, so we check to see if we have a talisman.  when do we actually use it??
 		if((have_effect($effect[taunt of horus]) == 0) && (item_amount($item[talisman of horus]) == 0))
 		{
-			print("No +combat = no assassins, delaying...");
+			print("No +combat = no assassins, delaying...", "blue");
 			return false;
 		}
-		if(!uneffect($effect[Shelter Of Shed]))
+		int effectRemovalItems = item_amount($item[ancient cure-all]) + item_amount($item[soft green echo eyedrop antidote]);
+		if (0 < have_effect($effect[Shelter Of Shed]))
 		{
-			print("Could not uneffect Shelter of Shed for ninja snowmen, delaying...");
+			print("We don't want Shelter of Shed for ninja snowmen.  Delaying...", "blue");
 			return false;
 		}
+		if (0 < have_effect($effect[Blessing of Serqet])) {
+			effectRemovalItems -= 1;
+		}
+		if (effectRemovalItems <= 0) return false;
 
 		if(possessEquipment($item[The Crown of Ed the Undying]))
 		{
@@ -2435,9 +2439,8 @@ boolean L8_trapperYeti()
 					maximize("exp", 1, 0, false);
 					return false;
 				}
-				if((my_maxhp() < expected_damage($monster[ninja snowman assassin])) && (elemental_resist($element[cold]) < 5))
-				{
-					//TODO:  it would have been nice to detect this before using up to two SGEAA items.  (and potentially a talisman of Horus?)
+				if (my_maxhp() < expected_damage($monster[ninja snowman assassin])) {
+					//FIXME:  it would have been nice to detect this before using up to two SGEAA items!
 					print("Delaying snowmen until you can survive an encounter...");
 					handleMcd();
 					maximize("exp", 1, 0, false);
@@ -2445,7 +2448,10 @@ boolean L8_trapperYeti()
 				}
 			}
 		}
-		
+
+		if ((have_effect($effect[taunt of horus]) == 0) && (item_amount($item[talisman of horus]) == 0)) {
+			use(1, $item[talisman of Horus]);
+		}
 		buffMaintain($effect[Hide of Sobek], 10, 1, 1);
 		ccAdv(1, $location[Lair of the Ninja Snowmen]);
 		return true;
