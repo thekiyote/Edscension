@@ -3515,64 +3515,39 @@ boolean L9_chasmBuild()
 		return true;
 	}
 
-	if(in_hardcore())
-	{
-		int need = (30 - get_property("chasmBridgeProgress").to_int());
-		if((get_property("ed_trapper") == "yeti") && (item_amount($item[Disassembled Clover]) > 0))
-		{
-			use(1, $item[disassembled clover]);
-			visit_url("adventure.php?snarfblat=295&confirm=on");
-			if(contains_text(visit_url("main.php"), "Combat"))
-			{
-				ccAdv(1, $location[The Smut Orc Logging Camp]);
-				return true;
-			}
-			visit_url("place.php?whichplace=orc_chasm&action=bridge"+(to_int(get_property("chasmBridgeProgress"))));
-			return true;
-		}
-		
-		ccAdv(1, $location[The Smut Orc Logging Camp]);
-		
-		if(item_amount($item[Smut Orc Keepsake Box]) > 0)
-		{
-			use(1, $item[Smut Orc Keepsake Box]);
-		}
-		visit_url("place.php?whichplace=orc_chasm&action=bridge"+(to_int(get_property("chasmBridgeProgress"))));
-		if(get_property("chasmBridgeProgress").to_int() >= 30)
-		{
-			visit_url("place.php?whichplace=highlands&action=highlands_dude");
-		}
-		
-		return true;
-	}
-	
-	int need = 30 - get_property("chasmBridgeProgress").to_int();
-	
-	if((need <= 3) && (need >= 1) && (item_amount($item[Disassembled Clover]) > 0))
+	int need = (30 - get_property("chasmBridgeProgress").to_int());
+	int clovers = item_amount($item[Disassembled Clover]);
+	if (
+		(get_property("ed_trapper") == "yeti")
+		&& 0 < clovers
+		&& need <= 3*clovers
+		&& 0 == need % 3
+	)
 	{
 		use(1, $item[disassembled clover]);
 		visit_url("adventure.php?snarfblat=295&confirm=on");
 		if(contains_text(visit_url("main.php"), "Combat"))
 		{
-			//run_combat();
 			ccAdv(1, $location[The Smut Orc Logging Camp]);
+			use(item_amount($item[ten-leaf clover]), $item[ten-leaf clover]);
 			return true;
 		}
 		visit_url("place.php?whichplace=orc_chasm&action=bridge"+(to_int(get_property("chasmBridgeProgress"))));
-	}
-	else
-	{
-		ccAdv(1, $location[The Smut Orc Logging Camp]);
-		visit_url("place.php?whichplace=orc_chasm&action=bridge"+(to_int(get_property("chasmBridgeProgress"))));
 		return true;
-		#abort("Umm.... we failed the smut orcs. Sorry bro.");
 	}
-	if(get_property("chasmBridgeProgress").to_int() < 30)
+
+	ccAdv(1, $location[The Smut Orc Logging Camp]);
+
+	if(item_amount($item[Smut Orc Keepsake Box]) > 0)
 	{
-		abort("Umm.... we failed the smut orcs. Sorry bro.");
-		abort("Our chasm bridge situation is borken. Beep boop.");
+		use(1, $item[Smut Orc Keepsake Box]);
 	}
-	visit_url("place.php?whichplace=highlands&action=highlands_dude");
+	visit_url("place.php?whichplace=orc_chasm&action=bridge"+(to_int(get_property("chasmBridgeProgress"))));
+	if(get_property("chasmBridgeProgress").to_int() >= 30)
+	{
+		visit_url("place.php?whichplace=highlands&action=highlands_dude");
+	}
+
 	return true;
 }
 
