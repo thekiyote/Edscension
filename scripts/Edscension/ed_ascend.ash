@@ -2478,6 +2478,9 @@ boolean L8_trapperGround()
 	if(item_amount($item[goat cheese]) < 3)
 	{
 		print("Yay for goat cheese!", "blue");
+		if (get_property("friarsBlessingReceived") == "false") {
+			cli_execute("friars food");
+		}
 		ccAdv(1, $location[The Goatlet]);
 		return true;
 	}
