@@ -4333,6 +4333,103 @@ boolean L3_tavern()
 	return true;
 }
 
+boolean ed_LX_xp() {
+	if (my_level() >= 13) return false;
+
+	print("We've done everything possible at this time and have not reached the next level, so power-leveling in the most basic way Ed can, abort if you want to do this on your own.", "blue");
+	buffMaintain($effect[Purr of the Feline], 0, 1, 1);
+	if(get_property("ed_spookyravennecklace") == "finished")
+	{
+		// note, clovers used at:  trapper, guano, a-boo, bridge.
+		if (0 < item_amount($item[disassembled clover])) {
+			print("TODO:  clovering at the bathroom.  is that the best use of this clover??");
+			use(1, $item[disassembled clover]);
+			visit_url("adventure.php?snarfblat=392&confirm=on");  // The Haunted Bathroom
+			if (contains_text(visit_url("main.php"), "Combat")) {
+				ccAdv(0, $location[The Haunted Bathroom]);
+			}
+			use(item_amount($item[ten-leaf clover]), $item[ten-leaf clover]);
+			return true;
+		}
+		//TODO:  how does the bathroom compare?
+		set_property("ed_galleryFarm", TRUE);
+		maximize("exp, -combat", 0, 0, false);
+		set_property("louvreDesiredGoal", "5");
+		if(!possessEquipment($item[serpentine sword]) || !possessEquipment($item[snake shield]))
+		{
+			set_property("choiceAdventure89", "2");
+		}
+		else
+		{
+			set_property("choiceAdventure89", "6");
+		}
+		ccAdv(1, $location[The Haunted Gallery]);
+		return true;
+	}
+	else if((my_level() > 9) && (get_property("ed_castlebasement") == "finished"))
+	{
+		maximize("exp, -combat", 0, 0, false);
+		set_property("choiceAdventure669", "1");
+		set_property("choiceAdventure670", "4");
+		set_property("choiceAdventure671", "2");
+		buffMaintain($effect[Go Get \'Em\, Tiger!], 0, 1, 1);
+		buffMaintain($effect[Butt-Rock Hair], 0, 1, 1);
+		ccAdv(1, $location[The Castle in the Clouds in the Sky (Basement)]);
+		return true;
+	}
+	else if(my_level() <= 10)
+	{
+		if (have_skill($skill[Even More Elemental Wards]))
+		{
+			ed_use_servant($servant[Scribe]);
+		}
+		maximize("exp, -equip filthy knitted dread sack", 0, 0, false);
+		ccAdv(1, $location[Hippy Camp]);
+		return true;
+	}
+	else
+	{
+		abort("You need to reach the next level before this script can do any more for you, but you have no leveling options available.");
+	}
+	abort("This code should be unreachable.  check the if statements above for a missing 'return'!");
+	return true;  // ?? I thought ASH detected unreachable code?  Can code after an abort ever be reached?
+}
+
+boolean ed_L12_flyers() {
+	if (0 == item_amount($item[rock band flyers])) return false;
+	if (10000 < get_property("flyeredML").to_int()) return false;
+
+	print("Not enough flyer ML but we are ready for the war... uh oh", "blue");
+	print("Should not have so little flyer ML at this point, trying high ML locations.", "red");
+	wait(1);
+	maximize("ML", 0, 0, false);
+	if(get_property("sleazeAirportAlways").to_boolean())
+	{
+		ccAdv(1, $location[Sloppy Seconds Diner]);
+		return true;
+	}
+	if(get_property("spookyAirportAlways").to_boolean())
+	{
+		ccAdv(1, $location[The Deep Dark Jungle]);
+		return true;
+	}
+	if(get_property("stenchAirportAlways").to_boolean())
+	{
+		ccAdv(1, $location[Pirates of the Garbage Barges]);
+		return true;
+	}
+	else
+	{
+		set_property("choiceAdventure669", "1");
+		set_property("choiceAdventure670", "4");
+		set_property("choiceAdventure671", "2");
+		buffMaintain($effect[Go Get \'Em\, Tiger!], 0, 1, 1);
+		buffMaintain($effect[Butt-Rock Hair], 0, 1, 1);
+		ccAdv(1, $location[The Castle in the Clouds in the Sky (Basement)]);
+		return true;
+	}
+}
+
 boolean doTasks()
 {
 	// Handles MCD setting to 10 or 11
@@ -4986,37 +5083,7 @@ boolean doTasks()
 		return true;
 	}
 
-	if((item_amount($item[rock band flyers]) == 1) && (get_property("flyeredML").to_int() < 10000))
-	{
-		print("Not enough flyer ML but we are ready for the war... uh oh", "blue");
-		print("Should not have so little flyer ML at this point, trying high ML locations.", "red");
-		wait(1);
-		maximize("ML", 0, 0, false);
-		if(get_property("sleazeAirportAlways").to_boolean())
-		{
-			ccAdv(1, $location[Sloppy Seconds Diner]);
-		}
-		if(get_property("spookyAirportAlways").to_boolean())
-		{
-			ccAdv(1, $location[The Deep Dark Jungle]);
-		}
-		if(get_property("stenchAirportAlways").to_boolean())
-		{
-			ccAdv(1, $location[Pirates of the Garbage Barges]);
-		}
-		else
-		{
-			set_property("choiceAdventure669", "1");
-			set_property("choiceAdventure670", "4");
-			set_property("choiceAdventure671", "2");
-			buffMaintain($effect[Go Get \'Em\, Tiger!], 0, 1, 1);
-			buffMaintain($effect[Butt-Rock Hair], 0, 1, 1);
-			ccAdv(1, $location[The Castle in the Clouds in the Sky (Basement)]);
-			return true;
-		}
-		
-		return true;
-	}
+	if (ed_L12_flyers()) return true;
 
 	if((my_level() >= 12) && ((get_property("hippiesDefeated").to_int() >= 192) || get_property("ed_hippyInstead").to_boolean()) && (get_property("ed_nuns") == ""))
 	{
@@ -5138,53 +5205,8 @@ boolean doTasks()
 		set_property("ed_war", "finished");
 		return true;
 	}
-	
-	if(my_level() < 13)
-	{
-		print("We've done everything possible at this time and have not reached the next level, so power-leveling in the most basic way Ed can, abort if you want to do this on your own.", "blue");
-		buffMaintain($effect[Purr of the Feline], 0, 1, 1);
-		if(get_property("ed_spookyravennecklace") == "finished")
-		{
-			set_property("ed_galleryFarm", TRUE);
-			maximize("exp, -combat", 0, 0, false);
-			set_property("louvreDesiredGoal", "5");
-			if(!possessEquipment($item[serpentine sword]) && !possessEquipment($item[snake shield]))
-			{
-				set_property("choiceAdventure89", "2");
-			}
-			else
-			{
-				set_property("choiceAdventure89", "6");
-			}
-			ccAdv(1, $location[The Haunted Gallery]);
-			return true;
-		}
-		else if((my_level() > 9) && (get_property("ed_castlebasement") == "finished"))
-		{
-			maximize("exp, -combat", 0, 0, false);
-			set_property("choiceAdventure669", "1");
-			set_property("choiceAdventure670", "4");
-			set_property("choiceAdventure671", "2");
-			buffMaintain($effect[Go Get \'Em\, Tiger!], 0, 1, 1);
-			buffMaintain($effect[Butt-Rock Hair], 0, 1, 1);
-			ccAdv(1, $location[The Castle in the Clouds in the Sky (Basement)]);
-			return true;
-		}
-		else if(my_level() <= 10)
-		{
-			if (have_skill($skill[Even More Elemental Wards]))
-			{
-				ed_use_servant($servant[Scribe]);
-			}
-			maximize("exp, -equip filthy knitted dread sack", 0, 0, false);
-			ccAdv(1, $location[Hippy Camp]);
-			return true;
-		}
-		else
-		{
-			abort("You need to reach the next level before this script can do any more for you, but you have no leveling options available.");
-		}
-	}
+
+	if (ed_LX_xp()) return true;
 
 	if(get_property("ed_sorceress") == "")
 	{
