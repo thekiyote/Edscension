@@ -3076,14 +3076,15 @@ boolean L9_aBooPeak()
 		ccAdv(1, $location[A-Boo Peak]);
 		return true;
 	}
-	
+
+/*
 	if(get_property("ed_war") != "finished")
 	{
 		return false;
 	}
-
+*/
 	print("A-Boo Peak: " + get_property("booPeakProgress"), "blue");
-	if(item_amount($item[a-boo clue]) > 0 && to_int("booPeakProgress") > 2)
+	if(item_amount($item[a-boo clue]) > 0 && to_int(get_property("booPeakProgress")) > 2)
 	{
 		buffMaintain($effect[Go Get \'Em\, Tiger!], 0, 1, 1);
 		
