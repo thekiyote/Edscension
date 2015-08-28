@@ -536,6 +536,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 	int combatStage = get_property("ed_edCombatStage").to_int();
 	float damagePerRound = expected_damage();
 	if ($monster[Your winged yeti] == last_monster()) damagePerRound *= 3;  // (Mafia appears to be inaccurate?  Also, he appears to have some damage reduction applied to my Fist spells....)
+	if ($monster[big swarm of ghuol whelps] == last_monster()) damagePerRound *= 3;  // Mafia appears to be inaccurate here, as well?
 	if (damagePerRound < 1.0) damagePerRound = my_hp()/2 + 1;  // A kludge, to ensure that we treat unknown enemies with respect!  And, avoid dividing by zero!!
 	int roundsLeftThisStage = 1 + floor(my_hp() / damagePerRound);
 	int roundsPerStage = (jump_chance() < 100 ? 0 : 1) + floor(my_maxhp() / damagePerRound);
