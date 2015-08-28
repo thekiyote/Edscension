@@ -30,6 +30,7 @@ int ed_howlDamage() {  // (spooky damage, 10 MP)
 int ed_stormDamage() {  // (prismatic damage, 8 MP)
 	// (see http://kol.coldfront.net/thekolwiki/index.php/Calculating_Spell_Damage)
 	float baseDamage = min(my_buffedstat($stat[mysticality])*1.7, 330);  //FIXME
+	if (my_buffedstat($stat[mysticality]) < 50) baseDamage /= 4;   // this is a kludge to try to get more realistic estimates when first fighting hippies.
 	if (last_monster().defense_element != $element[none]) baseDamage *= 1.2;
 	float multiplier = 1.0; //FIXME
 	float spellDamagePercent = numeric_modifier("Spell Damage Percent");
@@ -40,6 +41,7 @@ string ed_stormIfPossible() {
 	// When we get here, we would use storm if we had it.  Using fist instead.
 	if (!have_skill($skill[storm of the scarab])) return "fist of the mummy";
 	if (my_mp() < mp_cost($skill[storm of the scarab])) return "fist of the mummy";
+	if (ed_stormDamage() < ed_fistDamage()) return "fist of the mummy";  //FIXME:  this isn't the right place for this check.
 	return "storm of the scarab";
 }
 string ed_stormOrFist() {
