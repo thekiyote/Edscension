@@ -322,6 +322,13 @@ void handleRenenutet(monster enemy)
 	}
 }
 
+int ed_fcleItemsNeeded() {
+	return 0 < available_amount($item[pirate fledges]) ? 0
+		: 3 - item_amount($item[ball polish])
+			- item_amount($item[mizzenmast mop])
+			- item_amount($item[rigging shampoo]);
+}
+
 boolean ed_shouldLash(monster enemy) {
 	if((enemy == $monster[Swarthy Pirate]) && !possessEquipment($item[Stuffed Shoulder Parrot]))
 	{
@@ -937,6 +944,25 @@ string ed_edCombatHandler(int round, string opp, string text)
 	}
 
 	boolean forceStasis = false;
+	if (
+		roundsPerStage < 20
+		&& roundsLeftThisStage*3/2 < roundsPerStage
+		&& combatStage < 2
+		&& monster_hp() < roundsPerStage * ed_stormDamage()
+		// && (my_hp() * 1.1 < my_maxhp() || roundsLeftThisStage < 10)
+			//TODO: note that if Ed has 33/35 HP, and
+			// opponent does 34 damage, then we have one round in the first combat, and 5 total.
+			// If the damage estimate is accurate (although, it isn't) then we really can gain
+			// a advantage by recovering those 2HP.  And in a short combat, that could be important.
+	) {
+		print("Ed will defer until another combat, in order to heal & buy time.", "blue");
+		forceStasis = true;
+	}
+	if (contains_text(edCombatState, "talismanofrenenutet") && forceStasis) {
+		forceStasis = false;
+	}
+	if (needShop(ed_buildShoppingList()) && monster_hp() / ed_fistDamage() < roundsPerStage) forceStasis = true;
+
 	if((!contains_text(edCombatState, "talismanofrenenutet")) && (item_amount($item[Talisman of Renenutet]) > 0))
 	{
 		boolean doRenenutet = false;
@@ -944,7 +970,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 			// when we get here, we may have tried lash, but we still don't have our target item.
 			// so, we may use a renenutet.
 			// (note that, currently, we only use a renenutet to acquire the first one of any given item)
-			print("TODO:  ed_opponentHasDesiredItem() reports that we should use renenutet!  Verify that this is appropriate!", "red");
+			//print("TODO:  ed_opponentHasDesiredItem() reports that we should use renenutet!  Verify that this is appropriate!", "red");
 			doRenenutet = true;
 		}
 		if (
@@ -970,11 +996,6 @@ string ed_edCombatHandler(int round, string opp, string text)
 		{
 			print("TODO:  skipping renenutet, in order to save it for a royal guard!  Make sure this is working as expected!", "red");
 			doRenenutet = false;
-		}
-		if(enemy == $monster[Filthworm Royal Guard])
-		{
-			if (!doRenenutet) abort("FIXME:  I believe ed_opponentHasDesiredItem() should have returned true, but didn't!");
-			//doRenenutet = true;
 		}
 		if((enemy == $monster[Cleanly Pirate]) && (item_amount($item[Rigging Shampoo]) == 0))
 		{
@@ -1029,14 +1050,34 @@ string ed_edCombatHandler(int round, string opp, string text)
 			//TODO:  we could still use it if we have lash, if we know that it did not drop from lash....
 			doRenenutet = true;
 		}
-		if (roundsPerStage < 2) {
-			if (doRenenutet) {
-				print("FIXME:  adventuring logic led us to a place where we would like to use a Renenutet, but we don't expect to get a chance to do so!", "red");
-			}
-			doRenenutet = false;  // we could only ever use it successfully against this opponent
-				// if we were to get lucky.
-				// (if this happens, we probably want to add some checks in the adventuring logic
-				// to avoid it.)
+
+		if (
+			doRenenutet
+			&& $location[The F'c'le] != my_location()
+			&& item_amount($item[talisman of Renenutet]) <= ed_fcleItemsNeeded()
+		) {
+			doRenenutet = false;
+		}
+		if (doRenenutet && forceStasis) {
+			print("Waiting until next combat before we use a talisman of Renenutet.", "blue");
+			doRenenutet = false;
+		}
+		if (
+			doRenenutet
+			&& item_amount($item[rock band flyers]) > 0
+			&& get_property("flyeredML").to_int() < 10000
+			&& to_int(get_property("_edDefeats")) < 2  //TODO:  Will we sometimes spend some Ka on flyering?
+		) {
+			print("Waiting until we are done using flyers before we use a talisman of Renenutet.", "blue");
+			doRenenutet = false;
+		}
+		if (doRenenutet && roundsPerStage < 2) {
+			print("FIXME:  adventuring logic led us to a place where we would like to use a Renenutet, but we don't expect to get a chance to do so!", "red");
+			// we could only ever use it successfully against this opponent
+			// if we were to get lucky.
+			// (if this happens, we probably want to add some checks in the adventuring logic
+			// that led us here, in order to avoid it.)
+			doRenenutet = false;
 		}
 		//TODO:  there may still be 2-round fights where Ed ought to soften up the opponent
 		//       in this fight, so that he is guaranteed to finish the next fight with Renenutet
@@ -1047,33 +1088,14 @@ string ed_edCombatHandler(int round, string opp, string text)
 			doRenenutet
 			&& 2 == roundsLeftThisStage
 			&& (ed_stormDamage() < monster_hp()
-				|| ed_fistDamage() < monster_hp() && !have_skill($skill[Storm of the Scarab])
+				|| !have_skill($skill[Storm of the Scarab]) && ed_fistDamage() < monster_hp()
 			)
 		) {
 			print("Using a talisman of Renenutet right now would be risky!", "blue");
 			doRenenutet = false;
 		}
-
-		if (roundsPerStage < 20 && roundsLeftThisStage + 1 <= roundsPerStage && combatStage < 2 && monster_hp() < roundsPerStage * ed_stormDamage()) {
-			// defer until another combat, in order to buy more time.  (note that this logic might belong outside of the renenutet logic; it is more generally applicable!)
-			print("Ed will defer until another combat, in order to heal & buy time.  (This is the new forceStasis logic)", "blue");
-			if (my_maxhp() < my_hp() * 1.1) print("forceStasis activating with (approximately) full HP!!?!", "red");
-				//FIXME:  currently, the above warning can trigger.  need to investigate a bit before deciding how to resolve it.  (the renenutet usage is finally starting to shape up, though!)
-				// I think what may be appropriate is to change the roundsLeftThisStage+1 <= roundsPerStage to
-				// something along the lines of:  (1.5*roundsLeftThisStage < roundsPerStage)
-				//TODO:  add some logging to check that that would behave as expected
-			forceStasis = true;
-			doRenenutet = false;
-		}
-		if (roundsLeftThisStage < 2) {
-			doRenenutet = false;
-		}
-		if (
-			doRenenutet
-			&& item_amount($item[rock band flyers]) > 0
-			&& get_property("flyeredML").to_int() < 10000
-			&& to_int(get_property("_edDefeats")) < 2
-		) {
+		if (doRenenutet && roundsLeftThisStage < 2) {
+			print("Using a talisman of Renenutet right now would be very risky!", "blue");
 			doRenenutet = false;
 		}
 		if(doRenenutet)
@@ -1089,8 +1111,6 @@ string ed_edCombatHandler(int round, string opp, string text)
 	{
 		return "item short writ of habeas corpus";
 	}
-
-	if (needShop(ed_buildShoppingList()) && monster_hp() / ed_fistDamage() < roundsPerStage) forceStasis = true;
 
 	if(!needShop(ed_buildShoppingList()) && (my_level() >= 10) && (item_amount($item[Rock Band Flyers]) == 0) && (my_location() != $location[The Hidden Apartment Building]) && (type != to_phylum("Undead")) && (my_mp() > 20) && (my_location() != $location[Barrrney\'s Barrr]) && !forceStasis)
 	{
