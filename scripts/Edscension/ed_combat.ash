@@ -211,7 +211,7 @@ string ccsJunkyard(int round, string opp, string text)
 		return "skill summon love gnats";
 	}
 
-	if((!contains_text(combatState, "flyers")) && (my_location() != $location[The Battlefield (Frat Uniform)]) && (get_property("ed_edCombatStage").to_int() < 3))
+	if((!contains_text(combatState, "flyers")) && (my_location() != $location[The Battlefield (Frat Uniform)]) && (get_property("_edDefeats").to_int() < 3))
 	{
 		if((item_amount($item[rock band flyers]) > 0) && (get_property("flyeredML").to_int() < 10000))
 		{
@@ -219,7 +219,7 @@ string ccsJunkyard(int round, string opp, string text)
 			return "item rock band flyers";
 		}
 	}
-	if(get_property("ed_edCombatStage").to_int() > 2 && (my_location() != $location[The Battlefield (Frat Uniform)]) && (!contains_text(combatState, "flyers")) && ((expected_damage() * 1.1) <= my_hp()))
+	if(get_property("_edDefeats").to_int() > 2 && (my_location() != $location[The Battlefield (Frat Uniform)]) && (!contains_text(combatState, "flyers")) && ((expected_damage() * 1.1) <= my_hp()))
 	{
 		if((item_amount($item[rock band flyers]) > 0) && (get_property("flyeredML").to_int() < 10000))
 		{
@@ -237,7 +237,7 @@ string ccsJunkyard(int round, string opp, string text)
 			}
 			return banisher;
 /*
-		if(get_property("ed_edCombatStage").to_int() > 2)
+		if(get_property("_edDefeats").to_int() > 2)
 		{
 			string banisher = findBanisher(opp);
 			if (banisher == "attack with weapon" && my_mp() >= 8) {
@@ -245,7 +245,7 @@ string ccsJunkyard(int round, string opp, string text)
 			}
 			return banisher;
 		}
-		else if(get_property("ed_edCombatStage").to_int() == 2)
+		else if(get_property("_edDefeats").to_int() == 2)
 		{
 			return findBanisher(opp);
 		}
@@ -510,18 +510,19 @@ boolean ed_opponentHasDesiredItem() { return ed_opponentHasDesiredItem(last_mons
 
 string ed_edCombatHandler(int round, string opp, string text)
 {
+	int combatStage = get_property("_edDefeats").to_int();
+	boolean flyering
+		= 0 < item_amount($item[rock band flyers]) && get_property("flyeredML").to_int() < 10000;
 	if(round == 0)
 	{
 		print("ed_combatHandler: " + round, "brown");
 		set_property("ed_combatHandler", "");
-		if(get_property("ed_edCombatStage").to_int() < 3 && (item_amount($item[rock band flyers]) == 1))
+		if (combatStage < 3 && flyering)
 		{
 			set_property("ed_edCombatCount", 1 + get_property("ed_edCombatCount").to_int());
 			set_property("ed_edStatus", "UNDYING!");
 			print("test1", "red");
-		}
-		else if(get_property("ed_edCombatStage").to_int() < 3)
-		{
+		} else if (combatStage < 3) {
 			set_property("ed_edCombatCount", 1 + get_property("ed_edCombatCount").to_int());
 			set_property("ed_edStatus", "dying");
 			print("test4", "red");
@@ -540,7 +541,6 @@ string ed_edCombatHandler(int round, string opp, string text)
 	string combatState = get_property("ed_combatHandler");
 	string edCombatState = get_property("ed_edCombatHandler");
 
-	int combatStage = get_property("ed_edCombatStage").to_int();
 	float damagePerRound = expected_damage();
 	if ($monster[Your winged yeti] == last_monster()) damagePerRound *= 3;  // (Mafia appears to be inaccurate?  Also, he appears to have some damage reduction applied to my Fist spells....)
 	if ($monster[big swarm of ghuol whelps] == last_monster()) damagePerRound *= 3;  // Mafia appears to be inaccurate here, as well?
@@ -551,16 +551,14 @@ string ed_edCombatHandler(int round, string opp, string text)
 
 	print("combat stage " + combatStage + ", round " + round + ":  " + roundsLeftThisStage + " more 'til underworld, " + roundsBeforeKa + " more 'til we need to spend Ka.", "blue");
 	print("opponent has about " + monster_hp() + " HP.  Ed has " + my_hp() + ".  Fist does " + ed_fistDamage() + ", Storm does (?) " + ed_stormDamage() + ", opponent does " + damagePerRound, "blue");
-	if (get_property("_edDefeats").to_int() != combatStage) print("Note:  _edDefeats is " + get_property("_edDefeats"), "red");
 
 	if (
 		(item_amount($item[ka coin]) > 30)
 		&& (!have_skill($skill[Healing Scarabs]) || (my_spleen_use() < spleen_limit()))
-		&& (get_property("_edDefeats").to_int() == 0)
+		&& 0 == combatStage
 		&& (!contains_text(edCombatState, "talismanofrenenutet") && !contains_text(edCombatState, "curse of fortune") || contains_text(edCombatState, "insults"))
 	) {
 		//TODO:  why?  is this to go shopping?  I think I've handled that elsewhere.
-		//TODO:  fixed (!renenutet)-or-(!fortune) to be !(renenutet-or-fortune)
 		set_property("ed_edStatus", "UNDYING!");
 		print("test5", "red");
 	}
@@ -578,15 +576,14 @@ string ed_edCombatHandler(int round, string opp, string text)
 		print("test6", "red");
 	}
 	
-	if((get_property("ed_edCombatStage").to_int() >= 2) && ((item_amount($item[rock band flyers]) == 0) || (get_property("flyeredML") >= 10000)))
+	if ((combatStage >= 2) && !flyering)
 	{
 		set_property("ed_edStatus", "dying");
 		print("test2", "red");
 	}
 	if (
-		(get_property("ed_edCombatStage").to_int() < 4)
-		&& (item_amount($item[rock band flyers]) > 0)
-		&& (get_property("flyeredML").to_int() < 10000)
+		(combatStage < 4)
+		&& flyering
 		&& (item_amount($item[ka coin]) > 2)
 		&& !contains_text(edCombatState, "talismanofrenenutet")
 	)
@@ -664,7 +661,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 
 	if((!contains_text(combatState, "flyers")))
 	{
-		if((item_amount($item[rock band flyers]) > 0) && (get_property("flyeredML").to_int() < 10000))
+		if (flyering && combatStage < 4)  //TODO:  Ka budget.
 		{
 			set_property("ed_combatHandler", combatState + "(flyers)");
 			return "item rock band flyers";
@@ -838,7 +835,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 		}
 		if(enemy == $monster[knight (Snake)] && !possessEquipment($item[serpentine sword]) && !possessEquipment($item[snake shield]) && (my_daycount() < 3))
 		{
-			doWrath = true;
+			doWrath = true;  //TODO:  I think this is to keep it from interfering with other Wrath use to get the war outfit?
 		}
 		if(enemy == $monster[Mountain Man])
 		{
@@ -1064,9 +1061,10 @@ string ed_edCombatHandler(int round, string opp, string text)
 		}
 		if (
 			doRenenutet
-			&& item_amount($item[rock band flyers]) > 0
-			&& get_property("flyeredML").to_int() < 10000
-			&& to_int(get_property("_edDefeats")) < 2  //TODO:  Will we sometimes spend some Ka on flyering?
+			&& flyering
+			&& combatStage < 2  //TODO:  Will we sometimes spend some Ka on flyering?
+				// && contains_text(combatState, "flyers")
+				// Will that work for all combat stages where we flyer?
 		) {
 			print("Waiting until we are done using flyers before we use a talisman of Renenutet.", "blue");
 			doRenenutet = false;
