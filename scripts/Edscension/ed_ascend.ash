@@ -224,7 +224,10 @@ void initializeSettings()
 }
 
 void ed_resumeCombat() {
-	ed_ccAdv(min(1, 2-to_int(get_property("_edDefeats"))), my_location(), "", true);
+	int defeatQuota = 2;  //TODO:  allow more for gremlins, sonofa, bosses
+	defeatQuota -= to_int(get_property("_edDefeats"));
+	defeatQuota = max(0, defeatQuota);
+	ed_ccAdv(1 + defeatQuota, my_location(), "", true);
 }
 
 boolean ed_ccAdv(int num, location loc, string option)
