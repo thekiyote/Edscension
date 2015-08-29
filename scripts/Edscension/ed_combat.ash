@@ -495,15 +495,26 @@ string ed_edCombatHandler(int round, string opp, string text)
 		set_property("ed_edStatus", "UNDYING!");
 		print("test5", "red");
 	}
-	
+
+	int insultCount() {
+		return
+			to_int(to_boolean(get_property("lastPirateInsult1")))
+			+ to_int(to_boolean(get_property("lastPirateInsult2")))
+			+ to_int(to_boolean(get_property("lastPirateInsult3")))
+			+ to_int(to_boolean(get_property("lastPirateInsult4")))
+			+ to_int(to_boolean(get_property("lastPirateInsult5")))
+			+ to_int(to_boolean(get_property("lastPirateInsult6")))
+			+ to_int(to_boolean(get_property("lastPirateInsult7")))
+			+ to_int(to_boolean(get_property("lastPirateInsult8")));
+	}
 	if((enemy == $monster[Pygmy Shaman] && have_effect($effect[Thrice-Cursed]) == 0) ||
 		(enemy == $monster[batwinged gremlin] && item_amount($item[molybdenum hammer]) == 0) ||
 		(enemy == $monster[vegetable gremlin] && item_amount($item[molybdenum screwdriver]) == 0) ||
 		(enemy == $monster[spider gremlin] && item_amount($item[molybdenum pliers]) == 0) ||
 		(enemy == $monster[erudite gremlin] && item_amount($item[molybdenum crescent wrench]) == 0) ||
-		(enemy == $monster[tetchy pirate] && (get_property("lastPirateInsult1") == false || get_property("lastPirateInsult2") == false || get_property("lastPirateInsult3") == false || get_property("lastPirateInsult4") == false || get_property("lastPirateInsult5") == false || get_property("lastPirateInsult6") == false || get_property("lastPirateInsult7") == false || get_property("lastPirateInsult8") == false)) ||
-		(enemy == $monster[toothy pirate] && (get_property("lastPirateInsult1") == false || get_property("lastPirateInsult2") == false || get_property("lastPirateInsult3") == false || get_property("lastPirateInsult4") == false || get_property("lastPirateInsult5") == false || get_property("lastPirateInsult6") == false || get_property("lastPirateInsult7") == false || get_property("lastPirateInsult8") == false)) ||
-		(enemy == $monster[tipsy pirate] && (get_property("lastPirateInsult1") == false || get_property("lastPirateInsult2") == false || get_property("lastPirateInsult3") == false || get_property("lastPirateInsult4") == false || get_property("lastPirateInsult5") == false || get_property("lastPirateInsult6") == false || get_property("lastPirateInsult7") == false || get_property("lastPirateInsult8") == false)))
+		(enemy == $monster[tetchy pirate] && insultCount() < 8) ||
+		(enemy == $monster[toothy pirate] && insultCount() < 8) ||
+		(enemy == $monster[tipsy pirate] && insultCount() < 8))
 	{
 		set_property("ed_edStatus", "UNDYING!");
 		print("test6", "red");
