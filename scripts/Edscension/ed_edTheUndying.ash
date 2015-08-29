@@ -1127,6 +1127,7 @@ boolean ed_handleAdventureServant(location loc)
 		(loc == $location[The Royal Guard Chamber] && !have_skill($skill[Lash of the Cobra])) ||
 		(loc == $location[Wartime Frat House] && !have_skill($skill[Wrath of Ra])) ||
 		(loc == $location[The F'c'le])
+		|| (loc == $location[The Secret Council Warehouse])
 	)
 	{
 		ed_use_servant($servant[Cat]);
