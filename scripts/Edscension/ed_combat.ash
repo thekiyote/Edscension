@@ -329,44 +329,49 @@ int ed_fcleItemsNeeded() {
 			- item_amount($item[rigging shampoo]);
 }
 
+boolean ed_opponentHasDesiredItem(monster o) {
+	boolean[item] desiredItems = $items[
+		Stuffed Shoulder Parrot,
+		Badge Of Authority,
+		Perfume-Soaked Bandana,
+		Sewage-Clogged Pistol,
+		Bag of Park Garbage,
+		Swashbuckling Pants,
+		Eyepatch,
+		goat cheese,
+		rusty hedge trimmers,
+		enchanted bean,
+		tattered scrap of paper,
+		filthworm hatchling scent gland,
+		filthworm drone scent gland,
+		filthworm royal guard scent gland,
+		Knob Goblin Perfume,
+		Knob Goblin Harem Veil,
+		Knob Goblin Harem Pants,
+		Beer Helmet,
+		Bejeweled Pledge Pin,
+		Distressed Denim Pants,
+		Mohawk Wig,
+		Amulet of Extreme Plot Significance,
+		serpentine sword,
+		snake shield,
+		A-Boo clue
+	];
+	if (my_daycount() < 3) desiredItems[$item[Ye Olde Meade]] = true;
+		//TODO:  if we start supporting 2-day runs, we probably will change that condition.
+	foreach i, r in item_drops_array(o) {
+		if ((desiredItems contains r.drop) && !possessEquipment(r.drop)) {
+			return true;
+		}
+	}
+	return false;
+}
+boolean ed_opponentHasDesiredItem() { return ed_opponentHasDesiredItem(last_monster()); }
+
+
 boolean ed_shouldLash(monster enemy) {
-	if((enemy == $monster[Swarthy Pirate]) && !possessEquipment($item[Stuffed Shoulder Parrot]))
-	{
-		return true;
-	}
-	if((enemy == $monster[Big Wheelin\' Twins]) && !possessEquipment($item[Badge Of Authority]))
-	{
-		return true;
-	}
-	if((enemy == $monster[Fishy Pirate]) && !possessEquipment($item[Perfume-Soaked Bandana]))
-	{
-		return true;
-	}
-	if((enemy == $monster[Funky Pirate]) && !possessEquipment($item[Sewage-Clogged Pistol]))
-	{
-		return true;
-	}
-	if((enemy == $monster[Garbage Tourist]) && (item_amount($item[Bag of Park Garbage]) == 0))
-	{
-		return true;
-	}
-	if((enemy == $monster[Sassy Pirate]) && !possessEquipment($item[Swashbuckling Pants]))
-	{
-		return true;
-	}
-	if((enemy == $monster[Smarmy Pirate]) && !possessEquipment($item[Eyepatch]))
-	{
-		return true;
-	}
-	if((enemy == $monster[One-eyed Gnoll]) && !possessEquipment($item[Eyepatch]))
-	{
-		return true;
-	}
+	boolean result = ed_opponentHasDesiredItem(enemy);
 	if((enemy == $monster[Dairy Goat]) && (item_amount($item[Goat Cheese]) < 3))
-	{
-		return true;
-	}
-	if((enemy == $monster[Renaissance Giant]) && (item_amount($item[Ye Olde Meade]) < 1) && (my_daycount() == 1))
 	{
 		return true;
 	}
@@ -414,41 +419,6 @@ boolean ed_shouldLash(monster enemy) {
 	{
 		return true;
 	}
-	if(enemy == $monster[Larval Filthworm] && (item_amount($item[filthworm hatchling scent gland]) == 0))
-	{
-		return true;
-	}
-	if(enemy == $monster[Filthworm Drone] && (item_amount($item[filthworm drone scent gland]) == 0))
-	{
-		return true;
-	}
-	if(enemy == $monster[Filthworm Royal Guard] && (item_amount($item[filthworm royal guard scent gland]) == 0))
-	{
-		return true;
-	}
-	if(enemy == $monster[Knob Goblin Madam] && item_amount($item[Knob Goblin Perfume]) == 0)
-	{
-		return true;
-	}
-	if(enemy == $monster[Knob Goblin Harem Girl] && (!possessEquipment($item[Knob Goblin Harem Veil]) || !possessEquipment($item[Knob Goblin Harem Pants])))
-	{
-		return true;
-	}
-	if(my_location() == $location[Wartime Frat House (Hippy Disguise)])
-	{
-		if(!possessEquipment($item[Beer Helmet]) || !possessEquipment($item[Bejeweled Pledge Pin]) || !possessEquipment($item[Distressed Denim Pants]))
-		{
-			return true;
-		}
-	}
-	if((enemy == $monster[Burly Sidekick]) && !possessEquipment($item[Mohawk Wig]))
-	{
-		return true;
-	}
-	if((enemy == $monster[Quiet Healer]) && !possessEquipment($item[Amulet of Extreme Plot Significance]))
-	{
-		return true;
-	}
 	if((enemy == $monster[P Imp]) || (enemy == $monster[G Imp]))
 	{
 		if((get_property("ed_pirateoutfit") != "finished") && (get_property("ed_pirateoutfit") != "almost") && (item_amount($item[Hot Wing]) < 3))
@@ -468,45 +438,8 @@ boolean ed_shouldLash(monster enemy) {
 		progress = progress + (8 * item_amount($item[Warehouse Map Page]));
 		if (progress < 40) return true;
 	}
-	return false;
+	return result;
 }
-
-boolean ed_opponentHasDesiredItem(monster o) {
-	boolean[item] desiredItems = $items[
-		Stuffed Shoulder Parrot,
-		Badge Of Authority,
-		Perfume-Soaked Bandana,
-		Sewage-Clogged Pistol,
-		Bag of Park Garbage,
-		Swashbuckling Pants,
-		Eyepatch,
-		goat cheese,
-		rusty hedge trimmers,
-		enchanted bean,
-		filthworm hatchling scent gland,
-		filthworm drone scent gland,
-		filthworm royal guard scent gland,
-		Knob Goblin Perfume,
-		Knob Goblin Harem Veil,
-		Knob Goblin Harem Pants,
-		Beer Helmet,
-		Bejeweled Pledge Pin,
-		Distressed Denim Pants,
-		Mohawk Wig,
-		Amulet of Extreme Plot Significance
-	];
-	//TODO:  serpentine sword, snake shield?
-	foreach i, r in item_drops_array(o) {
-		if ((desiredItems contains r.drop) && !possessEquipment(r.drop)) {
-			if (!ed_shouldLash(o)) {
-				abort("ed_opponentHasDesiredItem returning true, but ed_shouldLash did not!!");
-			}
-			return true;
-		}
-	}
-	return false;
-}
-boolean ed_opponentHasDesiredItem() { return ed_opponentHasDesiredItem(last_monster()); }
 
 string ed_edCombatHandler(int round, string opp, string text)
 {
@@ -976,20 +909,13 @@ string ed_edCombatHandler(int round, string opp, string text)
 		) {
 			doRenenutet = true;
 		}
-		if (
-			enemy == $monster[knight (Snake)]
-			&& !(possessEquipment($item[serpentine sword])
-				&& possessEquipment($item[snake shield]))
-			&& (my_daycount() < 3)
-		) {
-			doRenenutet = true;
-		}
-		if(enemy == $monster[Larval Filthworm] && (item_amount($item[Talisman of Renenutet]) < 8))
+		int renenutetsAvailable = item_amount($item[Talisman of Renenutet]) + 7 - to_int(get_property("ed_renenutetsBought"));
+		if (enemy == $monster[Larval Filthworm] && renenutetsAvailable < 8)
 		{
 			print("TODO:  skipping renenutet, in order to save it for later filthworm stages!  Make sure this is working as expected!", "red");
 			doRenenutet = false;
 		}
-		if(enemy == $monster[Filthworm Drone] && item_amount($item[Talisman of Renenutet]) < 3)
+		if(enemy == $monster[Filthworm Drone] && renenutetsAvailable < 3)
 		{
 			print("TODO:  skipping renenutet, in order to save it for a royal guard!  Make sure this is working as expected!", "red");
 			doRenenutet = false;
