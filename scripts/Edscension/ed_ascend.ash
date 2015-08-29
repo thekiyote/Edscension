@@ -3600,7 +3600,7 @@ boolean LX_dictionary()
 			return 0 == item_amount($item[rusty screwdriver]);
 		} else {
 			visit_url("place.php?whichplace=forestvillage&preaction=screwquest&action=fv_untinker_quest");
-			ccAdv(1, $location[Degrassi Knoll Garage]);
+			ccAdv(1, $location[The Degrassi Knoll Garage]);
 			return true;
 		}
 	}
