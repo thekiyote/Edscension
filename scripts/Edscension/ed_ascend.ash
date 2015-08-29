@@ -5423,8 +5423,24 @@ void ed_begin()
 
 	questOverride();
 
-	while((my_adventures() > 1) && (my_inebriety() <= inebriety_limit()) && (get_property("kingLiberated") == "false") && doTasks())
-	{
+	int retryLimit = 20;
+	int retries = 0;
+	int lastAdventureCount = my_adventures();
+	while (
+		(my_adventures() > 1)
+		&& (my_inebriety() <= inebriety_limit())
+		&& (get_property("kingLiberated") == "false")
+		&& doTasks()
+	) {
+		if (lastAdventureCount != my_adventures()) {
+			retries = 0;
+		} else {
+			retries += 1;
+			if (retryLimit <= retries) {
+				abort("We appear to be stuck in a loop.");
+			}
+		}
+		lastAdventureCount = my_adventures();
 	}
 	
 	doBedtime();
