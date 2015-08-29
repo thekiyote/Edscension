@@ -3127,17 +3127,38 @@ boolean L9_aBooPeak()
 			return false;
 		}
 
-		if(possessEquipment($item[The Crown of Ed the Undying]))
-		{
-			maximize("spooky res, cold res, equip The Crown of Ed the Undying", 0, 0, false);
-			adjustEdHat("bear");
-		} else
-		{
-			//TODO:  use speculation feature of maximizer
-			maximize("spooky res, cold res, 0.075 HP", 0, 0, false);
-		}
 		int coldResist = elemental_resist($element[cold]);
 		int spookyResist = elemental_resist($element[spooky]);
+		int expectedMaximumHp = my_maxhp();
+
+		foreach s in $slots[] {
+			coldResist -= numeric_modifier(equipped_item(s), "cold resistance");
+			spookyResist -= numeric_modifier(equipped_item(s), "spooky resistance");
+			expectedMaximumHp -= numeric_modifier(equipped_item(s), "Maximum HP");
+			expectedMaximumHp -= numeric_modifier(equipped_item(s), "Muscle");
+		}
+
+		if(possessEquipment($item[The Crown of Ed the Undying]))
+		{
+			//maximize("spooky res, cold res, equip The Crown of Ed the Undying", 0, 0, false);
+			//adjustEdHat("bear");
+			foreach i,r in maximize("spooky res, cold res, equip The Crown of Ed the Undying", 0, 0, true, true) {
+				coldResist += numeric_modifier(r.item, "cold resistance");
+				spookyResist += numeric_modifier(r.item, "spooky resistance");
+				expectedMaximumHp += numeric_modifier(r.item, "Maximum HP");
+				expectedMaximumHp += numeric_modifier(r.item, "Muscle");
+			}
+			if (get_property("edPiece") != "bear") expectedMaximumHp += 20;
+		} else
+		{
+			//maximize("spooky res, cold res, 0.075 HP", 0, 0, false);
+			foreach i,r in maximize("spooky res, cold res, 0.075 HP", 0, 0, true, true) {
+				coldResist += numeric_modifier(r.item, "cold resistance");
+				spookyResist += numeric_modifier(r.item, "spooky resistance");
+				expectedMaximumHp += numeric_modifier(r.item, "Maximum HP");
+				expectedMaximumHp += numeric_modifier(r.item, "Muscle");
+			}
+		}
 
 		if(item_amount($item[Spooky Powder]) > 0 && 0 == have_effect($effect[Spookypants]))
 		{
@@ -3178,7 +3199,7 @@ boolean L9_aBooPeak()
 		// Calculate how much boo peak damage does per unit resistance.
 		int estimatedCold = 5 + (13+25+50+125+250) * ((100.0 - elemental_resist_value(coldResist)) / 100.0);
 		int estimatedSpooky = 5 + (13+25+50+125+250) * ((100.0 - elemental_resist_value(spookyResist)) / 100.0);
-		print("Current HP: " + my_hp() + "/" + my_maxhp(), "orange");
+		print("Current HP/expected maximum: " + my_hp() + "/" + expectedMaximumHp, "orange");
 		print("Expected cold resistance level: " + coldResist + " Expected spooky resistance level: " + spookyResist, "orange");
 		print("Expected cold damage: " + estimatedCold + " Expected spooky damage: " + estimatedSpooky, "orange");
 		int totalDamage = estimatedCold + estimatedSpooky + 10;  // (+ 10 should allow for rounding errors)
@@ -3196,12 +3217,25 @@ boolean L9_aBooPeak()
 			set_property("ed_lastABooCycleFix", 0);
 		}
 
-		boolean doThisBoo = true;
-		if (my_maxhp() < totalDamage) doThisBoo = false;
+		if (expectedMaximumHp < totalDamage) return false;
 		if (my_hp() + 20 * item_amount($item[linen bandages]) <= totalDamage) {
 			// Don't bother using up the bandages unless we are completely certain to hit the target HP.
-			doThisBoo = false;
+			return false;
 		}
+		if (possessEquipment($item[The Crown of Ed the Undying])) {
+			maximize("spooky res, cold res, equip The Crown of Ed the Undying", 0, 0, false);
+			adjustEdHat("bear");
+		} else {
+			maximize("spooky res, cold res, 0.075 HP", 0, 0, false);
+		}
+
+		print("After equipment changes, HP: " + my_hp() + "/" + my_maxhp(), "orange");
+		if (my_maxhp() != expectedMaximumHp) {
+			print("FIXME:  expectedMaximumHp is not correct!", "red");
+			abort();
+		}
+
+		boolean doThisBoo = true;
 		// Restore enough HP to pass:
 		while (
 			doThisBoo
@@ -3241,6 +3275,10 @@ boolean L9_aBooPeak()
 				+ damageFrom(125, spookyFactor)
 				+ damageFrom(250, spookyFactor);
 			print("At cold resistance level: " + numeric_modifier("cold resistance") + ", spooky resistance level: " + numeric_modifier("spooky resistance"), "orange");
+			if (numeric_modifier("cold resistance") != coldResist || numeric_modifier("spooky resistance") != spookyResist) {
+				abort("projections of cold and/or spooky resistance were incorrect!");
+				//FIXME:  end users won't want an abort here, as long as they can pass the test.  and even if they can't pass it, we can still continue automation.
+			}
 			print("Expected damage is:  " + expectedDamage, "orange");
 			if (my_hp() <= expectedDamage) abort("Failed to prepare properly for The Horror!");
 
