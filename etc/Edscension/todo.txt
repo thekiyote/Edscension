@@ -11,22 +11,49 @@ done?
   not utilize them otherwise.
 - ed_resumeCombat ought to work from the Underworld, or from either of the two
   choices arriving & departing there.
+x more issues with stasis after using a renenutet.
+x use friar buff @ goatlet
+x Don't use cat for filthworms, if we have Lash
+x don't bother with buying bandages until we might encounter The Horror or Zerg Rush.
+x automate screwdriver quest for mys/mus signs
+- (any other needed support for non-muscle signs:  frilly skirt)
 
 
 TODO:
-- more issues with stasis after using a renenutet.
-- use friar buff @ goatlet
+- fix gross overestimation of damage dealt by storm against hippies @ low mys.
+- at start, not maintaining enough mp to finish off a hippy (need two fists)
+- overall, starting with astral shorts is not working out....  yet.
+- if we don't have the cat, should we defer nook until level 9?
+- ran out of clovers on day 3, when I've only used one today for ores.  none
+  left for A-Boo.  a-boo code currently does not make progress w/o clovers....
+- should probably be using renenutets @ A-Boo.
+- Various temporary conditions can trigger the "Please check your quests"
+  abort.
+- "Not quite boozed up" message when ready for billiards.
+- got "Hit Ed defeat threshold" on second death @ Hippy Camp.
+- Why do I sometimes get "Hit Ed defeat threshold" before I need to spend Ka?
+  Where does that come from?  Mafia?  I don't see anything in the scripts....
+- avoid adventuring twice for a semi-rare, if the first attempt didn't
+auto-stop.  (this can happen if the user manually encounters the warning
+before running the script, or has the bad luck to interrupt the script just
+after it hits the warning.  I expect it happens if the user has not selected
+the appropriate option in Mafia, as well?)
+- we shouldn't get down to 1 adv on day 1 before buying the last haunch.
+  which happened with chown.  not a big deal, but avoid if possible.
+- release scribe first.  (need to do some analysis and/or experimentation to
+  make sure this is better than priest.  or, at least, better in most cases.
+  in fact, priest may be best if I have access to SMOOCH for xp.)
+- turn off mafia's automtic mana burning, which sometimes extends Serqet.
+- oh, but it looks like the script's mana burning isn't quite up to snuff.
 - horus, shed, sgeea, cure-all, etc.  not sure what things need to be done, exactly....  but we need to avoid unnecessary use of cure-alls.
 - support for SMOOCH
 - Decision to do nuns might not be quite right.  I count a difference of about
 25 turns on the battlefield.  Of course, an inhaler only lasts for 10, so some
 actual calculations are needed to do it right.
-- Don't use cat for filthworms, if we have Lash
 - disable auto-recovery?  (uh, it already does that, i think.  In ed_ccAdv)
-- don't bother with buying bandages until we might encounter The Horror or Zerg Rush.
 - handle opening of Hidden City, if we get Such Great Heights unexpectedly when looking for a semi-rare.  (should we still get the semi-rare, in order to have stone wool to finish the quest?  I think so.  It's easy enough to do, anyway.)
-- don't try to open Hidden City if it is already open
-- support clover use for levelling?
+- don't try to open Hidden City if it is already open.  (fixed by Zen00?)
+x support clover use for levelling?
 - odd aborts at You the Adventurer
 - after starting battle with You, aborted with "We can't find the jerk
 adventurer" upon first death.  dunno what was up with that.
@@ -35,25 +62,18 @@ adventurer" upon first death.  dunno what was up with that.
 - spent a Ka at Hidden Apartment Building
 - beaten up by a Zerg Rush  (uh, yeah, that happens.  just make sure the
 script buys some linen bandages, and doesn't abort.  does it still abort?)
-- automate screwdriver quest for mys/mus signs
-- (any other needed support for non-muscle signs)
 - use renenutet (and/or cat) in Harem?  (check other uses of lash, too.
   probably anywhere we use lash is a good candidate for a renenutet as well.
   I noticed that Lash was used against a G Imp, but no Renenutet when it failed
   to elicit a hot wing.)
 - use cat at f'c'le.  oh?  maybe we need Ka, though.  Well, still, I think cat
 would be better.
-- got "Hit Ed defeat threshold" on second death @ Hippy Camp.
-- Why do I sometimes get "Hit Ed defeat threshold" before I need to spend Ka?
-  Where does that come from?  Mafia?  I don't see anything in the scripts....
+- oh, "cheese thief in the cheese night" gives goat cheese.  for low
+  skillcount, that's probably how we get it.
 - double-check that we still work okay with astral mask
-- avoid getting Winklered if we aren't doing nuns.
+x avoid getting Winklered if we aren't doing nuns.
 - avoid extending the Prayer of Seshat +ml buff, when it's time to fight
 ninja.  Let it run out.
-- avoid adventuring twice for a semi-rare, if the first attempt didn't
-auto-stop.  (this can happen if the user manually encounters the warning
-before running the script, or has the bad luck to interrupt the script just
-after it hits the warning.)
 - Are we currently buying Renenutets when budget easily allows it?  Some
 additional tweaks might be nice.
 - fix attempts to equip the same item in all three accessory slots.
@@ -64,6 +84,7 @@ additional tweaks might be nice.
 it.  Fixed, I think.
 - "You are currently in a choice" from pre-adventure for The Horror
 - "You are currently in a fight" at spooky forest.
+- "You are currently in a fight" at hulking bridge troll.
 - why the 10-turn limit at the hidden park?
 - eliminate the "Invalid setting X for choiceAdventureYYY" messages
 - support for eating & drinking.  support for switching the semi-rare
@@ -93,6 +114,7 @@ it.  Fixed, I think.
 - avoid buying talisman of Horus until we might need it.  Avoid keeping a
   second one around untill we might need it as well.
 - if we abort, (okay, when we abort) should we try to set the charpane back to compact mode?
+- why compact mode in the first place?
 - why do we wait until after the war to finish Boo Peak?
 - use lash, renenutets to get a-boo clues.  maybe use wrath, too?
 - may want to use Shed at black forest.  possibly.
@@ -109,4 +131,56 @@ it.  Fixed, I think.
 - "We should have a Talisman 'O Namislat but we don't know anything about it"
   (Talisman got made immediately after the message.)
 - Deal more gracefully with low meat situations at the beginning of the run.
+- tavern appears to have its own loop.  does it, uh, handle semi-rares?  are
+  there other things it might be missing?
+- script had hippy stench while doing alcove, which may prolong it a bit.
+- horus should be good for f'c'le
+- get rid of red text "Monster defeated in initialization".
+- 20 rounds of attacking with weapon vs chalk dust wraiths
+- when we don't have skills for getting items to drop, we probably don't want to fight the snake knight.
+- don't bother getting the inhaler if we are certain we won't do the nuns.
+- ed_resumeCombat isn't working.  ??
+- eliminate attempts to uneffect Shelter of Shed for F'c'le if no SGEEA items.
+
+from forum thread:
+- better recovery if user squandered her meat at the start of the run, without
+  opening the island.
+- handle if a battle action is set ?
+- 
+-Gets stuck on Lair of Ninja Snowmen due to no +combat
+ (fixed?)
+-Tries to semi-rare in the same place twice
+-Amulet loop in the castle quest
+-Several issues with getting stuck when not having certain skills due to low skill points
+-Fights chateau paintings twice instead of using as a copy (no need for two bram's)
+-Often doesn't handle full or drunkness (possibly not an intended feature)
+-Sometimes has very unoptimal equips (probably a maximizer issue)
+-Doesn't flier every fight (this could be a non-issue/is not necessary)
+-Stuck on palindome (no disposible instant camera)
+-Gets stuck if not enough meat for dinghy (could move on until enough meat?)
+
+-Does not use spookyraven makeup items for +exp (I'm sure there are other items like this but I was just going off of Ezandora's Guide when I noted this)
+-Does not use VIP items: shower, pool table, hatter - pool table and hatter buffs could be pretty useful
+-Does not use gameinform for dungeoneering kit
+-Does not use clovers (? I'm actually not sure if I'm right about this, never bothered to check the actual script)
+-Does not use camp scout backpack items (firestarting kit +hp/mp can be useful)
+-Does not look high with the telescope (minor minor)
+-Does not get or use chateau desk potions (a bit unnecessary)
+-Does not change chateau skylight/fan at the end of the day for +adv (could be enabled if enough meat available)
+-The deck of every card can be very useful now!
+-BHH acquisition (this is of course not necessarily trivial)
+
+- my own opinion on, e.g., lucrecore, is that the script should work
+  acceptably-well if a user does a bunch of other automated or manual
+  adventuring before and/or after running ed_ascend.  The only additional
+  support needed, i.m.o., is a way to reserve turns at the end of the day.
+
+- automated eating & drinking, of course.
+
+- revisit that ninja snowman assassin stuff....  are appropriate checks
+  done up front?
+
+- does spookyraven 2nd floor unlock properly?  there's a mafia setting??
+- possibly buy & equip a third-hand lantern before doing hippies, since we
+  might lose initiative a lot.
 

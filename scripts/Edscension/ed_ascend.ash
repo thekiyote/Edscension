@@ -117,8 +117,10 @@ void initializeSettings()
 	}
 	//set_property("chasmBridgeProgress", 0);
 	//set_property("writingDesksDefeated", "0");
-	set_property("delayToDayFour", FALSE);
-	set_property("doNunsRegardless", FALSE);
+	set_property("delayToDayFour", "");  //FIXME:  remove this!
+	set_property("doNunsRegardless", "");  //FIXME:  remove this!
+	set_property("ed_delayToDayFour", FALSE);
+	set_property("ed_doNunsRegardless", FALSE);
 	set_property("ed_abooclover", "");
 	set_property("ed_aftercore", "");
 	set_property("ed_airship", "");
@@ -352,24 +354,21 @@ boolean doThemtharHills(boolean trickMode)
 		fightCopy = true;
 	}
 
-	if((get_property("sidequestArenaCompleted") == "fratboy") && (get_property("concertVisited") == "false") && (have_effect($effect[Winklered]) == 0))
-	{
-		outfit("frat warrior fatigues");
-		cli_execute("concert 2");
-#		outfit("war hippy fatigues");
-	}
-
-	if(my_class() == $class[Ed])
-	{
-		visit_url("charsheet.php");
-		ed_use_servant($servant[maid]);
-	}
+	visit_url("charsheet.php");
+	ed_use_servant($servant[maid]);
 	float meatDropHave = meat_drop_modifier();
+	if (
+		(get_property("sidequestArenaCompleted") == "fratboy")
+		&& (get_property("concertVisited") == "false")
+		&& (have_effect($effect[Winklered]) == 0)
+	) {
+		meatDropHave += 40.0;
+	}
 	meatDropHave = meatDropHave + edMeatBonus();
 	buffMaintain($effect[Purr of the Feline], 10, 1, 1);
 	if((meatDropHave > 350.0))
 	{
-		set_property("doNunsRegardless", TRUE);
+		set_property("ed_doNunsRegardless", TRUE);
 		buffMaintain($effect[Sinuses For Miles], 0, 1, 1);
 	}
 
@@ -390,7 +389,7 @@ boolean doThemtharHills(boolean trickMode)
 		// Trick Mode should probably target more than 7000 meat per brigand.
 		meat_need = meat_need + 200.00;
 	}
-	if(!get_property("doNunsRegardless").to_boolean())
+	if(!get_property("ed_doNunsRegardless").to_boolean())
 	{
 		if(meatDropHave < meat_need)
 		{
@@ -420,7 +419,16 @@ boolean doThemtharHills(boolean trickMode)
 			}
 		}
 	}
-	
+
+	if (
+		(get_property("sidequestArenaCompleted") == "fratboy")
+		&& (get_property("concertVisited") == "false")
+		&& (have_effect($effect[Winklered]) == 0)
+	) {
+		outfit("frat warrior fatigues");
+		cli_execute("concert 2");
+#		outfit("war hippy fatigues");
+	}
 	buffMaintain($effect[Sinuses For Miles], 0, 1, 1);
 	buffMaintain($effect[Big Meat Big Prizes], 0, 1, 1);
 
@@ -591,6 +599,15 @@ void initializeDay(int day)
 	ed_initializeDay(day);
 }
 
+boolean ed_LX_hermitClovers() {
+	if((my_meat() > 500))
+	{
+		buyUpTo(1, $item[Hermit Permit]);
+		cli_execute("hermit * clover");
+	}
+	return false;
+}
+
 void doBedtime()
 {
 	print("Starting bedtime.", "blue");
@@ -641,11 +658,7 @@ void doBedtime()
 		setvar("chit.helpers.xiblaxian", true);
 	}
 
-	if((my_meat() > 500))
-	{
-		buyUpTo(1, $item[Hermit Permit]);
-		cli_execute("hermit * clover");
-	}
+	ed_hermitClovers();
 
 	if((friars_available()) && (!get_property("friarsBlessingReceived").to_boolean()))
 	{
@@ -1045,107 +1058,120 @@ boolean L11_hiddenCityZones()
 	return false;
 }
 
-void fortuneCookieEvent()
+boolean fortuneCookieEvent()
 {
 	if(get_property("ed_dickstab").to_boolean() && (get_property("ed_orchard") == "finished"))
 	{
-		if(get_counters("Fortune Cookie", 0, 200) != "")
+		if(get_counters("Fortune Cookie", 0, 200) != "")  //TODO:  at the very least, change this to only detect if the counter is up right now.
 		{
 			print("We don't care about the semirares anymore, we are past the orchard. Cancelling.", "blue");
-			cli_execute("counters clear");
+			cli_execute("counters clear");  // You know, I probably ate that fortune cookie for a reason.  And, never mind any other counters I might have been using....  yeah, 'dickstab' is pretty accurate.
 		}
-		return;
+		return false;
 	}
 	if(get_property("ed_dickstab").to_boolean() && (get_property("ed_semirare").to_int() == 2))
 	{
-		if(get_counters("Fortune Cookie", 0, 200) != "")
+		if(get_counters("Fortune Cookie", 0, 200) != "")  //TODO:  only detect if the counter is up right now.  or, remove 'dickstab' support entirely.
 		{
 			print("We don't care about the semirares anymore. Cancelling.", "blue");
 			cli_execute("counters clear");
 		}
-		return;
+		return false;
 	}
 
-	if(get_counters("Fortune Cookie", 0, 0) == "Fortune Cookie")
-	{
-		print("Semi rare time!", "blue");
-		if (
-			(get_property("ed_semirare") == "")
-			&& (get_property("ed_spookysapling") == "finished")
-			&& $location[The Hidden Temple] != to_location(get_property("semirareLocation"))
-		) {
+	if(get_counters("Fortune Cookie", 0, 0) != "Fortune Cookie") return false;
+
+	print("Semi rare time!", "blue");
+	int semiRareTurn = my_turncount();
+	if (
+		(get_property("ed_semirare") == "")
+		&& (get_property("ed_spookysapling") == "finished")
+		&& $location[The Hidden Temple] != to_location(get_property("semirareLocation"))
+	) {
+		if(my_mp() < 8)  //TODO: why is this different from the regular preadventure?
+		{
+			while(my_meat() > 89 && my_mp() < 8)
+			{
+				buyUpTo(1, $item[Doc Galaktik\'s Invigorating Tonic]);
+				use(1, $item[Doc Galaktik\'s Invigorating Tonic]);
+			}
+
 			if(my_mp() < 8)
 			{
-				while(my_meat() > 89 && my_mp() < 8)
-				{
-					buyUpTo(1, $item[Doc Galaktik\'s Invigorating Tonic]);
-					use(1, $item[Doc Galaktik\'s Invigorating Tonic]);
-				}
-				
-				if(my_mp() < 8)
-				{
-					abort("Couldn't restore your MP before attempting to grab a semi-rare");
-				}
-			}
-			set_property("choiceAdventure579", "2");
-			//TODO:  can we add "confirm=on", to avoid the extra call to ccAdv?  Or at least detect if the first call did its thing.
-			ccAdv(1, $location[The Hidden Temple]);
-			ccAdv(1, $location[The Hidden Temple]);
-			if(item_amount($item[stone wool]) > 0)
-			{
-				set_property("ed_semirare", "1");
-				print("Wool obtained!", "blue");
-			}
-		} else if (
-			(get_property("ed_semirare") == "1")
-			&& (get_property("ed_castleground") == "finished")
-			&& (get_property("ed_nuns") != "done")
-			&& $location[The Castle in the Clouds in the Sky (Top Floor)] != to_location(get_property("semirareLocation"))
-		) {
-			ccAdv(1, $location[The Castle in the Clouds in the Sky (Top Floor)]);
-			ccAdv(1, $location[The Castle in the Clouds in the Sky (Top Floor)]);
-			if(item_amount($item[Mick\'s IcyVapoHotness Inhaler]) > 0)
-			{
-				set_property("ed_castleground", "done");
-				set_property("ed_semisub", "limerick");
-				set_property("ed_semirare", "2");
-				print("Inhaler obtained!", "blue");
-			}
-		} else if (
-			(get_property("ed_semisub") == "limerick")
-			&& (get_property("ed_maurice") != "finished")
-			&& $location[The Limerick Dungeon] != to_location(get_property("semirareLocation"))
-			&& 0 == item_amount($item[cyclops eyedrops])
-		) {
-			ccAdv(1, $location[The Limerick Dungeon]);
-			ccAdv(1, $location[The Limerick Dungeon]);
-			if(item_amount($item[cyclops eyedrops]) > 0)
-			{
-				set_property("ed_semisub", "alley");
-				print("Eyedrops obtained!", "blue");
-			}
-		} else if (
-			$location[The Sleazy Back Alley] != to_location(get_property("semirareLocation"))
-		) {
-			ccAdv(1, $location[The Sleazy Back Alley]);
-			ccAdv(1, $location[The Sleazy Back Alley]);
-			if(item_amount($item[distilled fortified wine]) > 0)
-			{
-				print("Wine got!", "blue");
-				set_property("ed_semisub", "alley");
+				abort("Couldn't restore your MP before attempting to grab a semi-rare");
 			}
 		}
-		else
+		set_property("choiceAdventure579", "2");
+		ed_use_servant($servant[cat]);
+		ed_use_servant();
+		//TODO:  can we add "confirm=on", to avoid the extra call to ccAdv?  Or at least detect if the first call did its thing.
+		ccAdv(1, $location[The Hidden Temple]);
+		if (my_turncount() == semiRareTurn) ccAdv(1, $location[The Hidden Temple]);
+		//ccAdvBypass(280);  // The Hidden Temple
+		if(item_amount($item[stone wool]) > 0)
 		{
-			ccAdv(1, $location[The Haunted Pantry]);
-			ccAdv(1, $location[The Haunted Pantry]);
-			if(item_amount($item[tasty tart]) > 0)
-			{
-				print("Tarts got!", "blue");
-				set_property("ed_semisub", "pantry");
-			}
+			set_property("ed_semirare", "1");
+			print("Wool obtained!", "blue");
 		}
+		return true;
+	} else if (
+		(get_property("ed_semirare") == "1")
+		&& (get_property("ed_castleground") == "finished")
+		&& (get_property("ed_nuns") != "done")
+		&& $location[The Castle in the Clouds in the Sky (Top Floor)] != to_location(get_property("semirareLocation"))
+	) {
+		ccAdv(1, $location[The Castle in the Clouds in the Sky (Top Floor)]);
+		if (my_turncount() == semiRareTurn) ccAdv(1, $location[The Castle in the Clouds in the Sky (Top Floor)]);
+		//ccAdvBypass(324);  // The Castle in the Clouds in the Sky (Top Floor)
+		if(item_amount($item[Mick\'s IcyVapoHotness Inhaler]) > 0)
+		{
+			set_property("ed_castleground", "done");
+			set_property("ed_semisub", "limerick");
+			set_property("ed_semirare", "2");
+			print("Inhaler obtained!", "blue");
+		}
+		return true;
+	} else if (
+		(get_property("ed_semisub") == "limerick")
+		&& (get_property("ed_maurice") != "finished")
+		&& $location[The Limerick Dungeon] != to_location(get_property("semirareLocation"))
+		&& 0 == item_amount($item[cyclops eyedrops])
+	) {
+		ccAdv(1, $location[The Limerick Dungeon]);
+		if (my_turncount() == semiRareTurn) ccAdv(1, $location[The Limerick Dungeon]);
+		//ccAdvBypass(19);  // The Limerick Dungeon
+		if(item_amount($item[cyclops eyedrops]) > 0)
+		{
+			set_property("ed_semisub", "alley");
+			print("Eyedrops obtained!", "blue");
+		}
+		return true;
+	} else if (
+		$location[The Sleazy Back Alley] != to_location(get_property("semirareLocation"))
+	) {
+		ccAdv(1, $location[The Sleazy Back Alley]);
+		if (my_turncount() == semiRareTurn) ccAdv(1, $location[The Sleazy Back Alley]);
+		//ccAdvBypass(112);  // The Sleazy Back Alley
+		if(item_amount($item[distilled fortified wine]) > 0)
+		{
+			print("Wine got!", "blue");
+			set_property("ed_semisub", "alley");
+		}
+		return true;
 	}
+	else
+	{
+		ccAdv(1, $location[The Haunted Pantry]);
+		if (my_turncount() == semiRareTurn) ccAdv(1, $location[The Haunted Pantry]);
+		//ccAdvBypass(113);  // The Haunted Pantry
+		if(item_amount($item[tasty tart]) > 0)
+		{
+			print("Tarts got!", "blue");
+			set_property("ed_semisub", "pantry");
+		}
+		return true;
+	}
+	// just for reference, outskirts of the knob is snarfblat 114
 }
 
 boolean L11_unlockHiddenCity()
@@ -1192,7 +1218,7 @@ boolean L11_unlockHiddenCity()
 		visit_url("choice.php");
 		cli_execute("dvorak");
 		visit_url("choice.php?whichchoice=125&option=3&pwd");
-		print("Hidden Temple Unlocked");
+		print("Hidden Temple Unlocked", "blue");
 		set_property("choiceAdventure582", "1");
 		set_property("choiceAdventure579", "3");
 		set_property("ed_hiddenunlock", "finished");
@@ -1235,7 +1261,7 @@ boolean L11_nostrilOfTheSerpent()
 	buffMaintain($effect[Stone-Faced], 0, 1, 1);
 	if(have_effect($effect[Stone-Faced]) == 0)
 	{
-		print("We are not Stone-Faced. Please get a stone wool and run me again or we'll just do this manually.");
+		print("We are not Stone-Faced. Please get a stone wool and run me again or we'll just do this manually.", "red");
 		wait(20);
 	}
 	if(ccAdvBypass(280))
@@ -1340,20 +1366,25 @@ boolean LX_handleSpookyravenFirstFloor()
 	}
 	else
 	{
-		print("Looking for the Billards Room key: Progress " + get_property("manorDrawerCount") + "/24", "blue");
-		if(get_property("manorDrawerCount").to_int() > 24)
+		int progress = to_int(get_property("manorDrawerCount"));
+		print("Looking for the Billards Room key: Progress " + progress + "/24", "blue");
+		if (progress < 21) {
+			//TODO:  demonskin trousers?  asshat?  (anything else?)
+			maximize("hot res, stench res", 1, 0, false);
+		} else {
+			maximize("exp", 1, 0, false);
+		}
+		buffMaintain($effect[Hide of Sobek], 10, 1, 1);
+		ccAdv(1, $location[The Haunted Kitchen]);
+		if (21 <= progress && 0 == item_amount($item[Spookyraven Billiards Room Key]))
 		{
 			cli_execute("refresh inv");
 			if(item_amount($item[Spookyraven Billiards Room Key]) == 0)
 			{
-				print("We think you've opened enough drawers in the kitchen but you don't have the Billiards Room Key.");
+				print("We think you've opened enough drawers in the kitchen but you don't have the Billiards Room Key.", "red");
 				wait(10);
 			}
 		}
-		//TODO:  demonskin trousers?  asshat?  (anything else?)
-		maximize("hot res, stench res", 1, 0, false);
-		buffMaintain($effect[Hide of Sobek], 10, 1, 1);
-		ccAdv(1, $location[The Haunted Kitchen]);
 	}
 	
 	return true;
@@ -1733,7 +1764,7 @@ boolean L12_sonofaBeach()
 		return true;
 	}
 
-	if((my_class() == $class[Ed]) && (item_amount($item[Talisman of Horus]) == 0) && (have_effect($effect[Taunt of Horus]) == 0))
+	if ((item_amount($item[Talisman of Horus]) == 0) && (have_effect($effect[Taunt of Horus]) == 0))
 	{
 		abort("We ran out of horus talismen for the beach, such bad luck!");
 	}
@@ -2434,14 +2465,14 @@ boolean L8_trapperYeti()
 			{
 				if(!uneffect($effect[Blessing of Serqet]))
 				{
-					print("Could not uneffect Blessing of Serqet for ninja snowmen, delaying until you can survive an encounter...");
+					print("Could not uneffect Blessing of Serqet for ninja snowmen, delaying until you can survive an encounter...", "red");
 					handleMcd();
 					maximize("exp", 1, 0, false);
 					return false;
 				}
 				if (my_maxhp() < expected_damage($monster[ninja snowman assassin])) {
 					//FIXME:  it would have been nice to detect this before using up to two SGEAA items!
-					print("Delaying snowmen until you can survive an encounter...");
+					print("Delaying snowmen until you can survive an encounter...", "red");
 					handleMcd();
 					maximize("exp", 1, 0, false);
 					return false;
@@ -3144,9 +3175,9 @@ boolean L9_aBooPeak()
 		// Calculate how much boo peak damage does per unit resistance.
 		int estimatedCold = 5 + (13+25+50+125+250) * ((100.0 - elemental_resist_value(coldResist)) / 100.0);
 		int estimatedSpooky = 5 + (13+25+50+125+250) * ((100.0 - elemental_resist_value(spookyResist)) / 100.0);
-		print("Current HP: " + my_hp() + "/" + my_maxhp(), "blue");
-		print("Expected cold resistance level: " + coldResist + " Expected spooky resistance level: " + spookyResist, "blue");
-		print("Expected cold damage: " + estimatedCold + " Expected spooky damage: " + estimatedSpooky, "blue");
+		print("Current HP: " + my_hp() + "/" + my_maxhp(), "orange");
+		print("Expected cold resistance level: " + coldResist + " Expected spooky resistance level: " + spookyResist, "orange");
+		print("Expected cold damage: " + estimatedCold + " Expected spooky damage: " + estimatedSpooky, "orange");
 		int totalDamage = estimatedCold + estimatedSpooky + 10;  // (+ 10 should allow for rounding errors)
 		if(my_turncount() == get_property("ed_lastABooConsider").to_int())
 		{
@@ -3206,8 +3237,8 @@ boolean L9_aBooPeak()
 				+ damageFrom(50, spookyFactor)
 				+ damageFrom(125, spookyFactor)
 				+ damageFrom(250, spookyFactor);
-			print("At cold resistance level: " + numeric_modifier("cold resistance") + ", spooky resistance level: " + numeric_modifier("spooky resistance"), "blue");
-			print("Expected damage is:  " + expectedDamage, "blue");
+			print("At cold resistance level: " + numeric_modifier("cold resistance") + ", spooky resistance level: " + numeric_modifier("spooky resistance"), "orange");
+			print("Expected damage is:  " + expectedDamage, "orange");
 			if (my_hp() <= expectedDamage) abort("Failed to prepare properly for The Horror!");
 
 			set_property("choiceAdventure611", "1");
@@ -3218,7 +3249,7 @@ boolean L9_aBooPeak()
 			if (hpBefore - my_hp() < expectedDamage - 5 || expectedDamage + 5 < hpBefore - my_hp()) {
 				print("Calculations predicted " + expectedDamage + " damage, but we took " + (hpBefore - my_hp()) + ".  Need to fix the accuracy!", "red");
 			}
-			if((my_class() == $class[Ed]) && (my_hp() == 0))
+			if (my_hp() == 0)
 			{
 				use(1, $item[Linen Bandages]);
 			}
@@ -3238,12 +3269,12 @@ boolean L9_aBooPeak()
 			{
 				print("Wandering monster interrupt at a-boo peak", "red");
 				ccAdv(1, $location[A-Boo Peak]);
-				use(item_amount($item[ten-leaf clover]), $item[ten-leaf clover]);
 			}
 			else
 			{
 				set_property("ed_abooclover", "used");
 			}
+			use(item_amount($item[ten-leaf clover]), $item[ten-leaf clover]);
 			return true;
 		}
 	}
@@ -3563,6 +3594,14 @@ boolean LX_dictionary()
 		{
 			print("Untinkering dictionary", "blue");
 			cli_execute("untinker abridged dictionary");
+		} else if (0 < item_amount($item[rusty screwdriver])) {
+			visit_url("place.php?whichplace=knoll_friendly&action=dk_innabox");
+			visit_url("place.php?whichplace=forestvillage&action=fv_untinker");
+			return 0 == item_amount($item[rusty screwdriver]);
+		} else {
+			visit_url("place.php?whichplace=forestvillage&preaction=screwquest&action=fv_untinker_quest");
+			ccAdv(1, $location[Degrassi Knoll Garage]);
+			return true;
 		}
 	}
 	return false;
@@ -3927,15 +3966,19 @@ boolean LX_fcle()
 	}
 	if(item_amount($item[Talisman of Renenutet]) == 0)
 	{
+		//TODO:  what if we squandered them on something else?  We need to make sure the script doesn't ever do that.  If the user did so manually, then it's reasonable to just wait until tomorrow.
+		print("Skipping F'c'le, because no talismen of Renenutet are available.", "red");
 		return false;
 	}
-	if(((have_effect($effect[Taunt of Horus]) > 0) || (item_amount($item[Talisman of Horus]) > 0)) && get_property("ed_dickstab").to_boolean())
-	{
-		buffMaintain($effect[Taunt of Horus], 0, 1, 1);
+	if (my_maxhp() < expected_damage($monster[curmudgeonly pirate]) + 5) {
+		//TODO:  the formula here will need some tweaking.  For starters, we aren't wearing the outfit yet.
+		// (we probably won't get a Renenutet in edgewise)
+		return false;
 	}
 	if(!uneffect($effect[Shelter Of Shed]))
 	{
-		print("Could not uneffect Shelter of Shed for F'C'le, delaying");
+		//TODO:  should we use a cure-all, or just burn turns elsewhere?
+		print("Could not uneffect Shelter of Shed for F'C'le, delaying", "orange");
 		return false;
 	}
 	
@@ -3966,9 +4009,22 @@ boolean LX_pirateBeerPong()
 
 boolean LX_nastyBooty()
 {
-	if(item_amount($item[Cap\'m Caronch\'s Map]) == 0)
+	if(get_property("ed_pirateoutfit") != "blueprint")
 	{
 		return false;
+	}
+	if (0 < item_amount($item[orcish frat house blueprints])) {
+		return false;
+	}
+
+	if (
+		0 == item_amount($item[Cap\'m Caronch\'s Map])
+		&& 0 == item_amount($item[Cap\'m Caronch\'s Nasty Booty])
+	) {
+		//TODO:  -combat?
+		cli_execute("outfit swashbuckling getup");
+		ccAdv(1, $location[barrrney\'s barrr]);
+		return true;
 	}
 	if(item_amount($item[Cap\'m Caronch\'s Nasty Booty]) != 0)
 	{
@@ -4005,17 +4061,13 @@ boolean LX_pirateBlueprint()
 	{
 		return false;
 	}
-	
-	print("Trying to blueprint handle", "blue");
-	if(LX_nastyBooty())
-	{
-		return true;
-	}
+
 	if(item_amount($item[Cap\'m Caronch\'s Nasty Booty]) == 0
 		&& item_amount($item[orcish frat house blueprints]) == 0)
 	{
 		return false;
 	}
+	print("Trying to blueprint handle", "blue");
 	if(item_amount($item[orcish frat house blueprints]) == 0)
 	{
 		cli_execute("outfit swashbuckling getup");
@@ -4032,6 +4084,8 @@ boolean LX_pirateBlueprint()
 		}
 		else if(!possessEquipment($item[Frilly Skirt]))
 		{
+			visit_url("place.php?whichplace=forestvillage&preaction=screwquest&action=fv_untinker_quest");
+
 			ccAdv(1, $location[The Degrassi Knoll Gym]);
 			return true;
 		}
@@ -4061,26 +4115,11 @@ boolean LX_pirateInsults()
 	{
 		return false;
 	}
-	if(numPirateInsults() >= 7)
-	{
-		//WHM:  removed item_amount($item[orcish frat house blueprints]) > 0 condition,
-		// in order to avoid extra equipment changes.  Note that LX_pirateBlueprint() will
-		// handle getting them.
-		set_property("ed_pirateoutfit", "blueprint");
-		return false;
-	}
 	if(my_maxhp() < 60)
 	{
-		if((item_amount($item[Cap\'m Caronch\'s Map]) != 0) && (item_amount($item[Cap\'m Caronch\'s Nasty Booty]) == 0))
-		{
-			return false;
-		}
+		return false;
 	}
 	print("Insult gathering party.", "blue");
-	if(LX_nastyBooty())
-	{
-		return true;
-	}
 	cli_execute("outfit swashbuckling getup");
 
 	if((item_amount($item[the big book of pirate insults]) == 0) && (my_meat() > 500))
@@ -4093,17 +4132,17 @@ boolean LX_pirateInsults()
 	}
 
 	buyUpTo(1, $item[hair spray]);
+	buyUpTo(1, $item[ben-gal&trade; balm]);
 	buffMaintain($effect[Butt-Rock Hair], 0, 1, 1);
 	buffMaintain($effect[Go Get \'Em\, Tiger!], 0, 1, 1);
 
 	cli_execute("refresh inv");
-	if(numPirateInsults() < 7)
+	ccAdv(1, $location[barrrney\'s barrr]);
+	if(numPirateInsults() >= 7)
 	{
-		ccAdv(1, $location[barrrney\'s barrr]);
-		return true;
+		set_property("ed_pirateoutfit", "blueprint");
 	}
-	
-	return false;
+	return true;
 }
 
 boolean LX_pirateOutfit()
@@ -4285,14 +4324,11 @@ boolean L3_tavern()
 		return false;
 	}
 
-	if(my_class() == $class[Ed])
+	set_property("choiceAdventure1000", "1");
+	set_property("choiceAdventure1001", "2");
+	if((my_mp() < 15) && have_skill($skill[Shelter of Shed]))
 	{
-		set_property("choiceAdventure1000", "1");
-		set_property("choiceAdventure1001", "2");
-		if((my_mp() < 15) && have_skill($skill[Shelter of Shed]))
-		{
-			return false;
-		}
+		return false;
 	}
 	else if((have_effect($effect[In A Lather]) == 0) || (my_mp() < 30))
 	{
@@ -4342,7 +4378,7 @@ boolean ed_LX_xp() {
 	{
 		// note, clovers used at:  trapper, guano, a-boo, bridge.
 		if (0 < item_amount($item[disassembled clover])) {
-			print("TODO:  clovering at the bathroom.  is that the best use of this clover??");
+			print("TODO:  clovering at the bathroom.  is that the best use of this clover??", "orange");
 			use(1, $item[disassembled clover]);
 			visit_url("adventure.php?snarfblat=392&confirm=on");  // The Haunted Bathroom
 			if (contains_text(visit_url("main.php"), "Combat")) {
@@ -4438,6 +4474,8 @@ boolean doTasks()
 	// Autosells junk items to help generate MP
 	sellStuff();
 
+	ed_hermitClovers();
+
 	// Checks to make sure you have all the latest quests up to date
 	if(my_level() > get_property("lastCouncilVisit").to_int())
 	{
@@ -4465,6 +4503,7 @@ boolean doTasks()
 	buffMaintain($effect[From Nantucket], 0, 1, 1);
 	buffMaintain($effect[Squatting and Thrusting], 0, 1, 1);
 	buffMaintain($effect[You Read the Manual], 0, 1, 1);
+	//TODO:  Add the old rosewater one.
 
 	//Eating before fortune handling, so you can pick up the semirare number
 	if(ed_eatStuff())
@@ -4481,12 +4520,14 @@ boolean doTasks()
 		if(item_amount($item[linen bandages]) > 0)
 		{
 			use(1, $item[linen bandages]);
+		} else {
+			abort("Out of HP, and no restorer is available.  You'll have to figure out how to handle this manually.");
 		}
 	}
 
 	//Fortune cookie handling here instead of as a pre-adventure due to the chance of a semi-rare being off (from wrong fortune cookie numbers)
 	//and thus combat, plus baabaabaran and such
-	fortuneCookieEvent();
+	if (fortuneCookieEvent()) return true;
 
 	if(LX_chateauDailyPainting())
 	{
@@ -4552,7 +4593,7 @@ boolean doTasks()
 		{
 			return true;
 		}
-		if(LX_pirateOutfit() || LX_pirateInsults() || LX_pirateBlueprint() || LX_pirateBeerPong() || LX_fcle())
+		if(LX_pirateOutfit() || LX_pirateInsults() || LX_nastyBooty() || LX_pirateBlueprint() || LX_pirateBeerPong() || LX_fcle())
 		{
 			return true;
 		}
@@ -4591,7 +4632,7 @@ boolean doTasks()
 		return true;
 	}
 	
-	if(LX_pirateBlueprint() || LX_pirateBeerPong() || LX_fcle())
+	if(LX_nastyBooty() || LX_pirateBlueprint() || LX_pirateBeerPong() || LX_fcle())
 	{
 		return true;
 	}
@@ -4674,7 +4715,7 @@ boolean doTasks()
 		return true;
 	}
 
-	if(LX_pirateOutfit() || LX_pirateInsults() || LX_pirateBlueprint() || LX_pirateBeerPong() || LX_fcle())
+	if(LX_pirateOutfit() || LX_pirateInsults() || LX_nastyBooty() || LX_pirateBlueprint() || LX_pirateBeerPong() || LX_fcle())
 	{
 		return true;
 	}
@@ -4793,20 +4834,11 @@ boolean doTasks()
 
 	if((get_property("ed_hiddenzones") == "finished") && (get_property("ed_hiddencity") == "") && canDoHidden)
 	{
-		if(my_class() == $class[Ed])
-		{
-			if(item_amount($item[7963]) == 0)
-			{
-				set_property("ed_hiddencity", "finished");
-				return true;
-			}
-		}
-		else if(item_amount($item[2180]) == 1)
+		if(item_amount($item[7963]) == 0)
 		{
 			set_property("ed_hiddencity", "finished");
 			return true;
 		}
-
 
 		if((item_amount($item[Book of Matches]) > 0) && (my_ascensions() > get_property("hiddenTavernUnlock").to_int()))
 		{
@@ -4892,13 +4924,6 @@ boolean doTasks()
 				set_property("autoCraft", get_property("ed_autoCraft").to_boolean());
 				set_property("ed_autoCraft", "");
 			}
-
-			if(item_amount($item[McClusky File (Complete)]) == 1)
-			{
-				print("If we abort saying that a boring binder clip doesn't make anything interesting.", "red");
-				print("Just run me again, we are trying to work with that...", "red");
-			}
-
 			return true;
 		}
 
@@ -5193,8 +5218,8 @@ boolean doTasks()
 		cli_execute("refresh equip");
 		if(my_hp() < my_maxhp())
 		{
-			print("My hp is: " + my_hp());
-			print("My max hp is: " + my_maxhp());
+			print("My hp is: " + my_hp(), "orange");
+			print("My max hp is: " + my_maxhp(), "orange");
 		}
 		print("Let's fight the boss!", "blue");
 		visit_url("bigisland.php?place=camp&whichcamp=1");
@@ -5288,7 +5313,7 @@ boolean doTasks()
 		{
 			ccAdv(1, $location[The Secret Council Warehouse]);
 		}
-		else if(get_property("delayToDayFour").to_boolean() && (item_amount($item[7965]) > 0))
+		else if(get_property("ed_delayToDayFour").to_boolean() && (item_amount($item[7965]) > 0))
 		{
 			if(my_daycount() > 3)
 			{
@@ -5298,7 +5323,7 @@ boolean doTasks()
 			}
 			else
 			{
-				print("Overdrink, eat, etc, burn some turns if you have more than 160, buy some spleen items");
+				print("Overdrink, eat, etc, burn some turns if you have more than 160, buy some spleen items", "orange");
 				return false;
 			}
 		}
@@ -5347,14 +5372,6 @@ void ed_begin()
 	initializeDay(my_daycount());
 //Fix-me, planning on creating a custom maximizer for each area, but that will take a while so enjoy sub-optimal clothing for now. :P
 	equipBaseline();
-	string charpane = visit_url("charpane.php");
-	
-	if(contains_text(charpane, "<hr width=50%>"))
-	{
-		print("Switching off Compact Character Mode, will resume during bedtime");
-		set_property("ed_priorCharpaneMode", 1);
-		visit_url("account.php?am=1&pwd=&action=flag_compactchar&value=0&ajax=0", true);
-	}
 
 	if(vars["chit.helpers.xiblaxian"] != "false")
 	{
