@@ -899,10 +899,10 @@ string ed_edCombatHandler(int round, string opp, string text)
 		print("Ed will defer until another combat, in order to heal & buy time.", "blue");
 		forceStasis = true;
 	}
+	if (needShop(ed_buildShoppingList()) && monster_hp() / ed_fistDamage() < roundsPerStage) forceStasis = true;
 	if (contains_text(edCombatState, "talismanofrenenutet") && forceStasis) {
 		forceStasis = false;
 	}
-	if (needShop(ed_buildShoppingList()) && monster_hp() / ed_fistDamage() < roundsPerStage) forceStasis = true;
 
 	if((!contains_text(edCombatState, "talismanofrenenutet")) && (item_amount($item[Talisman of Renenutet]) > 0))
 	{
