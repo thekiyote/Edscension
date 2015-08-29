@@ -30,6 +30,7 @@ int ed_howlDamage() {  // (spooky damage, 10 MP)
 int ed_stormDamage() {  // (prismatic damage, 8 MP)
 	// (see http://kol.coldfront.net/thekolwiki/index.php/Calculating_Spell_Damage)
 	float baseDamage = min(my_buffedstat($stat[mysticality])*1.7, 330);  //FIXME
+	if (my_buffedstat($stat[mysticality]) < 50) baseDamage /= 4;   // this is a kludge to try to get more realistic estimates when first fighting hippies.
 	if (last_monster().defense_element != $element[none]) baseDamage *= 1.2;
 	float multiplier = 1.0; //FIXME
 	float spellDamagePercent = numeric_modifier("Spell Damage Percent");
@@ -40,6 +41,7 @@ string ed_stormIfPossible() {
 	// When we get here, we would use storm if we had it.  Using fist instead.
 	if (!have_skill($skill[storm of the scarab])) return "fist of the mummy";
 	if (my_mp() < mp_cost($skill[storm of the scarab])) return "fist of the mummy";
+	if (ed_stormDamage() < ed_fistDamage()) return "fist of the mummy";  //FIXME:  this isn't the right place for this check.
 	return "storm of the scarab";
 }
 string ed_stormOrFist() {
@@ -320,6 +322,192 @@ void handleRenenutet(monster enemy)
 	}
 }
 
+int ed_fcleItemsNeeded() {
+	return 0 < available_amount($item[pirate fledges]) ? 0
+		: 3 - item_amount($item[ball polish])
+			- item_amount($item[mizzenmast mop])
+			- item_amount($item[rigging shampoo]);
+}
+
+boolean ed_shouldLash(monster enemy) {
+	if((enemy == $monster[Swarthy Pirate]) && !possessEquipment($item[Stuffed Shoulder Parrot]))
+	{
+		return true;
+	}
+	if((enemy == $monster[Big Wheelin\' Twins]) && !possessEquipment($item[Badge Of Authority]))
+	{
+		return true;
+	}
+	if((enemy == $monster[Fishy Pirate]) && !possessEquipment($item[Perfume-Soaked Bandana]))
+	{
+		return true;
+	}
+	if((enemy == $monster[Funky Pirate]) && !possessEquipment($item[Sewage-Clogged Pistol]))
+	{
+		return true;
+	}
+	if((enemy == $monster[Garbage Tourist]) && (item_amount($item[Bag of Park Garbage]) == 0))
+	{
+		return true;
+	}
+	if((enemy == $monster[Sassy Pirate]) && !possessEquipment($item[Swashbuckling Pants]))
+	{
+		return true;
+	}
+	if((enemy == $monster[Smarmy Pirate]) && !possessEquipment($item[Eyepatch]))
+	{
+		return true;
+	}
+	if((enemy == $monster[One-eyed Gnoll]) && !possessEquipment($item[Eyepatch]))
+	{
+		return true;
+	}
+	if((enemy == $monster[Dairy Goat]) && (item_amount($item[Goat Cheese]) < 3))
+	{
+		return true;
+	}
+	if((enemy == $monster[Renaissance Giant]) && (item_amount($item[Ye Olde Meade]) < 1) && (my_daycount() == 1))
+	{
+		return true;
+	}
+	if((enemy == $monster[Protagonist]) && !possessEquipment($item[Ocarina of Space]) && !possessEquipment($item[Sewage-Clogged Pistol]) && !possessEquipment($item[serpentine sword])  && !possessEquipment($item[curmudgel]))
+	{
+		return true;
+	}
+	if(enemy == $monster[Bearpig Topiary Animal])
+	{
+		return true;
+	}
+	if(enemy == $monster[Elephant (Meatcar?) Topiary Animal])
+	{
+		return true;
+	}
+	if(enemy == $monster[Spider (Duck?) Topiary Animal])
+	{
+		return true;
+	}
+	if(enemy == $monster[Beanbat])
+	{
+		return true;
+	}
+	if(enemy == $monster[Bookbat])
+	{
+		return true;
+	}
+	if(((enemy == $monster[Toothy Sklelton]) || (enemy == $monster[Spiny Skelelton])) && (get_property("cyrptNookEvilness").to_int() > 26))
+	{
+		return true;
+	}
+	if((enemy == $monster[Oil Cartel]) && (item_amount($item[Bubblin\' Crude]) < 12) && (item_amount($item[Jar of Oil]) == 0))
+	{
+		return true;
+	}
+	if((enemy == $monster[Blackberry Bush]) && (item_amount($item[Blackberry]) < 3) && !possessEquipment($item[Blackberry Galoshes]))
+	{
+		return true;
+	}
+	if((enemy == $monster[Pygmy Bowler]) && (get_property("_edLashCount").to_int() < 10) && (item_drop_modifier().to_int() < 100))
+	{
+		return true;
+	}
+	if((enemy == $monster[Pygmy Witch Lawyer]) && (get_property("_edLashCount").to_int() < 26))
+	{
+		return true;
+	}
+	if(enemy == $monster[Larval Filthworm] && (item_amount($item[filthworm hatchling scent gland]) == 0))
+	{
+		return true;
+	}
+	if(enemy == $monster[Filthworm Drone] && (item_amount($item[filthworm drone scent gland]) == 0))
+	{
+		return true;
+	}
+	if(enemy == $monster[Filthworm Royal Guard] && (item_amount($item[filthworm royal guard scent gland]) == 0))
+	{
+		return true;
+	}
+	if(enemy == $monster[Knob Goblin Madam] && item_amount($item[Knob Goblin Perfume]) == 0)
+	{
+		return true;
+	}
+	if(enemy == $monster[Knob Goblin Harem Girl] && (!possessEquipment($item[Knob Goblin Harem Veil]) || !possessEquipment($item[Knob Goblin Harem Pants])))
+	{
+		return true;
+	}
+	if(my_location() == $location[Wartime Frat House (Hippy Disguise)])
+	{
+		if(!possessEquipment($item[Beer Helmet]) || !possessEquipment($item[Bejeweled Pledge Pin]) || !possessEquipment($item[Distressed Denim Pants]))
+		{
+			return true;
+		}
+	}
+	if((enemy == $monster[Burly Sidekick]) && !possessEquipment($item[Mohawk Wig]))
+	{
+		return true;
+	}
+	if((enemy == $monster[Quiet Healer]) && !possessEquipment($item[Amulet of Extreme Plot Significance]))
+	{
+		return true;
+	}
+	if((enemy == $monster[P Imp]) || (enemy == $monster[G Imp]))
+	{
+		if((get_property("ed_pirateoutfit") != "finished") && (get_property("ed_pirateoutfit") != "almost") && (item_amount($item[Hot Wing]) < 3))
+		{
+			return true;
+		}
+	}
+	if(enemy == $monster[Warehouse Clerk])
+	{
+		int progress = get_property("warehouseProgress").to_int();
+		progress = progress + (8 * item_amount($item[Warehouse Inventory Page]));
+		if (progress < 40) return true;
+	}
+	if(enemy == $monster[Warehouse Guard])
+	{
+		int progress = get_property("warehouseProgress").to_int();
+		progress = progress + (8 * item_amount($item[Warehouse Map Page]));
+		if (progress < 40) return true;
+	}
+	return false;
+}
+
+boolean ed_opponentHasDesiredItem(monster o) {
+	boolean[item] desiredItems = $items[
+		Stuffed Shoulder Parrot,
+		Badge Of Authority,
+		Perfume-Soaked Bandana,
+		Sewage-Clogged Pistol,
+		Bag of Park Garbage,
+		Swashbuckling Pants,
+		Eyepatch,
+		goat cheese,
+		rusty hedge trimmers,
+		enchanted bean,
+		filthworm hatchling scent gland,
+		filthworm drone scent gland,
+		filthworm royal guard scent gland,
+		Knob Goblin Perfume,
+		Knob Goblin Harem Veil,
+		Knob Goblin Harem Pants,
+		Beer Helmet,
+		Bejeweled Pledge Pin,
+		Distressed Denim Pants,
+		Mohawk Wig,
+		Amulet of Extreme Plot Significance
+	];
+	//TODO:  serpentine sword, snake shield?
+	foreach i, r in item_drops_array(o) {
+		if ((desiredItems contains r.drop) && !possessEquipment(r.drop)) {
+			if (!ed_shouldLash(o)) {
+				abort("ed_opponentHasDesiredItem returning true, but ed_shouldLash did not!!");
+			}
+			return true;
+		}
+	}
+	return false;
+}
+boolean ed_opponentHasDesiredItem() { return ed_opponentHasDesiredItem(last_monster()); }
+
 string ed_edCombatHandler(int round, string opp, string text)
 {
 	if(round == 0)
@@ -355,6 +543,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 	int combatStage = get_property("ed_edCombatStage").to_int();
 	float damagePerRound = expected_damage();
 	if ($monster[Your winged yeti] == last_monster()) damagePerRound *= 3;  // (Mafia appears to be inaccurate?  Also, he appears to have some damage reduction applied to my Fist spells....)
+	if ($monster[big swarm of ghuol whelps] == last_monster()) damagePerRound *= 3;  // Mafia appears to be inaccurate here, as well?
 	if (damagePerRound < 1.0) damagePerRound = my_hp()/2 + 1;  // A kludge, to ensure that we treat unknown enemies with respect!  And, avoid dividing by zero!!
 	int roundsLeftThisStage = 1 + floor(my_hp() / damagePerRound);
 	int roundsPerStage = (jump_chance() < 100 ? 0 : 1) + floor(my_maxhp() / damagePerRound);
@@ -724,153 +913,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 	if(!contains_text(edCombatState, "lashofthecobra") && have_skill($skill[Lash of the Cobra]) && (my_mp() > 19) && (get_property("_edLashCount").to_int() < 30))
 	{
 		set_property("ed_edCombatHandler", edCombatState + "(lashofthecobra)");
-		boolean doLash = false;
-		if((enemy == $monster[Swarthy Pirate]) && !possessEquipment($item[Stuffed Shoulder Parrot]))
-		{
-			doLash = true;
-		}
-		if((enemy == $monster[Big Wheelin\' Twins]) && !possessEquipment($item[Badge Of Authority]))
-		{
-			doLash = true;
-		}
-		if((enemy == $monster[Fishy Pirate]) && !possessEquipment($item[Perfume-Soaked Bandana]))
-		{
-			doLash = true;
-		}
-		if((enemy == $monster[Funky Pirate]) && !possessEquipment($item[Sewage-Clogged Pistol]))
-		{
-			doLash = true;
-		}
-		if((enemy == $monster[Garbage Tourist]) && (item_amount($item[Bag of Park Garbage]) == 0))
-		{
-			doLash = true;
-		}
-		if((enemy == $monster[Sassy Pirate]) && !possessEquipment($item[Swashbuckling Pants]))
-		{
-			doLash = true;
-		}
-		if((enemy == $monster[Smarmy Pirate]) && !possessEquipment($item[Eyepatch]))
-		{
-			doLash = true;
-		}
-		if((enemy == $monster[One-eyed Gnoll]) && !possessEquipment($item[Eyepatch]))
-		{
-			doLash = true;
-		}
-		if((enemy == $monster[Dairy Goat]) && (item_amount($item[Goat Cheese]) < 3))
-		{
-			doLash = true;
-		}
-		if((enemy == $monster[Renaissance Giant]) && (item_amount($item[Ye Olde Meade]) < 1) && (my_daycount() == 1))
-		{
-			doLash = true;
-		}
-		if((enemy == $monster[Protagonist]) && !possessEquipment($item[Ocarina of Space]) && !possessEquipment($item[Sewage-Clogged Pistol]) && !possessEquipment($item[serpentine sword])  && !possessEquipment($item[curmudgel]))
-		{
-			doLash = true;
-		}
-		if(enemy == $monster[Bearpig Topiary Animal])
-		{
-			doLash = true;
-		}
-		if(enemy == $monster[Elephant (Meatcar?) Topiary Animal])
-		{
-			doLash = true;
-		}
-		if(enemy == $monster[Spider (Duck?) Topiary Animal])
-		{
-			doLash = true;
-		}
-		if(enemy == $monster[Beanbat])
-		{
-			doLash = true;
-		}
-		if(enemy == $monster[Bookbat])
-		{
-			doLash = true;
-		}
-		if(((enemy == $monster[Toothy Sklelton]) || (enemy == $monster[Spiny Skelelton])) && (get_property("cyrptNookEvilness").to_int() > 26))
-		{
-			doLash = true;
-		}
-		if((enemy == $monster[Oil Cartel]) && (item_amount($item[Bubblin\' Crude]) < 12) && (item_amount($item[Jar of Oil]) == 0))
-		{
-			doLash = true;
-		}
-		if((enemy == $monster[Blackberry Bush]) && (item_amount($item[Blackberry]) < 3) && !possessEquipment($item[Blackberry Galoshes]))
-		{
-			doLash = true;
-		}
-		if((enemy == $monster[Pygmy Bowler]) && (get_property("_edLashCount").to_int() < 10) && (item_drop_modifier().to_int() < 100))
-		{
-			doLash = true;
-		}
-		if((enemy == $monster[Pygmy Witch Lawyer]) && (get_property("_edLashCount").to_int() < 26))
-		{
-			doLash = true;
-		}
-		if(enemy == $monster[Larval Filthworm] && (item_amount($item[filthworm hatchling scent gland]) == 0))
-		{
-			doLash = true;
-		}
-		if(enemy == $monster[Filthworm Drone] && (item_amount($item[filthworm drone scent gland]) == 0))
-		{
-			doLash = true;
-		}
-		if(enemy == $monster[Filthworm Royal Guard] && (item_amount($item[filthworm royal guard scent gland]) == 0))
-		{
-			doLash = true;
-		}
-		if(enemy == $monster[Knob Goblin Madam] && item_amount($item[Knob Goblin Perfume]) == 0)
-		{
-			doLash = true;
-		}
-		if(enemy == $monster[Knob Goblin Harem Girl] && (!possessEquipment($item[Knob Goblin Harem Veil]) || !possessEquipment($item[Knob Goblin Harem Pants])))
-		{
-			doLash = true;
-		}
-		if(my_location() == $location[Wartime Frat House (Hippy Disguise)])
-		{
-			if(!possessEquipment($item[Beer Helmet]) || !possessEquipment($item[Bejeweled Pledge Pin]) || !possessEquipment($item[Distressed Denim Pants]))
-			{
-				doLash = true;
-			}
-		}
-		if((enemy == $monster[Burly Sidekick]) && !possessEquipment($item[Mohawk Wig]))
-		{
-			doLash = true;
-		}
-		if((enemy == $monster[Quiet Healer]) && !possessEquipment($item[Amulet of Extreme Plot Significance]))
-		{
-			doLash = true;
-		}
-		if((enemy == $monster[P Imp]) || (enemy == $monster[G Imp]))
-		{
-			if((get_property("ed_pirateoutfit") != "finished") && (get_property("ed_pirateoutfit") != "almost") && (item_amount($item[Hot Wing]) < 3))
-			{
-				doLash = true;
-			}
-		}
-		if(enemy == $monster[Warehouse Clerk])
-		{
-			int progress = get_property("warehouseProgress").to_int();
-			progress = progress + (8 * item_amount($item[Warehouse Inventory Page]));
-			if(progress < 40)
-			{
-				doLash = true;
-			}
-		}
-		if(enemy == $monster[Warehouse Guard])
-		{
-			int progress = get_property("warehouseProgress").to_int();
-			progress = progress + (8 * item_amount($item[Warehouse Map Page]));
-			if(progress < 40)
-			{
-				doLash = true;
-			}
-		}
-		if(doLash)
-		{
+		if (ed_shouldLash(enemy)) {
 			handleLashes(enemy);
 			return "skill lash of the cobra";
 		}
@@ -879,12 +922,12 @@ string ed_edCombatHandler(int round, string opp, string text)
 	if((item_amount($item[Tattered Scrap of Paper]) > 0) && (!contains_text(combatState, "tatters")))
 	{
 		if((enemy == $monster[Demoninja]) ||
-			(enemy == $monster[banshee librarian]) ||  // (is there a reason why Ed might want to fight undead foes?)
-			(enemy == $monster[Drunken Rat]) ||  // 1 Ka
-			(enemy == $monster[Bunch of Drunken Rats]) ||  // 1 Ka
-			(enemy == $monster[Knob Goblin Elite Guard]) ||  // 1 Ka
-			(enemy == $monster[Drunk Goat]) ||  // 1 Ka
-			(enemy == $monster[Sabre-Toothed Goat]) ||  // 1 Ka
+			(enemy == $monster[banshee librarian]) ||
+			(enemy == $monster[Drunken Rat]) ||
+			(enemy == $monster[Bunch of Drunken Rats]) ||
+			(enemy == $monster[Knob Goblin Elite Guard]) ||
+			(enemy == $monster[Drunk Goat]) ||
+			(enemy == $monster[Sabre-Toothed Goat]) ||
 			(enemy == $monster[Bubblemint Twins]) ||  // 2 Ka
 			(enemy == $monster[Creepy Ginger Twin]) ||  // 2 Ka
 			(enemy == $monster[Mismatched Twins]) ||  // 2 Ka
@@ -901,21 +944,58 @@ string ed_edCombatHandler(int round, string opp, string text)
 	}
 
 	boolean forceStasis = false;
+	if (
+		roundsPerStage < 20
+		&& roundsLeftThisStage*3/2 < roundsPerStage
+		&& combatStage < 2
+		&& monster_hp() < roundsPerStage * ed_stormDamage()
+		// && (my_hp() * 1.1 < my_maxhp() || roundsLeftThisStage < 10)
+			//TODO: note that if Ed has 33/35 HP, and
+			// opponent does 34 damage, then we have one round in the first combat, and 5 total.
+			// If the damage estimate is accurate (although, it isn't) then we really can gain
+			// a advantage by recovering those 2HP.  And in a short combat, that could be important.
+	) {
+		print("Ed will defer until another combat, in order to heal & buy time.", "blue");
+		forceStasis = true;
+	}
+	if (contains_text(edCombatState, "talismanofrenenutet") && forceStasis) {
+		forceStasis = false;
+	}
+	if (needShop(ed_buildShoppingList()) && monster_hp() / ed_fistDamage() < roundsPerStage) forceStasis = true;
+
 	if((!contains_text(edCombatState, "talismanofrenenutet")) && (item_amount($item[Talisman of Renenutet]) > 0))
 	{
 		boolean doRenenutet = false;
-		//TODO:  dairy goat?
-		if(enemy == $monster[Larval Filthworm] && (item_amount($item[filthworm hatchling scent gland]) == 0))
-		{
-			doRenenutet = (item_amount($item[Talisman of Renenutet]) > 7);
-		}
-		if(enemy == $monster[Filthworm Drone] && (item_amount($item[filthworm drone scent gland]) == 0))
-		{
-			doRenenutet = (item_amount($item[Talisman of Renenutet]) > 2);
-		}
-		if(enemy == $monster[Filthworm Royal Guard] && (item_amount($item[filthworm royal guard scent gland]) == 0))
-		{
+		if (ed_opponentHasDesiredItem()) {
+			// when we get here, we may have tried lash, but we still don't have our target item.
+			// so, we may use a renenutet.
+			// (note that, currently, we only use a renenutet to acquire the first one of any given item)
+			//print("TODO:  ed_opponentHasDesiredItem() reports that we should use renenutet!  Verify that this is appropriate!", "red");
 			doRenenutet = true;
+		}
+		if (
+			enemy == $monster[knob goblin harem girl]
+			&& !(possessEquipment($item[knob goblin harem veil]) && possessEquipment($item[knob goblin harem pants]))
+		) {
+			doRenenutet = true;
+		}
+		if (
+			enemy == $monster[knight (Snake)]
+			&& !(possessEquipment($item[serpentine sword])
+				&& possessEquipment($item[snake shield]))
+			&& (my_daycount() < 3)
+		) {
+			doRenenutet = true;
+		}
+		if(enemy == $monster[Larval Filthworm] && (item_amount($item[Talisman of Renenutet]) < 8))
+		{
+			print("TODO:  skipping renenutet, in order to save it for later filthworm stages!  Make sure this is working as expected!", "red");
+			doRenenutet = false;
+		}
+		if(enemy == $monster[Filthworm Drone] && item_amount($item[Talisman of Renenutet]) < 3)
+		{
+			print("TODO:  skipping renenutet, in order to save it for a royal guard!  Make sure this is working as expected!", "red");
+			doRenenutet = false;
 		}
 		if((enemy == $monster[Cleanly Pirate]) && (item_amount($item[Rigging Shampoo]) == 0))
 		{
@@ -963,15 +1043,41 @@ string ed_edCombatHandler(int round, string opp, string text)
 				doRenenutet = true;
 			}
 		}
-		if((enemy == $monster[Warehouse Clerk]) || (enemy == $monster[Warehouse Guard]))
-		{
+		if (
+			(enemy == $monster[Warehouse Clerk] || enemy == $monster[Warehouse Guard])
+			&& !have_skill($skill[Lash of the Cobra])
+		) {
+			//TODO:  we could still use it if we have lash, if we know that it did not drop from lash....
 			doRenenutet = true;
 		}
-		if (roundsPerStage < 2) {
-			doRenenutet = false;  // we could only ever use it successfully against this opponent
-				// if we were to get lucky.
-				// (if this happens, we probably want to add some checks in the adventuring logic
-				// to avoid it.)
+
+		if (
+			doRenenutet
+			&& $location[The F'c'le] != my_location()
+			&& item_amount($item[talisman of Renenutet]) <= ed_fcleItemsNeeded()
+		) {
+			doRenenutet = false;
+		}
+		if (doRenenutet && forceStasis) {
+			print("Waiting until next combat before we use a talisman of Renenutet.", "blue");
+			doRenenutet = false;
+		}
+		if (
+			doRenenutet
+			&& item_amount($item[rock band flyers]) > 0
+			&& get_property("flyeredML").to_int() < 10000
+			&& to_int(get_property("_edDefeats")) < 2  //TODO:  Will we sometimes spend some Ka on flyering?
+		) {
+			print("Waiting until we are done using flyers before we use a talisman of Renenutet.", "blue");
+			doRenenutet = false;
+		}
+		if (doRenenutet && roundsPerStage < 2) {
+			print("FIXME:  adventuring logic led us to a place where we would like to use a Renenutet, but we don't expect to get a chance to do so!", "red");
+			// we could only ever use it successfully against this opponent
+			// if we were to get lucky.
+			// (if this happens, we probably want to add some checks in the adventuring logic
+			// that led us here, in order to avoid it.)
+			doRenenutet = false;
 		}
 		//TODO:  there may still be 2-round fights where Ed ought to soften up the opponent
 		//       in this fight, so that he is guaranteed to finish the next fight with Renenutet
@@ -982,29 +1088,14 @@ string ed_edCombatHandler(int round, string opp, string text)
 			doRenenutet
 			&& 2 == roundsLeftThisStage
 			&& (ed_stormDamage() < monster_hp()
-				|| ed_fistDamage() < monster_hp() && !have_skill($skill[Storm of the Scarab])
+				|| !have_skill($skill[Storm of the Scarab]) && ed_fistDamage() < monster_hp()
 			)
 		) {
 			print("Using a talisman of Renenutet right now would be risky!", "blue");
 			doRenenutet = false;
 		}
-
-		if (roundsPerStage < 20 && roundsLeftThisStage + 1 < roundsPerStage && combatStage < 2) {
-			// defer until another combat, in order to buy more time.  (note that this logic might belong outside of the renenutet logic; it is more generally applicable!)
-			print("Ed will defer until another combat, in order to heal & buy time.  (This is the new forceStasis logic)", "blue");
-			if (my_maxhp() < my_hp() * 1.1) print("forceStasis activating with full HP!!?!", "red");
-			forceStasis = true;
-			doRenenutet = false;
-		}
-		if (roundsLeftThisStage < 2) {
-			doRenenutet = false;
-		}
-		if (
-			doRenenutet
-			&& item_amount($item[rock band flyers]) > 0
-			&& get_property("flyeredML").to_int() < 10000
-			&& to_int(get_property("_edDefeats")) < 2
-		) {
+		if (doRenenutet && roundsLeftThisStage < 2) {
+			print("Using a talisman of Renenutet right now would be very risky!", "blue");
 			doRenenutet = false;
 		}
 		if(doRenenutet)
@@ -1020,8 +1111,6 @@ string ed_edCombatHandler(int round, string opp, string text)
 	{
 		return "item short writ of habeas corpus";
 	}
-
-	if (needShop(ed_buildShoppingList()) && monster_hp() / ed_fistDamage() < roundsPerStage) forceStasis = true;
 
 	if(!needShop(ed_buildShoppingList()) && (my_level() >= 10) && (item_amount($item[Rock Band Flyers]) == 0) && (my_location() != $location[The Hidden Apartment Building]) && (type != to_phylum("Undead")) && (my_mp() > 20) && (my_location() != $location[Barrrney\'s Barrr]) && !forceStasis)
 	{

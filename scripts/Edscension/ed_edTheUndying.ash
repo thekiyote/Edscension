@@ -685,293 +685,8 @@ record ed_ShoppingList {
 	boolean[skill] skillsToBuy;
 };
 
-ed_ShoppingList ed_buildShoppingList_old() {
-	ed_ShoppingList result;
-
-	int coins = item_amount($item[Ka Coin]);
-
-	boolean mayShop() {
-		if(item_amount($item[Ka Coin]) < 10)
-		{
-			return false;
-		}
-		int canEat = (spleen_limit() - my_spleen_use()) / 5;
-		if((canEat == 0) && (item_amount($item[Ka Coin]) < 20))
-		{
-			return false;
-		}
-
-		canEat = max(0, canEat - item_amount($item[Mummified Beef Haunch]));
-//Skill limiter helps prevent overspending of Ka on other skills that are not as important as getting your edible organs on day 1
-		skill limiter = $skill[Even More Elemental Wards];
-		if(my_daycount() >= 2)
-		{
-			limiter = $skill[Healing Scarabs];
-		}
-
-		if((canEat == 0) && have_skill(limiter) && (item_amount($item[Linen Bandages]) >= 4) && (get_property("ed_renenutetBought").to_int() >= 7) && (item_amount($item[Holy Spring Water]) >= 1) && (item_amount($item[Talisman of Horus]) >= 1))
-		{
-			if((item_amount($item[Ka Coin]) > 30) && (item_amount($item[Spirit Beer]) == 0))
-			{
-				return true;
-			}
-			if((item_amount($item[Ka Coin]) > 30) && (item_amount($item[Sacramental Wine]) == 0))
-			{
-				return true;
-			}
-			if((item_amount($item[Ka Coin]) > 35) && !have_skill($skill[Upgraded Spine]))
-			{
-				return true;
-			}
-			if(((item_amount($item[Soft Green Echo Eyedrop Antidote]) + item_amount($item[Ancient Cure-All])) < 2) && (item_amount($item[Ka Coin]) > 30))
-			{
-				return true;
-			}
-			return false;
-		}
-		return true;
-	}
-
-	if (!mayShop()) return result;
-
-	if(!have_skill($skill[Upgraded Legs]) && get_property("ed_legsbeforebread").to_boolean())
-	{
-		if(coins >= 10)
-		{
-			result.skillsToBuy[$skill[Upgraded Legs]] = true;
-			coins -= 10;
-		}
-	}
-	
-	if((my_daycount() == 2) && !have_skill($skill[Even More Elemental Wards]) && my_spleen_use() >= 20)
-	{
-		//FIXME:  ??!?  when my_spleen_use() reaches 20, we stop buying haunches??  This is problematic.
-	}
-	else
-	{
-		if(((my_spleen_use() + 5) <= spleen_limit()) && ((my_adventures() < 25) || have_skill($skill[More Elemental Wards])))
-		{
-			int canEat = (spleen_limit() - my_spleen_use()) / 5;
-			canEat = canEat - item_amount($item[Mummified Beef Haunch]) - result.itemsToBuy[$item[Mummified Beef Haunch]];
-			while((coins >= 15) && (canEat > 0))
-			{
-				result.itemsToBuy[$item[Mummified Beef Haunch]] += 1;
-				coins = coins - 15;
-				canEat = canEat - 1;
-			}
-		}
-	}
-	
-	if(!have_skill($skill[More Legs]) && get_property("ed_legsbeforebread").to_boolean())
-	{
-		if(coins >= 20)
-		{
-			result.skillsToBuy[$skill[More Legs]] = true;
-			coins -= 20;
-		}
-	} else if(!have_skill($skill[Extra Spleen]))
-	{
-		if(coins >= 5)
-		{
-			result.skillsToBuy[$skill[Extra Spleen]] = true;
-			coins -= 5;
-		}
-	} else if(!have_skill($skill[Another Extra Spleen]))
-	{
-		if(coins >= 10)
-		{
-			result.skillsToBuy[$skill[Another Extra Spleen]] = true;
-			coins -= 10;
-		}
-	} else if(!have_skill($skill[Upgraded Legs]) && !get_property("ed_dickstab").to_boolean())
-	{
-		if(coins >= 10)
-		{
-			result.skillsToBuy[$skill[Upgraded Legs]] = true;
-			coins -= 10;
-		}
-	} else if(!get_property("ed_dickstab").to_boolean() && (((item_amount($item[Holy Spring Water]) < 3) && (my_maxMP() < 80)) ||
-	((item_amount($item[spirit beer]) < 3) && ((my_maxMP() < 180) && (my_maxMP() > 79))) || ((item_amount($item[sacramental wine]) < 3) && (my_maxMP() > 179))))
-	{
-		while((item_amount($item[Holy Spring Water])+result.itemsToBuy[$item[Holy Spring Water]] < 3) && (coins > 1) && (my_maxMP() < 80))
-		{
-			result.itemsToBuy[$item[Holy Spring Water]] += 1;
-			coins -= 1;
-		}
-		while((item_amount($item[spirit beer])+result.itemsToBuy[$item[spirit beer]] < 3) && (coins > 2) && (my_maxMP() < 180) && (my_maxMP() > 79))
-		{
-			result.itemsToBuy[$item[spirit beer]] += 1;
-			coins -= 2;
-		}
-		while((item_amount($item[sacramental wine])+result.itemsToBuy[$item[sacramental wine]] < 3) && (coins > 3) && (my_maxMP() > 179))
-		{
-			result.itemsToBuy[$item[sacramental wine]] += 1;
-			coins -= 3;
-		}
-	} else if(!have_skill($skill[More Legs]) && !get_property("ed_dickstab").to_boolean())
-	{
-		if(coins >= 20)
-		{
-			result.skillsToBuy[$skill[More Legs]] = true;
-			coins -= 20;
-		}
-	} else if(!have_skill($skill[Yet Another Extra Spleen]))
-	{
-		if(coins >= 15)
-		{
-			result.skillsToBuy[$skill[Yet Another Extra Spleen]] = true;
-			coins -= 15;
-		}
-	} else if(!have_skill($skill[Replacement Stomach]))
-	{
-		if(coins >= 30)
-		{
-			result.skillsToBuy[$skill[Replacement Stomach]] = true;
-			coins -= 30;
-		}
-	} else if(!have_skill($skill[Still Another Extra Spleen]))
-	{
-		if(coins >= 20)
-		{
-			result.skillsToBuy[$skill[Still Another Extra Spleen]] = true;
-			coins -= 20;
-		}
-	} else if(!have_skill($skill[Just One More Extra Spleen]))
-	{
-		if(coins >= 25)
-		{
-			result.skillsToBuy[$skill[Just One More Extra Spleen]] = true;
-			coins -= 25;
-		}
-	} else if(!have_skill($skill[Replacement Liver]))
-	{
-		if(coins >= 30)
-		{
-			result.skillsToBuy[$skill[Replacement Liver]] = true;
-			coins -= 30;
-		}
-	} else if(!have_skill($skill[Elemental Wards]) && get_property("ed_dickstab").to_boolean())
-	{
-		if(coins >= 10)
-		{
-			result.skillsToBuy[$skill[Elemental Wards]] = true;
-			coins -= 10;
-		}
-	} else if(!have_skill($skill[Okay Seriously, This is the Last Spleen]))
-	{
-		if(coins >= 30)
-		{
-			result.skillsToBuy[$skill[Okay Seriously, This is the Last Spleen]] = true;
-			coins -= 30;
-		}
-	} else if((get_property("ed_renenutetBought").to_int() < 7) && (coins > 1))
-	{
-		int renenutetToBuy = 7 - to_int(get_property("ed_renenutetBought"));
-		renenutetToBuy = min(coins, renenutetToBuy);
-		// (note that previous code limited to 1 if the final spleen has not been purchased.
-		//  however, the if block above this one already prevents us from executing this code
-		//  in that case.)
-		if (0 < renenutetToBuy) result.itemsToBuy[$item[talisman of Renenutet]] = renenutetToBuy;
-		coins -= renenutetToBuy;
-	} else if(!have_skill($skill[Upgraded Legs]))
-	{
-		if(coins >= 10)
-		{
-			result.skillsToBuy[$skill[Upgraded Legs]] = true;
-			coins -= 10;
-		}
-	} else if(!have_skill($skill[More Legs]))
-	{
-		if(coins >= 20)
-		{
-			result.skillsToBuy[$skill[More Legs]] = true;
-			coins -= 20;
-		}
-	} else if(!have_skill($skill[Tougher Skin]) && (((my_daycount() > 1) && (coins > 20)) || (monster_level_adjustment() > 50)))
-	{
-		//FIXME:  what if coins < 10 && monster_level_adjustment() > 50 ?
-		result.skillsToBuy[$skill[Tougher Skin]] = true;
-		coins -= 10;
-	} else if(!have_skill($skill[Elemental Wards]))
-	{
-		if(coins >= 10)
-		{
-			result.skillsToBuy[$skill[Elemental Wards]] = true;
-			coins -= 10;
-		}
-	} else if(!have_skill($skill[More Elemental Wards]))
-	{
-		if(coins >= 20)
-		{
-			result.skillsToBuy[$skill[More Elemental Wards]] = true;
-			coins -= 20;
-		}
-	} else if(!have_skill($skill[Even More Elemental Wards]))
-	{
-		if(coins >= 30)
-		{
-			result.skillsToBuy[$skill[Even More Elemental Wards]] = true;
-			coins -= 30;
-		}
-	} else if(have_skill($skill[Okay Seriously, This is the Last Spleen]) &&
-	((item_amount($item[Linen Bandages]) < 4) || (item_amount($item[Talisman of Horus]) < 2) ||
-	(item_amount($item[sacramental wine]) < 3) || ((item_amount($item[silk bandages]) < 3) && (my_level() > 11)) ||
-	(item_amount($item[Soft Green Echo Eyedrop Antidote]) + item_amount($item[Ancient Cure-All])) < 2))
-	{
-		if((item_amount($item[Linen Bandages]) < 4) && (coins >= 4))
-		{
-			int bandagesToBuy = min(4-item_amount($item[Linen Bandages]), coins-3);
-			result.itemsToBuy[$item[Linen Bandages]] += bandagesToBuy;
-			coins -= bandagesToBuy;
-		}
-		if((item_amount($item[talisman of Horus]) < 2) && (coins >= 5))
-		{
-			int talismenToBuy = min(2-item_amount($item[talisman of Horus]), coins/5);
-			result.itemsToBuy[$item[talisman of Horus]] += talismenToBuy;
-			coins -= 5*talismenToBuy;
-		}
-		if(((item_amount($item[Soft Green Echo Eyedrop Antidote]) + item_amount($item[Ancient Cure-All])) < 2) && (coins >= 30))
-		{
-			result.itemsToBuy[$item[ancient cure-all]] += 1;
-			coins -= 3;
-		}
-		if((item_amount($item[sacramental wine]) < 3) && (coins > 3))
-		{
-			int amountToBuy = min(3-item_amount($item[talisman of Horus]), (coins-1)/3);
-			result.itemsToBuy[$item[sacramental wine]] += amountToBuy;
-			coins -= 3*amountToBuy;
-		}
-		if((item_amount($item[silk bandages]) < 3) && (coins > 5))
-		{
-			//FIXME:  I doubt these are useful for anything other than Sonofa and maybe The Horror.
-			int amountToBuy = min(3-item_amount($item[silk bandages]), (coins-1)/5);
-			result.itemsToBuy[$item[silk bandages]] += amountToBuy;
-			coins -= 5*amountToBuy;
-		}
-	} else if(!have_skill($skill[Upgraded Arms]) && (my_daycount() > 1) && (coins > 20))
-	{
-		result.skillsToBuy[$skill[Upgraded Arms]] = true;
-		coins -= 20;
-	} else if(!have_skill($skill[Armor Plating]) && (my_daycount() > 1) && (coins > 20))
-	{
-		result.skillsToBuy[$skill[Armor Plating]] = true;
-		coins -= 20;
-	} else if(!have_skill($skill[Upgraded Spine]) && (my_daycount() > 1) && (coins > 20))
-	{
-		result.skillsToBuy[$skill[Upgraded Spine]] = true;
-		coins -= 20;
-	} else if((!have_skill($skill[Healing Scarabs])) && (my_daycount() > 1) && (coins > 20))
-	{
-		result.skillsToBuy[$skill[Healing Scarabs]] = true;
-		coins -= 20;
-	}
-
-	return result;
-}
-
 ed_ShoppingList ed_buildShoppingList(int kaAdjustment, int adventuresAdjustment) {
 	ed_ShoppingList result;
-//FIXME:  bought spleen & items w/o ka on hand for haunch.  budget was okay, though.  is that a bug?
 
 	int coins = item_amount($item[Ka Coin]) + kaAdjustment;
 	int adventures = my_adventures() + adventuresAdjustment;
@@ -1171,15 +886,22 @@ ed_ShoppingList ed_buildShoppingList(int kaAdjustment, int adventuresAdjustment)
 		coins -= 20;
 	} */  // these just seem counterproductive to me.  What are they for?
 
-	int linenToBuy = (my_maxHP() / 30) - item_amount($item[linen bandages]);
-		// (that's enough for one full heal)
+	int linenToBuy = my_maxHP() / 30;
+		// (that's about enough for one full heal)
+		// note, The Horror takes around 150 hp, iirc, when we normally do it.  Maybe keep 5 on hand, if we need to finish A-Boo?  Keep one on hand for Zerg Rush.
+	if (my_level() < 9) linenToBuy = 0;  // (level 9 is peaks quest)
+	if (get_property("booPeakProgress") == "0") linenToBuy = 1;
+	linenToBuy -= item_amount($item[linen bandages]);
 	while (0 < linenToBuy && 1 <= coins) {
 		result.itemsToBuy[$item[linen bandages]] += 1;
 		linenToBuy -= 1;
 		coins -= 1;
 	}
 
-	int horusToBuy = 2 - item_amount($item[talisman of Horus]);
+	int horusToBuy = 2;
+	if (my_level() < 12) horusToBuy = 1;  // (level 12 is war quest)
+	if ("none" != get_property("sidequestLighthouseCompleted")) horusToBuy = 1;
+	horusToBuy -= item_amount($item[talisman of Horus]);
 	while (0 < horusToBuy && 5 <= coins) {
 		result.itemsToBuy[$item[talisman of Horus]] += 1;
 		horusToBuy -= 1;
@@ -1187,7 +909,7 @@ ed_ShoppingList ed_buildShoppingList(int kaAdjustment, int adventuresAdjustment)
 	}
 
 	//int cureAllsToBuy = 2 - item_amount($item[ancient cure-all]) - item_amount($item[Soft Green Echo Eyedrop Antidote]);
-	int cureAllsToBuy = 0;  //FIXME:  need to fix cureall wastage, first!
+	int cureAllsToBuy = 0;  //FIXME:  need to fix cureall wastage, first!  For now, avoid spending Ka on them.
 	while (0 < cureAllsToBuy && 5 <= coins) {
 		result.itemsToBuy[$item[ancient cure-all]] += 1;
 		cureAllsToBuy -= 1;
@@ -1400,10 +1122,11 @@ boolean ed_handleAdventureServant(location loc)
 		(loc == $location[An Overgrown Shrine (Southwest)]) ||
 		(loc == $location[An Overgrown Shrine (Southeast)]) ||
 		(loc == $location[A Massive Ziggurat] && item_amount($item[stone triangle]) == 0) ||
-		(loc == $location[The Hatching Chamber]) ||
-		(loc == $location[The Feeding Chamber]) ||
-		(loc == $location[The Royal Guard Chamber]) ||
-		(loc == $location[Wartime Frat House] && !have_skill($skill[Wrath of Ra]))
+		(loc == $location[The Hatching Chamber] && !have_skill($skill[Lash of the Cobra])) ||
+		(loc == $location[The Feeding Chamber] && !have_skill($skill[Lash of the Cobra])) ||
+		(loc == $location[The Royal Guard Chamber] && !have_skill($skill[Lash of the Cobra])) ||
+		(loc == $location[Wartime Frat House] && !have_skill($skill[Wrath of Ra])) ||
+		(loc == $location[The F'c'le])
 	)
 	{
 		ed_use_servant($servant[Cat]);
