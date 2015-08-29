@@ -20,6 +20,7 @@ x automate screwdriver quest for mys/mus signs
 
 
 TODO:
+- eliminate extra outfit switching when considering A-Boo peak.
 - fix gross overestimation of damage dealt by storm against hippies @ low mys.
 - at start, not maintaining enough mp to finish off a hippy (need two fists)
 - overall, starting with astral shorts is not working out....  yet.
