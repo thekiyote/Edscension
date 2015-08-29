@@ -599,7 +599,7 @@ void initializeDay(int day)
 	ed_initializeDay(day);
 }
 
-boolean ed_LX_hermitClovers() {
+boolean ed_hermitClovers() {
 	if((my_meat() > 500))
 	{
 		buyUpTo(1, $item[Hermit Permit]);
