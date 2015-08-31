@@ -330,7 +330,7 @@ int ed_fcleItemsNeeded() {
 }
 
 boolean ed_opponentHasDesiredItem(monster o) {
-	boolean[item] desiredItems = $items[
+	static boolean[item] desiredItemsStatic = $items[
 		Stuffed Shoulder Parrot,
 		Badge Of Authority,
 		Perfume-Soaked Bandana,
@@ -357,6 +357,8 @@ boolean ed_opponentHasDesiredItem(monster o) {
 		snake shield,
 		A-Boo clue
 	];
+	boolean[item] desiredItems;
+	foreach i in desiredItemsStatic desiredItems[i] = true;
 	if (my_daycount() < 3) desiredItems[$item[Ye Olde Meade]] = true;
 		//TODO:  if we start supporting 2-day runs, we probably will change that condition.
 	foreach i, r in item_drops_array(o) {
