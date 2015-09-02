@@ -37,6 +37,23 @@ int ed_stormDamage() {  // (prismatic damage, 8 MP)
 	return ceil(baseDamage * multiplier * (1+spellDamagePercent/100.0));
 }
 
+int ed_assassinDamage() {
+	int ml = numeric_modifier("Monster Level");
+	int baseDamage = max(0, 150 + ml - my_buffedstat($stat[Moxie]));
+	baseDamage += 120;  // (Wiki gives a range of 100-120, here)
+	baseDamage = max(1, baseDamage - numeric_modifier("Damage Reduction"));
+	float da = numeric_modifier("Damage Absorption");
+	float damageAbsorptionFraction = max((da*10)**(0.5) - 10.0, 0.0) / 100.0;
+	float reducedDamage = ceil(baseDamage * (1-damageAbsorptionFraction));
+	int effectiveColdResistance = max(0, numeric_modifier("Cold Resistance")-5);
+	float coldResistanceFraction
+		= effectiveColdResistance <= 3
+			? 0.1 * effectiveColdResistance
+			: 0.9 - 0.5 * (5.0/6.0)**(effectiveColdResistance-4);
+	reducedDamage = max(1, ceil(reducedDamage * (1-coldResistanceFraction)));
+	return reducedDamage;
+}
+
 string ed_stormIfPossible() {
 	// When we get here, we would use storm if we had it.  Using fist instead.
 	if (!have_skill($skill[storm of the scarab])) return "fist of the mummy";
