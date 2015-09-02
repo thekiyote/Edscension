@@ -541,55 +541,67 @@ void handleMCD()
 
 void sellStuff()
 {
-	autosell(item_amount($item[dense meat stack]), $item[dense meat stack]);
-	autosell(item_amount($item[fancy bath salts]), $item[fancy bath salts]);
-	autosell(item_amount($item[empty Cloaca-Cola bottle]), $item[empty Cloaca-Cola bottle]);
-	autosell(item_amount($item[headhunter necktie]), $item[headhunter necktie]);
-	autosell(item_amount($item[keel-haulin' knife]), $item[keel-haulin' knife]);
-	autosell(item_amount($item[drab sonata]), $item[drab sonata]);
-	autosell(item_amount($item[photoprotoneutron torpedo]), $item[photoprotoneutron torpedo]);
-	autosell(item_amount($item[procrastination potion]), $item[procrastination potion]);
-	autosell(item_amount($item[awful poetry journal]), $item[awful poetry journal]);
-	autosell(item_amount($item[leather chaps]), $item[leather chaps]);
-	autosell(item_amount($item[mesh cap]), $item[mesh cap]);
-	autosell(item_amount($item[disturbing fanfic]), $item[disturbing fanfic]);
-	autosell(item_amount($item[carob chunks]), $item[carob chunks]);
-	autosell(item_amount($item[herbs]), $item[herbs]);
-	autosell(item_amount($item[imp ale]), $item[imp ale]);
-	autosell(item_amount($item[ratgut]), $item[ratgut]);
+	foreach i in $items[
+		dense meat stack,
+		fancy bath salts,
+		empty Cloaca-Cola bottle,
+		headhunter necktie,
+		keel-haulin' knife,
+		drab sonata,
+		photoprotoneutron torpedo,
+		procrastination potion,
+		awful poetry journal,
+		leather chaps,
+		mesh cap,
+		disturbing fanfic,
+		carob chunks,
+		herbs,
+		imp ale,
+		ratgut,
+		loose teeth,
+		skeleton bone,
+		cocoa eggshell fragment,
+		lihc eye,
+		batgut,
+		patchouli incense stick,
+		broken sword,
+		dire fudgesicle,
+		frigid ninja stars,
+		tambourine bells,
+		beach glass bead,
+		clay peace-sign bead,
+		hippy bongo,
+		windchimes,
+		phat turquoise bead,
+		filthy pestle,
+		decorative fountain,
+		ice-cold Willer,
+		moxie weed,
+		strongness elixir,
+		leather mask,
+		flaming crutch,
+		Feng Shui for Big Dumb Idiots,
+		enchanted bean,
+		spooky shrunken head,
+		hot katana blade,
+		sunken chest,
+		flaregun,
+		wussiness potion,
+		knob goblin scimitar,
+		knob goblin tongs,
+		bowl of cottage cheese,
+		heat-resistant sheet metal,
+		anticheese
+	] {
+		autosell(item_amount(i), i);
+	}
+
+
 	autosell(item_amount($item[hemp string]) - 1, $item[hemp string]);
-	autosell(item_amount($item[loose teeth]), $item[loose teeth]);
-	autosell(item_amount($item[skeleton bone]), $item[skeleton bone]);
-	autosell(item_amount($item[cocoa eggshell fragment]), $item[cocoa eggshell fragment]);
-	autosell(item_amount($item[lihc eye]), $item[lihc eye]);
-	autosell(item_amount($item[batgut]), $item[batgut]);
-	autosell(item_amount($item[patchouli incense stick]), $item[patchouli incense stick]);
-	autosell(item_amount($item[broken sword]), $item[broken sword]);
-	autosell(item_amount($item[dire fudgesicle]), $item[dire fudgesicle]);
-	autosell(item_amount($item[frigid ninja stars]), $item[frigid ninja stars]);
-	autosell(item_amount($item[tambourine bells]), $item[tambourine bells]);
-	autosell(item_amount($item[beach glass bead]), $item[beach glass bead]);
-	autosell(item_amount($item[clay peace-sign bead]), $item[clay peace-sign bead]);
-	autosell(item_amount($item[hippy bongo]), $item[hippy bongo]);
-	autosell(item_amount($item[windchimes]), $item[windchimes]);
-	autosell(item_amount($item[phat turquoise bead]), $item[phat turquoise bead]);
-	autosell(item_amount($item[filthy pestle]), $item[filthy pestle]);
-	autosell(item_amount($item[decorative fountain]), $item[decorative fountain]);
 	autosell(item_amount($item[filthy knitted dread sack]) - 1, $item[filthy knitted dread sack]);
 	autosell(item_amount($item[filthy corduroys]) - 1, $item[filthy corduroys]);
 	autosell(item_amount($item[hot wing]) - 3, $item[hot wing]);
-	autosell(item_amount($item[ice-cold Willer]), $item[ice-cold Willer]);
-	autosell(item_amount($item[moxie weed]), $item[moxie weed]);
-	autosell(item_amount($item[strongness elixir]), $item[strongness elixir]);
-	autosell(item_amount($item[leather mask]), $item[leather mask]);
-	autosell(item_amount($item[flaming crutch]), $item[flaming crutch]);
-	autosell(item_amount($item[Feng Shui for Big Dumb Idiots]), $item[Feng Shui for Big Dumb Idiots]);
-	autosell(item_amount($item[enchanted bean]), $item[enchanted bean]);
-	autosell(item_amount($item[spooky shrunken head]), $item[spooky shrunken head]);
-	autosell(item_amount($item[hot katana blade]), $item[hot katana blade]);
-	autosell(item_amount($item[sunken chest]), $item[sunken chest]);
-	autosell(item_amount($item[flaregun]), $item[flaregun]);
-	autosell(item_amount($item[wussiness potion]), $item[wussiness potion]);
+	autosell(item_amount($item[Mad Train wine]) - 1, $item[Mad Train wine]);
 }
 
 void initializeDay(int day)
