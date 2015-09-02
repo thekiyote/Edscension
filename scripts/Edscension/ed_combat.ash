@@ -939,7 +939,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 		) {
 			doRenenutet = true;
 		}
-		int renenutetsAvailable = item_amount($item[Talisman of Renenutet]) + 7 - to_int(get_property("ed_renenutetsBought"));
+		int renenutetsAvailable = item_amount($item[Talisman of Renenutet]) + 7 - to_int(get_property("ed_renenutetBought"));
 		if (enemy == $monster[Larval Filthworm] && renenutetsAvailable < 8)
 		{
 			print("TODO:  skipping renenutet, in order to save it for later filthworm stages!  Make sure this is working as expected!", "red");
