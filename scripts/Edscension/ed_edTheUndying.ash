@@ -208,7 +208,7 @@ boolean ed_buySkills()
 	}
 	int possEdPoints = 0;
 	int skillPoints = 0;
-	
+
 	string page = visit_url("place.php?whichplace=edbase&action=edbase_book");
 	matcher my_skillPoints = create_matcher("You may memorize (\\d\+) more page", page);
 	if(my_skillPoints.find())
@@ -220,7 +220,10 @@ boolean ed_buySkills()
 			possEdPoints += skillPoints;
 		}
 		possEdPoints = skillPoints - 1;
-		
+
+		if (get_property("ed_ignoreSkillPoints") != "") {
+			skillPoints -= to_int(get_property("ed_ignoreSkillPoints"));
+		}
 		if (skillpoints > 8) {
 			while(skillPoints > 0)
 			{
@@ -427,9 +430,14 @@ boolean ed_buySkills()
 	}
 	if(possEdPoints > get_property("edPoints").to_int())
 	{
-		set_property("edPoints", possEdPoints);
+		print("Mismatch between Mafia's edPoints and calculated value from skill points and imbuement points!", "red");
+		// (at the moment, I believe this may happen when we are ignoring some of the points.  I don't think we should mess with Mafia's value, though.)
+		//set_property("edPoints", possEdPoints);
 	}
-	
+
+	if (get_property("ed_ignoreImbuementPoints") != "") {
+		imbuePoints -= to_int(get_property("ed_ignoreImbuementPoints"));
+	}
 	while(servantPoints > 0)
 	{
 		int sid = -1;
