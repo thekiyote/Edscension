@@ -2733,12 +2733,12 @@ boolean LX_islandAccess()
 	{
 		return false;
 	}
-	if((my_adventures() <= 9) || (my_meat() <= 1900))
+	if((my_adventures() <= 3) || (my_meat() <= 600))
 	{
-		print("You're a little short on time or cash to do this, come back once you've fixed this?", "red");
+		print("You should be going to the shore right now, but you're a little short on time or cash to do this.  We will try again later.", "red");
 		return false;
 	}
-	if(get_counters("Fortune Cookie", 0, 9) == "Fortune Cookie")
+	if(get_counters("Fortune Cookie", 0, 3) == "Fortune Cookie")
 	{
 		//Just check the Fortune Cookie counter not any others.
 		return false;
@@ -2748,20 +2748,18 @@ boolean LX_islandAccess()
 	maximize("mp", 0, 0, false);
 	buffMaintain($effect[Wisdom of Thoth], 0, 1, 4);
 	set_property("choiceAdventure793", "2");
-	while((item_amount($item[Shore Inc. Ship Trip Scrip]) < 3) && (my_meat() > 500))
+	int scripBefore = item_amount($item[Shore Inc. Ship Trip Scrip]);
+	if((item_amount($item[Shore Inc. Ship Trip Scrip]) < 3) && (my_meat() > 500))
 	{
 		set_property("ed_disableAdventureHandling", "yes");
 		ccAdv(1, $location[The Shore\, Inc. Travel Agency]);
 		set_property("ed_disableAdventureHandling", "no");
 	}
-	if(item_amount($item[Shore Inc. Ship Trip Scrip]) < 3)
+	if(item_amount($item[Shore Inc. Ship Trip Scrip]) == scripBefore)
 	{
-		print("Failed to get enough Shore Scrip for some reason, continuing...", "red");
+		print("Failed to get enough Shore Scrip for some reason.  Trying something else....", "red");
 		return false;
 	}
-	ed_acquire(1, $item[dinghy plans]);
-	ed_acquire(1, $item[dingy planks]);
-	use(1, $item[dinghy plans]);
 	ed_buySkills();
 	return true;
 }
