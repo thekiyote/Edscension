@@ -2155,7 +2155,10 @@ boolean L7_crypt()
 		
 		return true;
 	}
-	if (get_property("cyrptCrannyEvilness").to_int() > 0) {
+	if (
+		0 < get_property("cyrptCrannyEvilness").to_int()
+		&& get_property("cyrptCrannyEvilness").to_int() <= 26
+	) {
 		print("The Cranny boss! (okay, yeah, or maybe the last guy before him.)", "blue");
 		maximize("exp", 0, 0, false);
 		set_property("choiceAdventure523", "5");
