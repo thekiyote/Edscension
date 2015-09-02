@@ -927,10 +927,6 @@ string ed_edCombatHandler(int round, string opp, string text)
 	{
 		boolean doRenenutet = false;
 		if (ed_opponentHasDesiredItem()) {
-			// when we get here, we may have tried lash, but we still don't have our target item.
-			// so, we may use a renenutet.
-			// (note that, currently, we only use a renenutet to acquire the first one of any given item)
-			//print("TODO:  ed_opponentHasDesiredItem() reports that we should use renenutet!  Verify that this is appropriate!", "red");
 			doRenenutet = true;
 		}
 		if (
@@ -1029,7 +1025,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 			print("FIXME:  adventuring logic led us to a place where we would like to use a Renenutet, but we don't expect to get a chance to do so!", "red");
 			// we could only ever use it successfully against this opponent
 			// if we were to get lucky.
-			// (if this happens, we probably want to add some checks in the adventuring logic
+			// (if this happens, we may want to add some checks in the adventuring logic
 			// that led us here, in order to avoid it.)
 			doRenenutet = false;
 		}
@@ -1052,8 +1048,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 			print("Using a talisman of Renenutet right now would be very risky!", "blue");
 			doRenenutet = false;
 		}
-		if(doRenenutet)
-		{
+		if (doRenenutet) {
 			set_property("ed_edCombatHandler", edCombatState + "(talismanofrenenutet)");
 			handleRenenutet(enemy);
 			set_property("ed_edStatus", "dying");
@@ -1061,7 +1056,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 		}
 	}
 
-	if(((enemy == $monster[Pygmy Headhunter]) || (enemy == $monster[Pygmy witch nurse])) && (item_amount($item[Short Writ of Habeas Corpus]) > 0))
+	if (((enemy == $monster[Pygmy Headhunter]) || (enemy == $monster[Pygmy witch nurse])) && (item_amount($item[Short Writ of Habeas Corpus]) > 0))
 	{
 		return "item short writ of habeas corpus";
 	}
