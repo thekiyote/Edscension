@@ -1070,7 +1070,7 @@ boolean ed_handleAdventureServant(location loc)
 		(loc == $location[The Hidden Temple]) ||
 		(loc == $location[A-Boo Peak]) ||
 		(loc == $location[The Goatlet]) ||
-		(loc == $location[The Hidden Park]) && (get_property("relocatePygmyJanitor") == 25))
+		(loc == $location[The Hidden Park]) && (get_property("relocatePygmyJanitor") == my_ascensions()))
 	{
 		if(!ed_use_servant($servant[Cat]))
 		{
@@ -1120,10 +1120,7 @@ boolean ed_handleAdventureServant(location loc)
 		ed_use_servant($servant[Maid]);
 	}
 //The cat is swapped in at the shrines while macheteing them because your servant still gets xp points and it usually still needs some at this point, also sparrows. :D
-	if((loc == $location[Next To That Barrel With Something Burning In It]) ||
-		(loc == $location[Out By That Rusted-Out Car]) ||
-		(loc == $location[Over Where The Old Tires Are]) ||
-		(loc == $location[Near an Abandoned Refrigerator]) ||
+	if (
 		(loc == $location[The Black Forest] && item_amount($item[reassembled blackbird]) == 0) ||
 		(loc == $location[An Overgrown Shrine (Northwest)]) ||
 		(loc == $location[An Overgrown Shrine (Northeast)]) ||
