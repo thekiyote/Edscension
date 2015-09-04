@@ -140,7 +140,14 @@ void handlePreAdventure()
 		{
 			buffMaintain($effect[Purr of the Feline], 10, 1, 5);
 		}
-		if (my_location() != $location[Lair of the Ninja Snowmen]) {
+		if (
+			!($locations[
+				The Sleazy Back Alley,
+				Hippy Camp,
+				Lair of the Ninja Snowmen,
+				The SMOOCH Army HQ
+			] contains my_location())
+		) {
 			if (400 < my_meat()) {
 				buffMaintain($effect[Blessing of Serqet], 15, 1, 1);
 				//TODO:  when starting out, we don't want the blessing if jump_chance() is low.
@@ -258,7 +265,8 @@ void handlePreAdventure()
 		} else if (
 			$locations[
 				The Hidden Bowling Alley,
-				The Hidden Hospital
+				The Hidden Hospital,
+				The Secret Council Warehouse
 			] contains my_location()
 		) {
 			if ((my_mp() < 36) && my_meat() > 180)
@@ -290,7 +298,6 @@ void handlePreAdventure()
 			(my_location() == $location[The Royal Guard Chamber]) ||
 			(my_location() == $location[Cobb\'s Knob Harem]) ||
 			((my_location() == $location[Wartime Frat House (Hippy Disguise)]) && !have_outfit("Frat Warrior Fatigues")) ||
-			(my_location() == $location[The Secret Council Warehouse]) ||
 			((my_location() == $location[The Dark Heart of the Woods]) && (item_amount($item[hot wing]) < 3)) ||
 			((my_location() == $location[The Dark Neck of the Woods]) && (item_amount($item[hot wing]) < 3)) ||
 			((my_location() == $location[The Dark Elbow of the Woods]) && (item_amount($item[hot wing]) < 3)))
