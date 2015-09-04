@@ -2125,7 +2125,6 @@ boolean L7_crypt()
 
 	if (
 		0 < get_property("cyrptNookEvilness").to_int()
-		&& get_property("cyrptNookEvilness").to_int() <= 26
 	) {
 		print("The Nook!", "blue");
 		ccAdv(1, $location[The Defiled Nook]);
