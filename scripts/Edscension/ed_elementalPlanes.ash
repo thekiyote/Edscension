@@ -2,6 +2,7 @@ script "ed_elementalPlanes.ash"
 
 boolean elementalPlanes_initializeSettings()
 {
+/*
 	string temp = "";
 
 	if(!get_property("sleazeAirportAlways").to_boolean())
@@ -33,14 +34,25 @@ boolean elementalPlanes_initializeSettings()
 			set_property("stenchAirportAlways", true);
 		}
 	}
+
+	if(!get_property("hotAirportAlways").to_boolean())
+	{
+		temp = visit_url("place.php?whichplace=airport_hot&intro=1");
+		if(contains_text(temp, "FIXME"))
+		{
+			print("We have access to That 70's Volcano.  Ooh.", "green");
+			set_property("hotAirportAlways", true);
+		}
+	}
+*/
 	return true;
 }
 
 
 boolean elementalPlanes_access(element ele)
 {
-#	return (get_property("_" + ele + "AirportToday").to_boolean() || get_property(ele + "AirportAlways").to_boolean());
-	return get_property(ele + "AirportAlways").to_boolean();
+	return (get_property("_" + ele + "AirportToday").to_boolean() || get_property(ele + "AirportAlways").to_boolean());
+	//return get_property(ele + "AirportAlways").to_boolean();
 }
 
 boolean elementalPlanes_takeJob(element ele)
@@ -125,3 +137,81 @@ boolean dinseylandfill_garbageMoney()
 
 	return false;
 }
+
+int[item] ed_smoochQuestItemToDoor() {
+	int[item] result;
+	result[$item[the tongue of Smimmons]] = 1;
+	result[$item[Raul's guitar pick]] = 2;
+	result[$item[Pener's crisps]] = 3;
+	result[$item[signed deuce]] = 4;
+	return result;
+}
+
+boolean ed_smoochQuestAvailable() {
+	if (!to_boolean(get_property("hotAirportAlways")) && !to_boolean(get_property("_hotAirportToday"))) return false;
+	if (to_boolean(get_property("_volcanoItemRedeemed"))) return false;
+
+	//TODO:  avoid unnecessary server hits
+	buffer questsPage = visit_url("place.php?whichplace=airport_hot&action=airport4_questhub");
+	int[item] itemToDoor = ed_smoochQuestItemToDoor();
+	for i from 1 to 3 {
+		item questItem = to_item(get_property("_volcanoItem" + i));
+		if (itemToDoor contains questItem) return true;
+	}
+	return false;
+}
+
+boolean ed_smoochQuestItemAvailable() {
+	foreach i in ed_smoochQuestItemToDoor() {
+		if (0 < item_amount(i)) return true;
+	}
+	return false;
+}
+
+void ed_selectSmoochDoor() {
+	if (!(to_boolean(get_property("hotAirportAlways")) || to_boolean(get_property("_hotAirportToday")))) return;
+	int[item] itemToDoor = ed_smoochQuestItemToDoor();
+	item[int] items;
+	foreach i in itemToDoor {
+		items[count(items)] = i;
+	}
+	sort items by random(10000);
+		// if all else fails, pick one randomly.
+	item selected = items[0];
+	foreach k,i in items {
+		if (item_amount(i) < item_amount(selected)) selected = i;
+	}
+	if (!to_boolean(get_property("_volcanoItemRedeemed"))) {
+		buffer questsPage = visit_url("place.php?whichplace=airport_hot&action=airport4_questhub");
+		for i from 1 to 3 {
+			item questItem = to_item(get_property("_volcanoItem" + i));
+			if (itemToDoor contains questItem) {
+				selected = questItem;
+			}
+		}
+	}
+	if (!(itemToDoor contains selected)) abort("Failed to select a valid quest item!");
+	set_property("choiceAdventure1094", itemToDoor[selected]);
+}
+
+void ed_turnInVolcanoQuestItem() {
+	if (!(to_boolean(get_property("hotAirportAlways")) || to_boolean(get_property("_hotAirportToday")))) return;
+	if (!to_boolean(get_property("_volcanoItemRedeemed"))) {
+		buffer questsPage = visit_url("place.php?whichplace=airport_hot&action=airport4_questhub");
+		int selection;
+		for i from 1 to 3 {
+			item questItem = to_item(get_property("_volcanoItem" + i));
+			if (ed_smoochQuestItemToDoor() contains questItem) {
+				// I'll prefer the SMOOCH quest items (at least for now).
+				selection = i;
+				break;
+			}
+			if (item_amount(to_item(get_property("_volcanoItem" + selection))) < item_amount(questItem)) {
+				selection = i;
+			}
+		}
+		if (0 == selection) return;
+		visit_url("choice.php?whichchoice=1093&option=" + selection);
+	}
+}
+
