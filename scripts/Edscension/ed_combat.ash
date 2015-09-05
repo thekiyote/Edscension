@@ -464,15 +464,16 @@ string ed_edCombatHandler(int round, string opp, string text)
 	{
 		print("ed_combatHandler: " + round, "brown");
 		set_property("ed_combatHandler", "");
-		if (combatStage < 3 && flyering)
-		{
 			set_property("ed_edCombatCount", 1 + get_property("ed_edCombatCount").to_int());
+		if (combatStage < 3 && flyering) {
 			set_property("ed_edStatus", "UNDYING!");
 			print("test1", "red");
 		} else if (combatStage < 3) {
-			set_property("ed_edCombatCount", 1 + get_property("ed_edCombatCount").to_int());
 			set_property("ed_edStatus", "dying");
 			print("test4", "red");
+		} else {
+			//FIXME:  ???
+			set_property("ed_edStatus", "dying");
 		}
 	}
 
@@ -503,7 +504,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 		(item_amount($item[ka coin]) > 30)
 		&& (!have_skill($skill[Healing Scarabs]) || (my_spleen_use() < spleen_limit()))
 		&& 0 == combatStage
-		&& (!contains_text(edCombatState, "talismanofrenenutet") && !contains_text(edCombatState, "curse of fortune") || contains_text(edCombatState, "insults"))
+		&& (!contains_text(combatState, "talismanofrenenutet") && !contains_text(combatState, "curse of fortune") || contains_text(edCombatState, "insults"))
 	) {
 		//TODO:  why?  is this to go shopping?  I think I've handled that elsewhere.
 		set_property("ed_edStatus", "UNDYING!");
@@ -543,7 +544,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 		(combatStage < 4)
 		&& flyering
 		&& (item_amount($item[ka coin]) > 2)
-		&& !contains_text(edCombatState, "talismanofrenenutet")
+		&& !contains_text(combatState, "talismanofrenenutet")
 	)
 	{
 		set_property("ed_edStatus", "UNDYING!");
@@ -631,17 +632,17 @@ string ed_edCombatHandler(int round, string opp, string text)
 		return "item cocktail napkin";
 	}
 
-	if((enemy == $monster[dirty thieving brigand]) && (!contains_text(edCombatState, "curse of fortune")))
+	if((enemy == $monster[dirty thieving brigand]) && (!contains_text(combatState, "curse of fortune")))
 	{
 		if((item_amount($item[Ka Coin]) > 0) && (have_skill($skill[Curse of Fortune])))
 		{
-			set_property("ed_edCombatHandler", edCombatState + "(curse of fortune)");
+			set_property("ed_combatHandler", combatState + "(curse of fortune)");
 			set_property("ed_edStatus", "dying");
 			return "skill curse of fortune";
 		}
 	}
 	
-	if(contains_text(edCombatState, "curse of fortune"))
+	if(contains_text(combatState, "curse of fortune"))
 	{
 		set_property("ed_edStatus", "dying");
 	}
@@ -910,15 +911,23 @@ string ed_edCombatHandler(int round, string opp, string text)
 			// If the damage estimate is accurate (although, it isn't) then we really can gain
 			// a advantage by recovering those 2HP.  And in a short combat, that could be important.
 	) {
-		print("Ed will defer until another combat, in order to heal & buy time.", "blue");
+		print("Ed would like to defer until another combat, in order to heal & buy time.", "green");
 		forceStasis = true;
 	}
-	if (needShop(ed_buildShoppingList()) && monster_hp() / ed_fistDamage() < roundsPerStage) forceStasis = true;
-	if (contains_text(edCombatState, "talismanofrenenutet") && forceStasis) {
+	if (needShop(ed_buildShoppingList()) && monster_hp() / ed_fistDamage() < roundsPerStage) {
+		print("Ed would like to defer until another combat, in order to shop.", "green");
+		forceStasis = true;
+	}
+	if (contains_text(combatState, "talismanofrenenutet") && forceStasis) {
+		print("Ed will not stasis now, in order to take advantage of the Talisman of Renenutet.", "green");
+		forceStasis = false;
+	}
+	if (contains_text(combatState, "curse of fortune") && forceStasis) {
+		print("Ed will not stasis now, in order to take advantage of the Curse of Fortune.", "green");
 		forceStasis = false;
 	}
 
-	if((!contains_text(edCombatState, "talismanofrenenutet")) && (item_amount($item[Talisman of Renenutet]) > 0))
+	if((!contains_text(combatState, "talismanofrenenutet")) && (item_amount($item[Talisman of Renenutet]) > 0))
 	{
 		boolean doRenenutet = false;
 		if (ed_opponentHasDesiredItem()) {
@@ -1044,7 +1053,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 			doRenenutet = false;
 		}
 		if (doRenenutet) {
-			set_property("ed_edCombatHandler", edCombatState + "(talismanofrenenutet)");
+			set_property("ed_combatHandler", combatState + "(talismanofrenenutet)");
 			handleRenenutet(enemy);
 			set_property("ed_edStatus", "dying");
 			return "item Talisman of Renenutet";
