@@ -5633,7 +5633,7 @@ void ed_begin()
 	}
 
 	questOverride();
-	set_property("edDefeatAbort", "2");
+	set_property("edDefeatAbort", "3");
 
 	int retryLimit = 20;
 	int retries = 0;
