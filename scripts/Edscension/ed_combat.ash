@@ -108,8 +108,11 @@ string findBanisher(string opp)
 		handleBanish(enemy, $item[Harold's Bell]);
 		return "item Harold's Bell";
 	}
-	if(have_skill($skill[Curse of Vacation]) && my_mp() >= 35)
-	{
+	if (
+		have_skill($skill[Curse of Vacation])
+		&& my_mp() >= 35
+		&& !contains_text(get_property("banishedMonsters"), "A.M.C. gremlin:curse of vacation")
+	) {
 		handleBanish(enemy, $skill[Curse of Vacation]);
 		return "skill curse of vacation";
 	}
