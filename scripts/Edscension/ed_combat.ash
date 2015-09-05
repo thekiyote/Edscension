@@ -231,15 +231,18 @@ string ccsJunkyard(int round, string opp, string text)
 		return "skill summon love gnats";
 	}
 
-	if((!contains_text(combatState, "flyers")) && (my_location() != $location[The Battlefield (Frat Uniform)]) && (get_property("_edDefeats").to_int() < 3))
-	{
+	int edDefeats = to_int(get_property("_edDefeats"));
+	boolean flyering
+		= 0 < item_amount($item[rock band flyers]) && get_property("flyeredML").to_int() < 10000;
+
+	if ((!contains_text(combatState, "flyers")) && flyering && edDefeats < 3) {
 		if((item_amount($item[rock band flyers]) > 0) && (get_property("flyeredML").to_int() < 10000))
 		{
 			set_property("ed_combatHandler", combatState + "(flyers)");
 			return "item rock band flyers";
 		}
 	}
-	if(get_property("_edDefeats").to_int() > 2 && (my_location() != $location[The Battlefield (Frat Uniform)]) && (!contains_text(combatState, "flyers")) && ((expected_damage() * 1.1) <= my_hp()))
+	if (edDefeats > 2 && (!contains_text(combatState, "flyers")) && ((expected_damage() * 1.1) <= my_hp()))
 	{
 		if((item_amount($item[rock band flyers]) > 0) && (get_property("flyeredML").to_int() < 10000))
 		{
@@ -248,32 +251,15 @@ string ccsJunkyard(int round, string opp, string text)
 		}
 	}
 
-	if(!get_property("ed_gremlinMoly").to_boolean())
-	{
-		//WHM:  doesn't this mean that there's no chance of getting the Moly item?  Just kill the thing!
-			string banisher = findBanisher(opp);
-			if (banisher == "attack with weapon" && my_mp() >= 8) {
-				return "skill " + ed_stormIfPossible();
-			}
-			return banisher;
-/*
-		if(get_property("_edDefeats").to_int() > 2)
-		{
-			string banisher = findBanisher(opp);
-			if (banisher == "attack with weapon" && my_mp() >= 8) {
-				return "skill " + ed_stormIfPossible();
-			}
-			return banisher;
+	if (!get_property("ed_gremlinMoly").to_boolean()) {
+		if (flyering && edDefeats < 3) {
+			return "skill mild curse";
 		}
-		else if(get_property("_edDefeats").to_int() == 2)
-		{
-			return findBanisher(opp);
+		string banisher = findBanisher(opp);
+		if (banisher == "attack with weapon" && my_mp() >= 8) {
+			return "skill " + ed_stormIfPossible();
 		}
-		else if(item_amount($item[dictionary]) > 0)
-		{
-			return "item dictionary";
-		}
-*/
+		return banisher;
 	}
 
 
