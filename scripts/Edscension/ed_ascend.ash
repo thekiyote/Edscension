@@ -4594,10 +4594,31 @@ boolean ed_LX_xp() {
 
 	print("We've done everything possible at this time and have not reached the next level, so power-leveling in the most basic way Ed can, abort if you want to do this on your own.", "blue");
 	buffMaintain($effect[Purr of the Feline], 0, 1, 1);
+
+	boolean galleryAndBathroomOpen = get_property("ed_spookyravennecklace") == "finished";
+	// note, clovers used at:  trapper, guano, a-boo, bridge.
+	int reservedClovers
+		= (get_property("ed_boopeak") == "finished" ? 0 : 1)  //TODO:  how much left?  do we have clues?
+		+ (get_property("ed_chasmBridgeProgress").to_int() < 25 ? 0 : 1);
+	int spareClovers =  item_amount($item[disassembled clover]) - reservedClovers;
+	if (!galleryAndBathroomOpen || spareClovers <= 0) {
+		//TODO:  account for Taunt and/or Hippy Stench in calculations.  (and other combat rate modifiers?)
+		float galleryExperienceEstimate
+			= (6 + numeric_modifier("Mysticality Experience")) * (18.0/25)
+				+ min(200.0, 3*my_basestat($stat[Mysticality])) * (1+numeric_modifier("Mysticality Experience Percent")/100.0) * (7.0/25);
+		float smoochExperienceEstimate = my_buffedstat($stat[Mysticality]) / 5;
+			//TODO:  when does smooch give better experience than the gallery?
+		print("gallery versus smooch:  " + galleryExperienceEstimate + " / " + smoochExperienceEstimate,"orange");
+		if (galleryExperienceEstimate < smoochExperienceEstimate) {
+			if (ed_LX_smooch()) return true;
+		}
+		if (0 < have_effect($effect[Taunt of Horus]) || 0 < have_effect($effect[Hippy Stench])) {
+			if (ed_LX_smooch()) return true;
+		}
+	}
 	if(get_property("ed_spookyravennecklace") == "finished")
 	{
-		// note, clovers used at:  trapper, guano, a-boo, bridge.
-		if (0 < item_amount($item[disassembled clover])) {
+		if (0 < spareClovers) {
 			print("TODO:  clovering at the bathroom.  is that the best use of this clover??", "orange");
 			use(1, $item[disassembled clover]);
 			visit_url("adventure.php?snarfblat=392&confirm=on");  // The Haunted Bathroom
