@@ -1817,14 +1817,26 @@ boolean L12_sonofaBeach()
 		set_property("ed_doCombatCopy", "yes");
 	}
 
-	ccAdv(1, $location[Sonofa Beach]);
-	set_property("ed_doCombatCopy", "no");
-
-	if(my_hp() == 0)
-	{
-		use(1, $item[Linen Bandages]);
+	//TODO:  is ed_preadventure supposed to take care of these?
+	buffMaintain($effect[Hippy Stench], 0, 1, 1);
+	if (0 == have_effect($effect[taunt of horus]) && 0 < item_amount($item[talisman of horus])) {
+		use(1, $item[talisman of Horus]);
 	}
-	return true;
+
+	try {
+		set_property("autoAbortThreshold", "-0.05");
+		//set_property("hpAutoRecovery", "-0.05");
+		ccAdv(1, $location[Sonofa Beach]);
+	} finally {
+		//TODO:  does the autoAbortThreshold setting above prevent any auto-stops here?
+		set_property("ed_doCombatCopy", "no");
+
+		if(my_hp() == 0)
+		{
+			use(1, $item[Linen Bandages]);
+		}
+		return true;
+	}
 }
 
 boolean L12_filthworms()
