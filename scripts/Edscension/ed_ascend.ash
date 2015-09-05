@@ -2,12 +2,17 @@
 
 				Edscension
 By: chown (a.k.a. wmarkham), who forked it from one:
-By: Zen00, a fork of the Cheeseascend (now deprecated)
-script by Cheesecookie ( http://sourceforge.net/p/cheeseascend/svn/HEAD/tree/ )
+By: Zen00, a fork of the Cheeseascend
+script by Cheesecookie
+( http://sourceforge.net/p/cheeseascend/svn/HEAD/tree/ )
+
 Written to more fully define and explore the Actually Ed
 the Undying functionalities of said script, and as a skill
 stretching project for Zen00 before attempting an independent
 ascension script for a future Kingdom of Loathing ascension path.
+
+Changes by chown are focused on fixing bugs, improving support for
+low-skill ascensions, and adding a few other assorted features.
 
 see http://github.com/wmarkham/Edscension for changelogs, etc.
 
@@ -24,7 +29,7 @@ import <ed_elementalPlanes.ash>
 
 boolean LX_chateauDailyPainting();
 boolean LX_handleSpookyravenFirstFloor();
-boolean LX_islandAccess();
+boolean ed_LX_islandAccess();
 boolean LX_pirateOutfit();
 boolean LX_pirateInsults();
 boolean LX_pirateBlueprint();
@@ -2221,54 +2226,50 @@ boolean L7_crypt()
 	return false;
 }
 
-boolean L1_LegDay()
+boolean ed_LX_legDay()
 {
-	if (LX_islandAccess() && 0 == item_amount($item[Dingy Dinghy])) {
-		abort("You don't have a Dinghy you ding-head!");
+	if (0 == item_amount($item[Dingy Dinghy])) {
+		return false;
 	}
 	if(!have_skill($skill[Upgraded Legs]))
 	{
-		set_property("ed_legsbeforebread", "true");
+		set_property("ed_legsbeforebread", "true");  //TODO:  now that i'm working on smooch support, defer legs until after consumption organs?
 	}
 
-	//This should allow us to pick up the semi-rare in the Outskirts for some low level food/drink
-	if(get_counters("Semirare window end", 0, 10) == "Semirare window end")
-	{
-		if(L5_getEncryptionKey())
-		{
-			return true;
-		}
-	}
-
-	//TODO:  I'm a bit curious to know what happens if we have 10 Ka and no Upgraded Legs....
 	if(item_amount($item[Ka Coin]) < 10 && !have_skill($skill[Upgraded Legs]))
 	{
 		if(jump_chance($monster[Rushing Bum]) < 70 && my_maxhp() < 30)
 		{
 			change_mcd(3);
 		}
-		
-		print("Getting extra ka.", "blue");
+
+		print("Getting ka to upgrade legs.", "blue");
 		ccAdv(1, $location[the sleazy back alley]);
 		return true;
 	}
 
-	if(have_skill($skill[Upgraded Legs]))
-	{
-		print("Doing leg-day.", "blue");
-		maximize("exp, -equip filthy knitted dread sack", 0, 0, false);
+	print("Doing leg-day.", "blue");
 
+	string extra;
+	if (jump_chance($monster[filthy hippy]) < 50) {
+		change_mcd(0);  //TODO:  does it make a difference?
+		extra = ", init";
+		buyUpTo(1, $item[third-hand lantern]);
+		//TODO:  Hustlin'?
+	} else {
 		handleMCD();  //TODO: (isn't that the default?)
-		buffMaintain($effect[Wisdom of Thoth], 15, 1, 10);
-		//buffMaintain($effect[Power of Heka], 15, 1, 10);
-			// note that once we have wisdom of thoth, we defeat them with a single spell, crit or otherwise.
-		buffMaintain($effect[Bounty of Renenutet], 35, 1, 10);
-		buffMaintain($effect[Blessing of Serqet], 25, 1, 1);
-		ccAdv(1, $location[Hippy Camp]);
-		return true;
 	}
-	
-	return false;
+	maximize("exp, -equip filthy knitted dread sack" + extra, min(my_meat(), 100), 1, false);
+
+	buffMaintain($effect[Wisdom of Thoth], 15, 1, 1);
+	//buffMaintain($effect[Power of Heka], 15, 1, 1);
+	// note that once we have wisdom of thoth, we defeat them with a single spell, crit or otherwise.  (is that really true?  even at low mys & no +damage astral item?  What if we have, say, Lapdog in effect?)
+	buffMaintain($effect[Bounty of Renenutet], 35, 1, 1);
+	if (300 < my_meat()) buffMaintain($effect[Blessing of Serqet], 30, 1, 1);
+	if (600 < my_meat()) buffMaintain($effect[Purr of the Feline], 25, 1, 1);
+	set_property("edDefeatAbort", "3");
+	ccAdv(1, $location[Hippy Camp]);
+	return true;
 }
 
 boolean L1_edDinsey()
@@ -2290,6 +2291,72 @@ boolean L1_edDinsey()
 		return false;
 	}
 	ccAdv(1, $location[Pirates of the Garbage Barges]);
+	return true;
+}
+
+boolean ed_smoochQuestToday() {
+	if (to_boolean(get_property("ed_smoochQuestDay" + my_daycount()))) return true;
+	if (to_boolean(get_property("ed_smoochQuestEveryDay"))) return true;
+	return false;
+}
+
+int ed_smoochTurnsToday() {
+	if ("" == get_property("ed_dayOfSmoochAdventureCount")) return 0;
+	if (my_daycount() != to_int(get_property("ed_dayOfSmoochAdventureCount"))) return 0;
+	return $location[The SMOOCH Army HQ].turns_spent
+		- to_int(get_property("ed_smoochAdventureCount"));
+}
+
+boolean ed_LX_smooch()
+{
+	// collect Ka and/or complete a quest at the SMOOCH Army HQ.
+	if (!elementalPlanes_access($element[hot])) {
+		return false;
+	}
+	maximize("exp, 0.5 mys", 1, 0, false);
+	if (ed_smoochTurnsToday() < 40 || 50 < ed_smoochTurnsToday() || !ed_smoochQuestToday()) {
+		//  this should avoid Serqet for bosses.
+		buffMaintain($effect[Blessing of Serqet], 0, 1, 1);
+	}
+	buffMaintain($effect[Bounty of Renenutet], 0, 1, 1);
+	buffMaintain($effect[Purr of the Feline], 0, 1, 1);
+	//TODO:  Is Purr of the Feline automatically maintained, when appropriate?  (Yes, I believe so.)
+	buffMaintain($effect[Glittering Eyelashes], 0, 1, 1);
+	if (10000 < my_meat()) buffMaintain($effect[Erudite], 0, 1, 1);
+	if (0 < item_amount($item[CSA bravery badge])) cli_execute("use CSA bravery badge");
+	if (0 == ed_smoochTurnsToday()) {
+		set_property("ed_dayOfSmoochAdventureCount", my_daycount());
+		set_property("ed_smoochAdventureCount", $location[The SMOOCH Army HQ].turns_spent);
+
+		//buffMaintain($effect[Lapdog], 0, 1, 1);
+		if (!to_boolean(get_property("_olympicSwimmingPool"))) cli_execute("swim laps");
+		//buffMaintain($effect[Thaumodynamic], 0, 1, 1);
+		if (!to_boolean(get_property("_aprilShower"))) cli_execute("shower lukewarm");
+	}
+	if (50 == ed_smoochTurnsToday()) {
+		//TODO:  is there a reasonable strategy to beat the bosses?  current ed_combat.ash cast an ineffective Curse of Indecision....  But I think that without the +ML, it may be a reasonable fight.  I think the only times I've beaten one of them involved a good deal of luck.  More Legs?  DR/DA upgrades?
+		//       Yes, with 0 ML, Pener fell to a single (albeit critical) Storm of the Scarab.  Got the jump, too.
+		//TODO:  also, when does the choice adventure re-appear, if we get beaten up by the boss?
+		buffMaintain($effect[Power of Heka], 0, 1, 1);
+		if (ed_smoochQuestToday()) {
+			ed_selectSmoochDoor();
+		} else {
+			set_property("choiceAdventure1094", "5");
+		}
+		maximize("mys", 1, 0, false);
+		change_mcd(0);
+	}
+	ccAdv(1, $location[The SMOOCH Army HQ]);
+	return true;
+}
+
+boolean ed_LX_smoochQuest() {
+	if (!ed_smoochQuestToday()) return false;
+	if (51 < ed_smoochTurnsToday()) return false;
+	if (!ed_smoochQuestAvailable()) return false;
+	if (1 < my_daycount()) ed_use_servant($servant[scribe]);  //TODO:  this is currently overridden by the ed_handleAdventureServant logic.
+	if (!ed_LX_smooch()) return false;
+	if (ed_smoochQuestItemAvailable()) ed_turnInVolcanoQuestItem();
 	return true;
 }
 
@@ -2369,36 +2436,43 @@ boolean L1_edVacation(int dickstabOverride)
 
 boolean L1_edIslandFallback()
 {
+	// collect Ka wherever we can.
 	if(elementalPlanes_access($element[spooky]))
 	{
 		return false;
 	}
-	if (have_skill($skill[More Legs]) && 35 == my_spleen_use()) return false;
+	//if (have_skill($skill[More Legs]) && 35 == my_spleen_use()) return false;
+	if (35 == my_spleen_use() && 5 == fullness_limit() && 4 == inebriety_limit()) return false;
 	if((my_level() >= 10) || ((my_level() >= 7) && have_skill($skill[Still Another Extra Spleen])))
+		//TODO:  relax the above test?
 	{
 		float kaPerAdventure = 0.5;
-		int budget = item_amount($item[Ka coin]) + kaPerAdventure * (my_adventures() - 1);
+		int budget = item_amount($item[Ka coin]) + kaPerAdventure * (my_adventures() - 5);
 		if (45 <= budget) return false;
-			// with our current ka & adventures, we expect to buy (at least) the next
+			// with our current ka & adventures, we already expect to buy (at least) the next
 			// spleen, plus a haunch to fill it.
 		if (
 			my_spleen_use() + 5 <= spleen_limit()
 			&& (0 < item_amount($item[mummified beef haunch])
 				|| 15 <= budget)
 		) return false;
-			// with our current ka & adventures, we expect to chew at least one more haunch.
+			// with our current ka & adventures, we already expect to chew at least one more haunch.
 	}
 	if(elementalPlanes_access($element[stench]))
 	{
 		L1_edDinsey();
 	}
-	//TODO:  if (elementalPlanes_access($element[hot]))
+	int reodorantNeeded = ceil(
+		("finished" != get_property("questL08Trapper") ? 1.5 : 0)
+		+ ("none" == get_property("sidequestLighthouseCompleted") ? 1.5 : 0) );
+	//TODO:  reodorant only saves a few adventures, and doesn't drop much.  Make sure we aren't favoring it too strongly.
+	if (reodorantNeeded <= item_amount($item[reodorant]) && ed_LX_smooch()) return true;
 	//TODO:  also, if (elementalPlanes_access($element[sleaze]))
-	if(L1_LegDay())
-	{
-		return true;
-	}
-	return false;
+	if (ed_LX_islandAccess()) return true;
+	if (ed_LX_legDay()) return true;
+	print("We need to gather Ka, but we don't have island access.", "red");
+	ccAdv(1, $location[the sleazy back alley]);
+	return true;
 }
 
 boolean L6_friarsGetParts()
@@ -2747,7 +2821,7 @@ boolean L4_batCave()
 	return true;
 }
 
-boolean LX_islandAccess()
+boolean ed_LX_islandAccess()
 {
 	if (
 		item_amount($item[Dingy Dinghy]) == 0
@@ -4666,12 +4740,18 @@ boolean doTasks()
 		return true;
 	}
 
-	if(L1_edVacation(0) || L1_edIslandFallback())
+	if(L1_edVacation(0))
 	{
 		return true;
 	}
 
-	if(LX_islandAccess())
+	if (ed_LX_islandAccess()) return true;
+
+	ed_hermitClovers();
+
+	if (ed_LX_smoochQuest()) return true;
+
+	if(L1_edIslandFallback())
 	{
 		return true;
 	}
