@@ -361,7 +361,7 @@ boolean ed_opponentHasDesiredItem(monster o) {
 		Amulet of Extreme Plot Significance,
 		serpentine sword,
 		snake shield,
-		A-Boo clue
+		reodorant
 	];
 	boolean[item] desiredItems;
 	foreach i in desiredItemsStatic desiredItems[i] = true;
@@ -372,6 +372,12 @@ boolean ed_opponentHasDesiredItem(monster o) {
 			return true;
 		}
 	}
+	if ($monster[dairy goat] == o && item_amount($item[goat cheese]) < 3) return true;
+	if (
+		$location[A-Boo Peak] == my_location()
+		&& item_amount($item[A-Boo clue]) * 30 < to_int(get_property("booPeakProgress")) - 4
+			// (that's -4, because it takes one turn to aquire the clue, and one turn to use it)
+	) return true;
 	return false;
 }
 boolean ed_opponentHasDesiredItem() { return ed_opponentHasDesiredItem(last_monster()); }
