@@ -1165,7 +1165,7 @@ string ed_edCombatHandler(int round, string opp, string text)
  	if (
 		expected_damage() * 1.25 >= my_hp() && (
 			1 < combatStage
-			|| contains_text(edCombatState, "talismanofrenenutet")
+			|| contains_text(combatState, "talismanofrenenutet")
 			//TODO:  are there other reasons not to die?
 		)
 	) {
