@@ -136,7 +136,7 @@ void handlePreAdventure()
 		{
 			buffMaintain($effect[Purr of the Feline], 10, 1, 5);
 		}
-		if((my_servant() == $servant[Belly-Dancer]) && ($servant[Belly-Dancer].experience < 196) && ($servant[Priest].experience > 80))
+		if((my_servant() == $servant[Belly-Dancer]) && ($servant[Belly-Dancer].experience < 196) && ($servant[Belly-Dancer].experience > 80))
 		{
 			buffMaintain($effect[Purr of the Feline], 10, 1, 5);
 		}
