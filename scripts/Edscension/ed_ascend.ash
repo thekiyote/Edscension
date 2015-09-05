@@ -1407,6 +1407,27 @@ boolean LX_handleSpookyravenFirstFloor()
 	return true;
 }
 
+void ed_configureOutInTheGarden() {
+	if (
+		(
+			!possessEquipment($item[serpentine sword]) && !possessEquipment($item[snake shield])
+			&& have_skill($skill[Wrath of Ra])
+			&& 0 == have_effect($effect[Everything Looks Yellow])
+		) || (
+			(!possessEquipment($item[serpentine sword]) || !possessEquipment($item[snake shield]))
+			&& have_skill($skill[Lash of the Cobra])
+			&& my_basestat($stat[SubMysticality]) < 20000
+		)
+	) {
+		//TODO:  are the conditions above likely to waste adventures fighting the knight, when we could be getting experience directly from the other non-combat?  20000 is quite likely too high, and the Ra branch should probably have an xp limit, too.
+		set_property("choiceAdventure89", "2");
+	}
+	else
+	{
+		set_property("choiceAdventure89", "6");
+	}
+}
+
 boolean LX_spookyravenSecond()
 {
 	if(get_property("ed_spookyravensecond") == "finished")
@@ -1463,14 +1484,7 @@ boolean LX_spookyravenSecond()
 	set_property("choiceAdventure877", "1");
 	set_property("choiceAdventure879", "1");
 	set_property("choiceAdventure876", "2");
-	if(!possessEquipment($item[serpentine sword]) && !possessEquipment($item[snake shield]))
-	{
-		set_property("choiceAdventure89", "2");
-	}
-	else
-	{
-		set_property("choiceAdventure89", "6");
-	}
+	ed_configureOutInTheGarden();
 
 	if(get_property("ed_ballroomopen") == "open")
 	{
@@ -4485,7 +4499,7 @@ boolean ed_LX_xp() {
 			use(1, $item[disassembled clover]);
 			visit_url("adventure.php?snarfblat=392&confirm=on");  // The Haunted Bathroom
 			if (contains_text(visit_url("main.php"), "Combat")) {
-				ccAdv(0, $location[The Haunted Bathroom]);
+				ccAdv(1, $location[The Haunted Bathroom]);
 			}
 			use(item_amount($item[ten-leaf clover]), $item[ten-leaf clover]);
 			return true;
@@ -4494,19 +4508,17 @@ boolean ed_LX_xp() {
 		set_property("ed_galleryFarm", TRUE);
 		maximize("exp, -combat", 0, 0, false);
 		set_property("louvreDesiredGoal", "5");
-		if(!possessEquipment($item[serpentine sword]) || !possessEquipment($item[snake shield]))
-		{
-			set_property("choiceAdventure89", "2");
-		}
-		else
-		{
-			set_property("choiceAdventure89", "6");
-		}
+		ed_configureOutInTheGarden();
+		buffMaintain($effect[Shelter of Shed], 0, 1, 1);
+		if (
+			-20.0 <= numeric_modifier("Combat Rate")
+			&& !to_boolean(get_property("_olympicSwimmingPool"))
+		) cli_execute("swim sprints");
+		//buffMaintain($effect[Thaumodynamic], 0, 1, 1);
+		if (!to_boolean(get_property("_aprilShower"))) cli_execute("shower lukewarm");
 		ccAdv(1, $location[The Haunted Gallery]);
 		return true;
-	}
-	else if((my_level() > 9) && (get_property("ed_castlebasement") == "finished"))
-	{
+	} else if((my_level() > 9) && (get_property("ed_castlebasement") == "finished")) {
 		maximize("exp, -combat", 0, 0, false);
 		set_property("choiceAdventure669", "1");
 		set_property("choiceAdventure670", "4");
