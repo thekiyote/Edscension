@@ -124,21 +124,25 @@ void handlePreAdventure()
 		{
 			buffMaintain($effect[Bounty of Renenutet], 20, 1, 5);
 		}
-		if((my_servant() == $servant[Priest]) && ($servant[Priest].experience < 196) && ($servant[Priest].experience > 80))
-		{
-			buffMaintain($effect[Purr of the Feline], 10, 1, 5);
-		}
-		if(my_servant() == $servant[Cat])
-		{
-			buffMaintain($effect[Purr of the Feline], 10, 1, 5);
-		}
-		if(my_servant() == $servant[Scribe])
-		{
-			buffMaintain($effect[Purr of the Feline], 10, 1, 5);
-		}
-		if((my_servant() == $servant[Belly-Dancer]) && ($servant[Belly-Dancer].experience < 196) && ($servant[Belly-Dancer].experience > 80))
-		{
-			buffMaintain($effect[Purr of the Feline], 10, 1, 5);
+		if (
+			600 < my_meat()
+		) {
+			if((my_servant() == $servant[Priest]) && ($servant[Priest].experience < 196) && ($servant[Priest].experience > 80))
+			{
+				buffMaintain($effect[Purr of the Feline], 10, 1, 5);
+			}
+			if(my_servant() == $servant[Cat])
+			{
+				buffMaintain($effect[Purr of the Feline], 10, 1, 5);
+			}
+			if(my_servant() == $servant[Scribe])
+			{
+				buffMaintain($effect[Purr of the Feline], 10, 1, 5);
+			}
+			if((my_servant() == $servant[Belly-Dancer]) && ($servant[Belly-Dancer].experience < 196) && ($servant[Belly-Dancer].experience > 80))
+			{
+				buffMaintain($effect[Purr of the Feline], 10, 1, 5);
+			}
 		}
 		if (
 			!($locations[
