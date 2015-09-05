@@ -2,12 +2,17 @@
 
 				Edscension
 By: chown (a.k.a. wmarkham), who forked it from one:
-By: Zen00, a fork of the Cheeseascend (now deprecated)
-script by Cheesecookie ( http://sourceforge.net/p/cheeseascend/svn/HEAD/tree/ )
+By: Zen00, a fork of the Cheeseascend
+script by Cheesecookie
+( http://sourceforge.net/p/cheeseascend/svn/HEAD/tree/ )
+
 Written to more fully define and explore the Actually Ed
 the Undying functionalities of said script, and as a skill
 stretching project for Zen00 before attempting an independent
 ascension script for a future Kingdom of Loathing ascension path.
+
+Changes by chown are focused on fixing bugs, improving support for
+low-skill ascensions, and adding a few other assorted features.
 
 see http://github.com/wmarkham/Edscension for changelogs, etc.
 
@@ -24,7 +29,7 @@ import <ed_elementalPlanes.ash>
 
 boolean LX_chateauDailyPainting();
 boolean LX_handleSpookyravenFirstFloor();
-boolean LX_islandAccess();
+boolean ed_LX_islandAccess();
 boolean LX_pirateOutfit();
 boolean LX_pirateInsults();
 boolean LX_pirateBlueprint();
@@ -88,16 +93,17 @@ void ed_replacePublicSettings() {
 		set_property("ed_oldAfterAdventureScript", get_property("afterAdventureScript"));
 		set_property("ed_oldCounterScript", get_property("counterScript"));
 		set_property("ed_settingsReplaced", "true");
-		set_property("afterAdventureScript", "ed_postadventure.ash");  //TODO:  does it do anything useful?  Can I just remove it?
-		set_property("counterScript", "");
 	} else {
 		if (
 			get_property("afterAdventureScript") != "ed_postadventure.ash"
 			|| get_property("counterScript") != ""
 		) {
-			abort("Inconsistent automation script settings for running ed_ascend.ash");
+			print("Inconsistent automation script settings for running ed_ascend.ash.  afterAdventureScript and counterScript will be overwritten.", "red");
 		}
 	}
+	set_property("afterAdventureScript", "ed_postadventure.ash");
+		//TODO:  does it do anything useful?  Can I just remove it?
+	set_property("counterScript", "");
 }
 
 void ed_restorePublicSettings() {
@@ -115,10 +121,6 @@ void initializeSettings()
 	{
 		return;
 	}
-	//set_property("chasmBridgeProgress", 0);
-	//set_property("writingDesksDefeated", "0");
-	set_property("delayToDayFour", "");  //FIXME:  remove this!
-	set_property("doNunsRegardless", "");  //FIXME:  remove this!
 	set_property("ed_delayToDayFour", FALSE);
 	set_property("ed_doNunsRegardless", FALSE);
 	set_property("ed_abooclover", "");
@@ -216,6 +218,8 @@ void initializeSettings()
 	set_property("ed_yellowRay_day3", "");
 	set_property("ed_yellowRay_day4", "");
 	set_property("ed_yellowRays", "");
+	set_property("ed_dayOfSmoochAdventureCount", "");
+	set_property("ed_smoochAdventureCount", "");
 	
 	elementalPlanes_initializeSettings();
 	eudora_initializeSettings();
@@ -224,7 +228,10 @@ void initializeSettings()
 }
 
 void ed_resumeCombat() {
-	ed_ccAdv(min(1, 2-to_int(get_property("_edDefeats"))), my_location(), "", true);
+	int defeatQuota = 2;  //TODO:  allow more for gremlins, sonofa, bosses
+	defeatQuota -= to_int(get_property("_edDefeats"));
+	defeatQuota = max(0, defeatQuota);
+	ed_ccAdv(1 + defeatQuota, my_location(), "", true);
 }
 
 boolean ed_ccAdv(int num, location loc, string option)
@@ -431,6 +438,8 @@ boolean doThemtharHills(boolean trickMode)
 	}
 	buffMaintain($effect[Sinuses For Miles], 0, 1, 1);
 	buffMaintain($effect[Big Meat Big Prizes], 0, 1, 1);
+	//TODO:  Dances with Tweedles
+	maximize("meat drop, exp, -hat, -pants, -acc3", 1, 0, false);
 
 	if(fightCopy)
 	{
@@ -538,55 +547,67 @@ void handleMCD()
 
 void sellStuff()
 {
-	autosell(item_amount($item[dense meat stack]), $item[dense meat stack]);
-	autosell(item_amount($item[fancy bath salts]), $item[fancy bath salts]);
-	autosell(item_amount($item[empty Cloaca-Cola bottle]), $item[empty Cloaca-Cola bottle]);
-	autosell(item_amount($item[headhunter necktie]), $item[headhunter necktie]);
-	autosell(item_amount($item[keel-haulin' knife]), $item[keel-haulin' knife]);
-	autosell(item_amount($item[drab sonata]), $item[drab sonata]);
-	autosell(item_amount($item[photoprotoneutron torpedo]), $item[photoprotoneutron torpedo]);
-	autosell(item_amount($item[procrastination potion]), $item[procrastination potion]);
-	autosell(item_amount($item[awful poetry journal]), $item[awful poetry journal]);
-	autosell(item_amount($item[leather chaps]), $item[leather chaps]);
-	autosell(item_amount($item[mesh cap]), $item[mesh cap]);
-	autosell(item_amount($item[disturbing fanfic]), $item[disturbing fanfic]);
-	autosell(item_amount($item[carob chunks]), $item[carob chunks]);
-	autosell(item_amount($item[herbs]), $item[herbs]);
-	autosell(item_amount($item[imp ale]), $item[imp ale]);
-	autosell(item_amount($item[ratgut]), $item[ratgut]);
+	if (10000 < my_meat()) return;
+	foreach i in $items[
+		dense meat stack,
+		fancy bath salts,
+		empty Cloaca-Cola bottle,
+		headhunter necktie,
+		keel-haulin' knife,
+		drab sonata,
+		photoprotoneutron torpedo,
+		procrastination potion,
+		awful poetry journal,
+		leather chaps,
+		mesh cap,
+		disturbing fanfic,
+		carob chunks,
+		herbs,
+		imp ale,
+		ratgut,
+		loose teeth,
+		skeleton bone,
+		cocoa eggshell fragment,
+		lihc eye,
+		batgut,
+		patchouli incense stick,
+		broken sword,
+		dire fudgesicle,
+		frigid ninja stars,
+		tambourine bells,
+		beach glass bead,
+		clay peace-sign bead,
+		hippy bongo,
+		windchimes,
+		phat turquoise bead,
+		filthy pestle,
+		decorative fountain,
+		ice-cold Willer,
+		moxie weed,
+		strongness elixir,
+		leather mask,
+		flaming crutch,
+		Feng Shui for Big Dumb Idiots,
+		enchanted bean,
+		spooky shrunken head,
+		hot katana blade,
+		sunken chest,
+		flaregun,
+		wussiness potion,
+		knob goblin scimitar,
+		knob goblin tongs,
+		bowl of cottage cheese,
+		heat-resistant sheet metal,
+		anticheese
+	] {
+		autosell(item_amount(i), i);
+	}
+
 	autosell(item_amount($item[hemp string]) - 1, $item[hemp string]);
-	autosell(item_amount($item[loose teeth]), $item[loose teeth]);
-	autosell(item_amount($item[skeleton bone]), $item[skeleton bone]);
-	autosell(item_amount($item[cocoa eggshell fragment]), $item[cocoa eggshell fragment]);
-	autosell(item_amount($item[lihc eye]), $item[lihc eye]);
-	autosell(item_amount($item[batgut]), $item[batgut]);
-	autosell(item_amount($item[patchouli incense stick]), $item[patchouli incense stick]);
-	autosell(item_amount($item[broken sword]), $item[broken sword]);
-	autosell(item_amount($item[dire fudgesicle]), $item[dire fudgesicle]);
-	autosell(item_amount($item[frigid ninja stars]), $item[frigid ninja stars]);
-	autosell(item_amount($item[tambourine bells]), $item[tambourine bells]);
-	autosell(item_amount($item[beach glass bead]), $item[beach glass bead]);
-	autosell(item_amount($item[clay peace-sign bead]), $item[clay peace-sign bead]);
-	autosell(item_amount($item[hippy bongo]), $item[hippy bongo]);
-	autosell(item_amount($item[windchimes]), $item[windchimes]);
-	autosell(item_amount($item[phat turquoise bead]), $item[phat turquoise bead]);
-	autosell(item_amount($item[filthy pestle]), $item[filthy pestle]);
-	autosell(item_amount($item[decorative fountain]), $item[decorative fountain]);
 	autosell(item_amount($item[filthy knitted dread sack]) - 1, $item[filthy knitted dread sack]);
 	autosell(item_amount($item[filthy corduroys]) - 1, $item[filthy corduroys]);
 	autosell(item_amount($item[hot wing]) - 3, $item[hot wing]);
-	autosell(item_amount($item[ice-cold Willer]), $item[ice-cold Willer]);
-	autosell(item_amount($item[moxie weed]), $item[moxie weed]);
-	autosell(item_amount($item[strongness elixir]), $item[strongness elixir]);
-	autosell(item_amount($item[leather mask]), $item[leather mask]);
-	autosell(item_amount($item[flaming crutch]), $item[flaming crutch]);
-	autosell(item_amount($item[Feng Shui for Big Dumb Idiots]), $item[Feng Shui for Big Dumb Idiots]);
-	autosell(item_amount($item[enchanted bean]), $item[enchanted bean]);
-	autosell(item_amount($item[spooky shrunken head]), $item[spooky shrunken head]);
-	autosell(item_amount($item[hot katana blade]), $item[hot katana blade]);
-	autosell(item_amount($item[sunken chest]), $item[sunken chest]);
-	autosell(item_amount($item[flaregun]), $item[flaregun]);
-	autosell(item_amount($item[wussiness potion]), $item[wussiness potion]);
+	autosell(item_amount($item[Mad Train wine]) - 1, $item[Mad Train wine]);
 }
 
 void initializeDay(int day)
@@ -595,12 +616,11 @@ void initializeDay(int day)
 	{
 		visit_url("place.php?whichplace=chateau&action=chateau_desk");
 	}
-	
 	ed_initializeDay(day);
 }
 
 boolean ed_hermitClovers() {
-	if((my_meat() > 500))
+	if((my_meat() > 1500))
 	{
 		buyUpTo(1, $item[Hermit Permit]);
 		cli_execute("hermit * clover");
@@ -1053,6 +1073,7 @@ boolean L11_hiddenCityZones()
 			set_property("choiceAdventure787", "1");
 			set_property("ed_hiddenzones", "finished");
 		}
+		maximize("exp", 1, 0, false);
 		return true;
 	}
 	return false;
@@ -1351,6 +1372,7 @@ boolean LX_handleSpookyravenFirstFloor()
 			print("Not quite boozed up for the billiards room... we'll be back.", "green");
 			return false;
 		}
+		if (0 < numeric_modifier("combat rate")) return false;
 		set_property("choiceAdventure875" , "1");
 		buffMaintain($effect[Chalky Hand], 0, 1, 1);
 		if(item_amount($item[7964]) > 0)
@@ -1388,6 +1410,27 @@ boolean LX_handleSpookyravenFirstFloor()
 	}
 	
 	return true;
+}
+
+void ed_configureOutInTheGarden() {
+	if (
+		(
+			!possessEquipment($item[serpentine sword]) && !possessEquipment($item[snake shield])
+			&& have_skill($skill[Wrath of Ra])
+			&& 0 == have_effect($effect[Everything Looks Yellow])
+		) || (
+			(!possessEquipment($item[serpentine sword]) || !possessEquipment($item[snake shield]))
+			&& have_skill($skill[Lash of the Cobra])
+			&& my_basestat($stat[SubMysticality]) < 20000
+		)
+	) {
+		//TODO:  are the conditions above likely to waste adventures fighting the knight, when we could be getting experience directly from the other non-combat?  20000 is quite likely too high, and the Ra branch should probably have an xp limit, too.
+		set_property("choiceAdventure89", "2");
+	}
+	else
+	{
+		set_property("choiceAdventure89", "6");
+	}
 }
 
 boolean LX_spookyravenSecond()
@@ -1446,14 +1489,7 @@ boolean LX_spookyravenSecond()
 	set_property("choiceAdventure877", "1");
 	set_property("choiceAdventure879", "1");
 	set_property("choiceAdventure876", "2");
-	if(!possessEquipment($item[serpentine sword]) && !possessEquipment($item[snake shield]))
-	{
-		set_property("choiceAdventure89", "2");
-	}
-	else
-	{
-		set_property("choiceAdventure89", "6");
-	}
+	ed_configureOutInTheGarden();
 
 	if(get_property("ed_ballroomopen") == "open")
 	{
@@ -1550,7 +1586,7 @@ boolean L11_mauriceSpookyraven()
 		if(!ccAdv(1, $location[The Haunted Ballroom]))
 		{
 			visit_url("place.php?whichplace=manor2");
-			print("If 'That Area is not available', mafia isn't recognizing it without a visit to manor2, not sure why.", "red");
+			//print("If 'That Area is not available', mafia isn't recognizing it without a visit to manor2, not sure why.", "red");
 		}
 		if(contains_text(get_property("lastEncounter"), "We\'ll All Be Flat"))
 		{
@@ -1714,6 +1750,7 @@ boolean L12_gremlins()
 	#Put a different shield in here.
 	print("Doing them gremlins", "blue");
 	
+	set_property("edDefeatAbort", "5");
 	if(item_amount($item[molybdenum hammer]) == 0)
 	{
 		ccAdv(1, $location[Next to that barrel with something burning in it], "ccsJunkyard");
@@ -1785,14 +1822,26 @@ boolean L12_sonofaBeach()
 		set_property("ed_doCombatCopy", "yes");
 	}
 
-	ccAdv(1, $location[Sonofa Beach]);
-	set_property("ed_doCombatCopy", "no");
-
-	if(my_hp() == 0)
-	{
-		use(1, $item[Linen Bandages]);
+	//TODO:  is ed_preadventure supposed to take care of these?
+	buffMaintain($effect[Hippy Stench], 0, 1, 1);
+	if (0 == have_effect($effect[taunt of horus]) && 0 < item_amount($item[talisman of horus])) {
+		use(1, $item[talisman of Horus]);
 	}
-	return true;
+
+	try {
+		set_property("autoAbortThreshold", "-0.05");
+		//set_property("hpAutoRecovery", "-0.05");
+		ccAdv(1, $location[Sonofa Beach]);
+	} finally {
+		//TODO:  does the autoAbortThreshold setting above prevent any auto-stops here?
+		set_property("ed_doCombatCopy", "no");
+
+		if(my_hp() == 0)
+		{
+			use(1, $item[Linen Bandages]);
+		}
+		return true;
+	}
 }
 
 boolean L12_filthworms()
@@ -1896,17 +1945,17 @@ boolean L10_topFloor()
 	}
 	set_property("choiceAdventure676", 3);
 	set_property("choiceAdventure678", 4);
+	string extra;
 	if((item_amount($item[Mohawk Wig]) > 0))
 	{
-		if(my_basestat($stat[muscle]) < 55)
-			return false;
-		equip($item[mohawk wig]);
+		if(my_basestat($stat[Moxie]) < 55) return false;
+		extra = ", equip mohawk wig";
 		set_property("choiceAdventure676", 4);
 		set_property("choiceAdventure678", 1);
 	}
 
 	print("Castle Top Floor", "blue");
-	maximize("exp, -combat", 0, 0, false);
+	maximize("exp, -combat" + extra, 0, 0, false);
 	set_property("choiceAdventure675", 3);
 	if((item_amount($item[drum 'n' bass 'n' drum 'n' bass record]) > 0))
 	{
@@ -2076,8 +2125,8 @@ boolean L7_crypt()
 	}
 
 	boolean noTauntActive = 0 == have_effect($effect[Taunt of Horus]) && 0 == have_effect($effect[Hippy Stench]);
-	buffMaintain($effect[Browbeaten], 0, 1, 1);
-	buffMaintain($effect[Rosewater Mark], 0, 1, 1);
+	//buffMaintain($effect[Browbeaten], 0, 1, 1);
+	buffMaintain($effect[Rosewater Mark], 0, 1, 1);  //TODO:  ?
 	if (
 		(get_property("cyrptAlcoveEvilness").to_int() > 26)
 		&& have_skill($skill[More Legs])
@@ -2086,8 +2135,10 @@ boolean L7_crypt()
 	)
 	{
 		print("The Alcove! (" + initiative_modifier() + ") init.", "blue");
+		buyUpTo(1, $item[third-hand lantern]);
 		maximize("initiative, 0.25 exp, -combat", 0, 0, false);
 		//TODO:  Shelter of Shed?  I guess preadventure does that?  does it?
+		//TODO:  Hustlin'
 		buyUpTo(1, $item[Ben-Gal&trade; Balm]);
 		buffMaintain($effect[Go Get \'Em\, Tiger!], 0, 1, 1);
 		buyUpTo(1, $item[Hair Spray]);
@@ -2108,8 +2159,9 @@ boolean L7_crypt()
 		return true;
 	}
 
-	if(get_property("cyrptNookEvilness").to_int() > 0)
-	{
+	if (
+		0 < get_property("cyrptNookEvilness").to_int()
+	) {
 		print("The Nook!", "blue");
 		ccAdv(1, $location[The Defiled Nook]);
 		if(item_amount($item[evil eye]) > 0)
@@ -2132,15 +2184,18 @@ boolean L7_crypt()
 		print("The Cranny!", "blue");
 		maximize("ml, -combat", 0, 0, false);
 		set_property("choiceAdventure523", "4");
-		buyUpTo(1, $item[Ben-Gal&trade; Balm]);
-		buffMaintain($effect[Go Get \'Em\, Tiger!], 0, 1, 1);
-		buyUpTo(1, $item[Hair Spray]);
-		buffMaintain($effect[Butt-Rock Hair], 0, 1, 1);
+		//buyUpTo(1, $item[Ben-Gal&trade; Balm]);
+		//buffMaintain($effect[Go Get \'Em\, Tiger!], 0, 1, 1);
+		//buyUpTo(1, $item[Hair Spray]);
+		//buffMaintain($effect[Butt-Rock Hair], 0, 1, 1);
 		ccAdv(1, $location[The Defiled Cranny]);
 		
 		return true;
 	}
-	if (get_property("cyrptCrannyEvilness").to_int() > 0) {
+	if (
+		0 < get_property("cyrptCrannyEvilness").to_int()
+		&& get_property("cyrptCrannyEvilness").to_int() <= 26
+	) {
 		print("The Cranny boss! (okay, yeah, or maybe the last guy before him.)", "blue");
 		maximize("exp", 0, 0, false);
 		set_property("choiceAdventure523", "5");
@@ -2171,54 +2226,50 @@ boolean L7_crypt()
 	return false;
 }
 
-boolean L1_LegDay()
+boolean ed_LX_legDay()
 {
-	if (LX_islandAccess() && 0 == item_amount($item[Dingy Dinghy])) {
-		abort("You don't have a Dinghy you ding-head!");
+	if (0 == item_amount($item[Dingy Dinghy])) {
+		return false;
 	}
 	if(!have_skill($skill[Upgraded Legs]))
 	{
-		set_property("ed_legsbeforebread", "true");
+		set_property("ed_legsbeforebread", "true");  //TODO:  now that i'm working on smooch support, defer legs until after consumption organs?
 	}
 
-	//This should allow us to pick up the semi-rare in the Outskirts for some low level food/drink
-	if(get_counters("Semirare window end", 0, 10) == "Semirare window end")
-	{
-		if(L5_getEncryptionKey())
-		{
-			return true;
-		}
-	}
-
-	//TODO:  I'm a bit curious to know what happens if we have 10 Ka and no Upgraded Legs....
 	if(item_amount($item[Ka Coin]) < 10 && !have_skill($skill[Upgraded Legs]))
 	{
 		if(jump_chance($monster[Rushing Bum]) < 70 && my_maxhp() < 30)
 		{
 			change_mcd(3);
 		}
-		
-		print("Getting extra ka.", "blue");
+
+		print("Getting ka to upgrade legs.", "blue");
 		ccAdv(1, $location[the sleazy back alley]);
 		return true;
 	}
 
-	if(have_skill($skill[Upgraded Legs]))
-	{
-		print("Doing leg-day.", "blue");
-		maximize("exp, -equip filthy knitted dread sack", 0, 0, false);
+	print("Doing leg-day.", "blue");
 
+	string extra;
+	if (jump_chance($monster[filthy hippy]) < 50) {
+		change_mcd(0);  //TODO:  does it make a difference?
+		extra = ", init";
+		buyUpTo(1, $item[third-hand lantern]);
+		//TODO:  Hustlin'?
+	} else {
 		handleMCD();  //TODO: (isn't that the default?)
-		buffMaintain($effect[Wisdom of Thoth], 15, 1, 10);
-		//buffMaintain($effect[Power of Heka], 15, 1, 10);
-			// note that once we have wisdom of thoth, we defeat them with a single spell, crit or otherwise.
-		buffMaintain($effect[Bounty of Renenutet], 35, 1, 10);
-		buffMaintain($effect[Blessing of Serqet], 25, 1, 1);
-		ccAdv(1, $location[Hippy Camp]);
-		return true;
 	}
-	
-	return false;
+	maximize("exp, -equip filthy knitted dread sack" + extra, min(my_meat(), 100), 1, false);
+
+	buffMaintain($effect[Wisdom of Thoth], 15, 1, 1);
+	//buffMaintain($effect[Power of Heka], 15, 1, 1);
+	// note that once we have wisdom of thoth, we defeat them with a single spell, crit or otherwise.  (is that really true?  even at low mys & no +damage astral item?  What if we have, say, Lapdog in effect?)
+	buffMaintain($effect[Bounty of Renenutet], 35, 1, 1);
+	if (300 < my_meat()) buffMaintain($effect[Blessing of Serqet], 30, 1, 1);
+	if (600 < my_meat()) buffMaintain($effect[Purr of the Feline], 25, 1, 1);
+	set_property("edDefeatAbort", "3");
+	ccAdv(1, $location[Hippy Camp]);
+	return true;
 }
 
 boolean L1_edDinsey()
@@ -2240,6 +2291,72 @@ boolean L1_edDinsey()
 		return false;
 	}
 	ccAdv(1, $location[Pirates of the Garbage Barges]);
+	return true;
+}
+
+boolean ed_smoochQuestToday() {
+	if (to_boolean(get_property("ed_smoochQuestDay" + my_daycount()))) return true;
+	if (to_boolean(get_property("ed_smoochQuestEveryDay"))) return true;
+	return false;
+}
+
+int ed_smoochTurnsToday() {
+	if ("" == get_property("ed_dayOfSmoochAdventureCount")) return 0;
+	if (my_daycount() != to_int(get_property("ed_dayOfSmoochAdventureCount"))) return 0;
+	return $location[The SMOOCH Army HQ].turns_spent
+		- to_int(get_property("ed_smoochAdventureCount"));
+}
+
+boolean ed_LX_smooch()
+{
+	// collect Ka and/or complete a quest at the SMOOCH Army HQ.
+	if (!elementalPlanes_access($element[hot])) {
+		return false;
+	}
+	maximize("exp, 0.5 mys", 1, 0, false);
+	if (ed_smoochTurnsToday() < 40 || 50 < ed_smoochTurnsToday() || !ed_smoochQuestToday()) {
+		//  this should avoid Serqet for bosses.
+		buffMaintain($effect[Blessing of Serqet], 0, 1, 1);
+	}
+	buffMaintain($effect[Bounty of Renenutet], 0, 1, 1);
+	buffMaintain($effect[Purr of the Feline], 0, 1, 1);
+	//TODO:  Is Purr of the Feline automatically maintained, when appropriate?  (Yes, I believe so.)
+	buffMaintain($effect[Glittering Eyelashes], 0, 1, 1);
+	if (10000 < my_meat()) buffMaintain($effect[Erudite], 0, 1, 1);
+	if (0 < item_amount($item[CSA bravery badge])) cli_execute("use CSA bravery badge");
+	if (0 == ed_smoochTurnsToday()) {
+		set_property("ed_dayOfSmoochAdventureCount", my_daycount());
+		set_property("ed_smoochAdventureCount", $location[The SMOOCH Army HQ].turns_spent);
+
+		//buffMaintain($effect[Lapdog], 0, 1, 1);
+		if (!to_boolean(get_property("_olympicSwimmingPool"))) cli_execute("swim laps");
+		//buffMaintain($effect[Thaumodynamic], 0, 1, 1);
+		if (!to_boolean(get_property("_aprilShower"))) cli_execute("shower lukewarm");
+	}
+	if (50 == ed_smoochTurnsToday()) {
+		//TODO:  is there a reasonable strategy to beat the bosses?  current ed_combat.ash cast an ineffective Curse of Indecision....  But I think that without the +ML, it may be a reasonable fight.  I think the only times I've beaten one of them involved a good deal of luck.  More Legs?  DR/DA upgrades?
+		//       Yes, with 0 ML, Pener fell to a single (albeit critical) Storm of the Scarab.  Got the jump, too.
+		//TODO:  also, when does the choice adventure re-appear, if we get beaten up by the boss?
+		buffMaintain($effect[Power of Heka], 0, 1, 1);
+		if (ed_smoochQuestToday()) {
+			ed_selectSmoochDoor();
+		} else {
+			set_property("choiceAdventure1094", "5");
+		}
+		maximize("mys", 1, 0, false);
+		change_mcd(0);
+	}
+	ccAdv(1, $location[The SMOOCH Army HQ]);
+	return true;
+}
+
+boolean ed_LX_smoochQuest() {
+	if (!ed_smoochQuestToday()) return false;
+	if (51 < ed_smoochTurnsToday()) return false;
+	if (!ed_smoochQuestAvailable()) return false;
+	if (1 < my_daycount()) ed_use_servant($servant[scribe]);  //TODO:  this is currently overridden by the ed_handleAdventureServant logic.
+	if (!ed_LX_smooch()) return false;
+	if (ed_smoochQuestItemAvailable()) ed_turnInVolcanoQuestItem();
 	return true;
 }
 
@@ -2319,36 +2436,43 @@ boolean L1_edVacation(int dickstabOverride)
 
 boolean L1_edIslandFallback()
 {
+	// collect Ka wherever we can.
 	if(elementalPlanes_access($element[spooky]))
 	{
 		return false;
 	}
-	if (have_skill($skill[More Legs]) && 35 == my_spleen_use()) return false;
+	//if (have_skill($skill[More Legs]) && 35 == my_spleen_use()) return false;
+	if (35 == my_spleen_use() && 5 == fullness_limit() && 4 == inebriety_limit()) return false;
 	if((my_level() >= 10) || ((my_level() >= 7) && have_skill($skill[Still Another Extra Spleen])))
+		//TODO:  relax the above test?
 	{
 		float kaPerAdventure = 0.5;
-		int budget = item_amount($item[Ka coin]) + kaPerAdventure * (my_adventures() - 1);
+		int budget = item_amount($item[Ka coin]) + kaPerAdventure * (my_adventures() - 5);
 		if (45 <= budget) return false;
-			// with our current ka & adventures, we expect to buy (at least) the next
+			// with our current ka & adventures, we already expect to buy (at least) the next
 			// spleen, plus a haunch to fill it.
 		if (
 			my_spleen_use() + 5 <= spleen_limit()
 			&& (0 < item_amount($item[mummified beef haunch])
 				|| 15 <= budget)
 		) return false;
-			// with our current ka & adventures, we expect to chew at least one more haunch.
+			// with our current ka & adventures, we already expect to chew at least one more haunch.
 	}
 	if(elementalPlanes_access($element[stench]))
 	{
 		L1_edDinsey();
 	}
-	//TODO:  if (elementalPlanes_access($element[hot]))
+	int reodorantNeeded = ceil(
+		("finished" != get_property("questL08Trapper") ? 1.5 : 0)
+		+ ("none" == get_property("sidequestLighthouseCompleted") ? 1.5 : 0) );
+	//TODO:  reodorant only saves a few adventures, and doesn't drop much.  Make sure we aren't favoring it too strongly.
+	if (reodorantNeeded <= item_amount($item[reodorant]) && ed_LX_smooch()) return true;
 	//TODO:  also, if (elementalPlanes_access($element[sleaze]))
-	if(L1_LegDay())
-	{
-		return true;
-	}
-	return false;
+	if (ed_LX_islandAccess()) return true;
+	if (ed_LX_legDay()) return true;
+	print("We need to gather Ka, but we don't have island access.", "red");
+	ccAdv(1, $location[the sleazy back alley]);
+	return true;
 }
 
 boolean L6_friarsGetParts()
@@ -2447,31 +2571,37 @@ boolean L8_trapperYeti()
 			print("We don't want Shelter of Shed for ninja snowmen.  Delaying...", "blue");
 			return false;
 		}
-		if (0 < have_effect($effect[Blessing of Serqet])) {
-			effectRemovalItems -= 1;
-		}
-		if (effectRemovalItems <= 0) return false;
 
-		if(possessEquipment($item[The Crown of Ed the Undying]))
+		buffMaintain($effect[Hide of Sobek], 0, 1, 1);
+		buyUpTo(1, $item[hair spray]);
+		buffMaintain($effect[Butt-Rock Hair], 0, 1, 1);
+		buyUpTo(1, $item[Ben-Gal&trade; Balm]);
+		buffMaintain($effect[Go Get \'Em\, Tiger!], 0, 1, 1);
+
+		if (possessEquipment($item[The Crown of Ed the Undying]))
 		{
 			adjustEdHat("weasel");
-		}
-		else if(jump_chance($monster[ninja snowman assassin]) < 70)
-		{
+			//TODO:  is that really the only preparation needed?  Have I inadvertently removed something?
+		} else if (
+			jump_chance($monster[ninja snowman assassin]) < 90
+			&& my_maxhp() <= ed_assassinDamage()
+		) {
+			if (0 < have_effect($effect[Blessing of Serqet]) && effectRemovalItems < 1) {
+				print("We don't want Blessing of Serqet for ninja snowmen, and can't remove it.  Delaying...", "blue");
+				return false;
+			}
 			maximize("-ml, 0.1 hp, cold res, init", 1, 0, false);
 			change_mcd(0);
 
-			if(jump_chance($monster[ninja snowman assassin]) < 70)
-			{
-				if(!uneffect($effect[Blessing of Serqet]))
-				{
+			if (jump_chance($monster[ninja snowman assassin]) < 70 && my_maxhp() <= ed_assassinDamage()) {
+				if (!uneffect($effect[Blessing of Serqet])) {
 					print("Could not uneffect Blessing of Serqet for ninja snowmen, delaying until you can survive an encounter...", "red");
 					handleMcd();
 					maximize("exp", 1, 0, false);
 					return false;
 				}
-				if (my_maxhp() < expected_damage($monster[ninja snowman assassin])) {
-					//FIXME:  it would have been nice to detect this before using up to two SGEAA items!
+				if (my_maxhp() < ed_assassinDamage()) {
+					//FIXME:  it would have been nice to detect this before using an SGEAA item!
 					print("Delaying snowmen until you can survive an encounter...", "red");
 					handleMcd();
 					maximize("exp", 1, 0, false);
@@ -2480,11 +2610,22 @@ boolean L8_trapperYeti()
 			}
 		}
 
-		if ((have_effect($effect[taunt of horus]) == 0) && (item_amount($item[talisman of horus]) == 0)) {
+		buffMaintain($effect[Well-Swabbed Ear], 0, 1, 1);
+		buffMaintain($effect[Sepia Tan], 0, 1, 1);
+		//TODO:
+		//buffMaintain($effect[Hustlin'], 0, 1, 1);
+		print("Anticipated assassin damage:  " + ed_assassinDamage(), "orange");
+		if (jump_chance($monster[ninja snowman assassin]) < 90 && my_maxhp() <= ed_assassinDamage()) {
+			print("Failed to prepare properly for ninja snowman assassins!", "red");
+abort("WHM testing");
+			return false;
+		}
+		buffMaintain($effect[Hippy Stench], 0, 1, 1);
+		if (0 == have_effect($effect[taunt of horus]) && 0 < item_amount($item[talisman of horus])) {
 			use(1, $item[talisman of Horus]);
 		}
-		buffMaintain($effect[Hide of Sobek], 10, 1, 1);
 		ccAdv(1, $location[Lair of the Ninja Snowmen]);
+		maximize("exp", 1, 0, false);
 		return true;
 	}
 	return false;
@@ -2569,8 +2710,8 @@ boolean L5_goblinKing()
 		return false;
 	}
 
-	print("Death to the gobbo!! If you want a specific drop, please reset your MCD now.", "blue");
-	wait(15);
+	//print("Death to the gobbo!! If you want a specific drop, please reset your MCD now.", "blue");
+	//wait(15);
 	cli_execute("outfit knob goblin harem girl disguise");
 	buffMaintain($effect[Knob Goblin Perfume], 0, 1, 1);
 	if(my_hp() > 5 && have_effect($effect[Knob Goblin Perfume]) == 0)
@@ -2697,7 +2838,7 @@ boolean L4_batCave()
 	return true;
 }
 
-boolean LX_islandAccess()
+boolean ed_LX_islandAccess()
 {
 	if (
 		item_amount($item[Dingy Dinghy]) == 0
@@ -2713,12 +2854,12 @@ boolean LX_islandAccess()
 	{
 		return false;
 	}
-	if((my_adventures() <= 9) || (my_meat() <= 1900))
+	if((my_adventures() <= 3) || (my_meat() <= 600))
 	{
-		print("You're a little short on time or cash to do this, come back once you've fixed this?", "red");
+		print("You should be going to the shore right now, but you're a little short on time or cash to do this.  We will try again later.", "red");
 		return false;
 	}
-	if(get_counters("Fortune Cookie", 0, 9) == "Fortune Cookie")
+	if(get_counters("Fortune Cookie", 0, 3) == "Fortune Cookie")
 	{
 		//Just check the Fortune Cookie counter not any others.
 		return false;
@@ -2728,20 +2869,18 @@ boolean LX_islandAccess()
 	maximize("mp", 0, 0, false);
 	buffMaintain($effect[Wisdom of Thoth], 0, 1, 4);
 	set_property("choiceAdventure793", "2");
-	while((item_amount($item[Shore Inc. Ship Trip Scrip]) < 3) && (my_meat() > 500))
+	int scripBefore = item_amount($item[Shore Inc. Ship Trip Scrip]);
+	if((item_amount($item[Shore Inc. Ship Trip Scrip]) < 3) && (my_meat() > 500))
 	{
 		set_property("ed_disableAdventureHandling", "yes");
 		ccAdv(1, $location[The Shore\, Inc. Travel Agency]);
 		set_property("ed_disableAdventureHandling", "no");
 	}
-	if(item_amount($item[Shore Inc. Ship Trip Scrip]) < 3)
+	if(item_amount($item[Shore Inc. Ship Trip Scrip]) == scripBefore)
 	{
-		print("Failed to get enough Shore Scrip for some reason, continuing...", "red");
+		print("Failed to get enough Shore Scrip for some reason.  Trying something else....", "red");
 		return false;
 	}
-	ed_acquire(1, $item[dinghy plans]);
-	ed_acquire(1, $item[dingy planks]);
-	use(1, $item[dinghy plans]);
 	ed_buySkills();
 	return true;
 }
@@ -2896,9 +3035,34 @@ boolean L5_getEncryptionKey()
 	{
 		set_property("ed_day1_cobb", "finished");
 		council();
-		handleMCD();
 	}
 	return true;
+}
+
+boolean LX_getLunchbox() {
+	if(get_counters("Semirare window end", 0, 10) == "Semirare window end") {
+		return L5_getEncryptionKey();
+	}
+	return false;
+}
+
+boolean ed_LX_lightsOut() {
+	if (get_counters("Spookyraven Lights Out", 0, 0) == "Spookyraven Lights Out") {
+		location l = to_location(get_property("nextSpookyravenStephenRoom"));
+		if ($location[The Haunted Laboratory] == l) l = to_location(get_property("nextSpookyravenElizabethRoom"));
+		if ($locations[none, The Haunted Gallery] contains l) return false;
+		string oldSetting = get_property("lightsOutAutomation");
+		set_property("lightsOutAutomation", "1");
+		try {
+			buffer page = visit_url(to_url(l) + "&confirm=on");
+			if (contains_text(page, "Combat")) abort("Spookyraven Lights Out quest automation failure!");
+			//ccAdv(0, l);
+			adv1(l, 0, "");
+		} finally {
+			set_property("lightsOutAutomation", oldSetting);
+		}
+	}
+	return false;
 }
 
 boolean L12_startWar()
@@ -3102,6 +3266,7 @@ boolean L9_aBooPeak()
 	// Allows you to grab the boo-clues you need before finishing off the peak, so you can get the xp from the ghosts you fight, etc.
 	if (to_int(get_property("booPeakProgress")) > 90)
 	{
+		//FIXME:  after the first 10 adventures, what if we still need more clovers/clues?
 		print("A-Boo Peak: " + get_property("booPeakProgress"), "blue");
 		maximize("item drop, 0.5 exp", 0, 0, false);
 		ccAdv(1, $location[A-Boo Peak]);
@@ -3124,17 +3289,41 @@ boolean L9_aBooPeak()
 			return false;
 		}
 
-		if(possessEquipment($item[The Crown of Ed the Undying]))
-		{
-			maximize("spooky res, cold res, equip The Crown of Ed the Undying", 0, 0, false);
-			adjustEdHat("bear");
-		} else
-		{
-			//TODO:  use speculation feature of maximizer
-			maximize("spooky res, cold res, 0.075 HP", 0, 0, false);
-		}
 		int coldResist = elemental_resist($element[cold]);
 		int spookyResist = elemental_resist($element[spooky]);
+		int expectedMaximumHp = my_maxhp();
+
+		foreach s in $slots[] {
+			coldResist -= numeric_modifier(equipped_item(s), "cold resistance");
+			spookyResist -= numeric_modifier(equipped_item(s), "spooky resistance");
+			expectedMaximumHp -= numeric_modifier(equipped_item(s), "Maximum HP");
+			expectedMaximumHp -= numeric_modifier(equipped_item(s), "Muscle");
+			expectedMaximumHp -= ceil(my_basestat($stat[Muscle]) * numeric_modifier(equipped_item(s), "Muscle Percent") / 100);
+		}
+
+		if(possessEquipment($item[The Crown of Ed the Undying]))
+		{
+			//maximize("spooky res, cold res, equip The Crown of Ed the Undying", 0, 0, false);
+			//adjustEdHat("bear");
+			foreach i,r in maximize("spooky res, cold res, equip The Crown of Ed the Undying", 0, 0, true, true) {
+				coldResist += numeric_modifier(r.item, "cold resistance");
+				spookyResist += numeric_modifier(r.item, "spooky resistance");
+				expectedMaximumHp += numeric_modifier(r.item, "Maximum HP");
+				expectedMaximumHp += numeric_modifier(r.item, "Muscle");
+				expectedMaximumHp += ceil(my_basestat($stat[Muscle]) * numeric_modifier(r.item, "Muscle Percent") / 100);
+			}
+			if (get_property("edPiece") != "bear") expectedMaximumHp += 20;
+		} else
+		{
+			//maximize("spooky res, cold res, 0.075 HP", 0, 0, false);
+			foreach i,r in maximize("spooky res, cold res, 0.075 HP", 0, 0, true, true) {
+				coldResist += numeric_modifier(r.item, "cold resistance");
+				spookyResist += numeric_modifier(r.item, "spooky resistance");
+				expectedMaximumHp += numeric_modifier(r.item, "Maximum HP");
+				expectedMaximumHp += numeric_modifier(r.item, "Muscle");
+				expectedMaximumHp += ceil(my_basestat($stat[Muscle]) * numeric_modifier(r.item, "Muscle Percent") / 100);
+			}
+		}
 
 		if(item_amount($item[Spooky Powder]) > 0 && 0 == have_effect($effect[Spookypants]))
 		{
@@ -3172,13 +3361,14 @@ boolean L9_aBooPeak()
 			coldResist = coldResist + 1;
 		}
 		
-		// Calculate how much boo peak damage does per unit resistance.
+		// Calculate how much boo peak damage does
+		//TODO:  use accurate calculation.  see expectedDamage calculation further down.
 		int estimatedCold = 5 + (13+25+50+125+250) * ((100.0 - elemental_resist_value(coldResist)) / 100.0);
 		int estimatedSpooky = 5 + (13+25+50+125+250) * ((100.0 - elemental_resist_value(spookyResist)) / 100.0);
-		print("Current HP: " + my_hp() + "/" + my_maxhp(), "orange");
+		print("Current HP/expected maximum: " + my_hp() + "/" + expectedMaximumHp, "orange");
 		print("Expected cold resistance level: " + coldResist + " Expected spooky resistance level: " + spookyResist, "orange");
 		print("Expected cold damage: " + estimatedCold + " Expected spooky damage: " + estimatedSpooky, "orange");
-		int totalDamage = estimatedCold + estimatedSpooky + 10;  // (+ 10 should allow for rounding errors)
+		int totalDamage = estimatedCold + estimatedSpooky;
 		if(my_turncount() == get_property("ed_lastABooConsider").to_int())
 		{
 			set_property("ed_lastABooCycleFix", get_property("ed_lastABooCycleFix").to_int() + 1);
@@ -3193,12 +3383,25 @@ boolean L9_aBooPeak()
 			set_property("ed_lastABooCycleFix", 0);
 		}
 
-		boolean doThisBoo = true;
-		if (my_maxhp() < totalDamage) doThisBoo = false;
+		if (expectedMaximumHp < totalDamage) return false;
 		if (my_hp() + 20 * item_amount($item[linen bandages]) <= totalDamage) {
 			// Don't bother using up the bandages unless we are completely certain to hit the target HP.
-			doThisBoo = false;
+			return false;
 		}
+		if (possessEquipment($item[The Crown of Ed the Undying])) {
+			maximize("spooky res, cold res, equip The Crown of Ed the Undying", 0, 0, false);
+			adjustEdHat("bear");
+		} else {
+			maximize("spooky res, cold res, 0.075 HP", 0, 0, false);
+		}
+
+		print("After equipment changes, HP: " + my_hp() + "/" + my_maxhp(), "orange");
+		if (my_maxhp() != expectedMaximumHp) {
+			print("FIXME:  expectedMaximumHp is not correct!", "red");
+			abort();
+		}
+
+		boolean doThisBoo = true;
 		// Restore enough HP to pass:
 		while (
 			doThisBoo
@@ -3238,6 +3441,10 @@ boolean L9_aBooPeak()
 				+ damageFrom(125, spookyFactor)
 				+ damageFrom(250, spookyFactor);
 			print("At cold resistance level: " + numeric_modifier("cold resistance") + ", spooky resistance level: " + numeric_modifier("spooky resistance"), "orange");
+			if (numeric_modifier("cold resistance") != coldResist || numeric_modifier("spooky resistance") != spookyResist) {
+				abort("projections of cold and/or spooky resistance were incorrect!");
+				//FIXME:  end users won't want an abort here, as long as they can pass the test.  and even if they can't pass it, we can still continue automation.
+			}
 			print("Expected damage is:  " + expectedDamage, "orange");
 			if (my_hp() <= expectedDamage) abort("Failed to prepare properly for The Horror!");
 
@@ -3503,7 +3710,8 @@ boolean L9_oilPeak()
 		}
 		print("Oil Peak is finished but we need more crude!", "blue");
 	}
-	
+
+	handleMCD();
 	maximize("ML 120 max, sleaze res, 0.25 hp", 0, 0, false);
 	ccAdv(1, $location[Oil Peak]);
 	return true;
@@ -3567,6 +3775,7 @@ boolean L9_chasmBuild()
 		return true;
 	}
 
+	print("Turns spent at Smut:  " + $location[The Smut Orc Logging Camp].turns_spent + ", bridge " + get_property("chasmBridgeProgress").to_int() + "/30", "orange");
 	ccAdv(1, $location[The Smut Orc Logging Camp]);
 
 	if(item_amount($item[Smut Orc Keepsake Box]) > 0)
@@ -3600,7 +3809,7 @@ boolean LX_dictionary()
 			return 0 == item_amount($item[rusty screwdriver]);
 		} else {
 			visit_url("place.php?whichplace=forestvillage&preaction=screwquest&action=fv_untinker_quest");
-			ccAdv(1, $location[Degrassi Knoll Garage]);
+			ccAdv(1, $location[The Degrassi Knoll Garage]);
 			return true;
 		}
 	}
@@ -3847,16 +4056,17 @@ boolean L11_blackMarket()
 	
 	if(item_amount($item[blackberry galoshes]) == 1 && my_basestat($stat[moxie]) > 59)
 	{
-		equip($slot[acc3], $item[blackberry galoshes]);
+		maximize("exp, equip blackberry galoshes", 1, 0, false);
+	} else {
+		maximize("exp", 1, 0, false);
 	}
 	
-	if(possessEquipment($item[Blackberry Galoshes]))
+	if(possessEquipment($item[Blackberry Galoshes]) && 2 <= get_property("blackForestProgress").to_int())
 	{
 		set_property("choiceAdventure923", "2");
 		set_property("choiceAdventure925", "2");
 	}
-	
-	maximize("exp", 1, 0, false);
+
 	ccAdv(1, $location[The Black Forest]);
 	if(black_market_available())
 	{
@@ -3970,7 +4180,10 @@ boolean LX_fcle()
 		print("Skipping F'c'le, because no talismen of Renenutet are available.", "red");
 		return false;
 	}
-	if (my_maxhp() < expected_damage($monster[curmudgeonly pirate]) + 5) {
+	if (
+		my_maxhp() < expected_damage($monster[curmudgeonly pirate]) + 5
+		&& !have_skill($skill[Curse of Indecision])
+	) {
 		//TODO:  the formula here will need some tweaking.  For starters, we aren't wearing the outfit yet.
 		// (we probably won't get a Renenutet in edgewise)
 		return false;
@@ -3981,8 +4194,10 @@ boolean LX_fcle()
 		print("Could not uneffect Shelter of Shed for F'C'le, delaying", "orange");
 		return false;
 	}
-	
+
 	print("Fcle time!", "blue");
+	buffMaintain($effect[Butt-Rock Hair], 0, 1, 1);
+	buffMaintain($effect[Go Get \'Em\, Tiger!], 0, 1, 1);
 	cli_execute("outfit swashbuckling getup");
 	ccAdv(1, $location[The F\'c\'le]);
 	return true;
@@ -4354,7 +4569,7 @@ boolean L3_tavern()
 	}
 
 	handleMCD();
-
+/*
 	while(ed_tavern())
 	{
 		if(my_adventures() <= 0)
@@ -4363,9 +4578,14 @@ boolean L3_tavern()
 		}
 		wait(4);
 	}
-	visit_url("tavern.php?place=barkeep");
-	set_property("ed_tavern", "finished");
-	council();
+*/
+	if (!ed_tavern()) return false;
+
+	if (index_of(get_property("tavernLayout"), "3") != -1) {
+		visit_url("tavern.php?place=barkeep");
+		set_property("ed_tavern", "finished");
+		council();
+	}
 	return true;
 }
 
@@ -4374,15 +4594,36 @@ boolean ed_LX_xp() {
 
 	print("We've done everything possible at this time and have not reached the next level, so power-leveling in the most basic way Ed can, abort if you want to do this on your own.", "blue");
 	buffMaintain($effect[Purr of the Feline], 0, 1, 1);
+
+	boolean galleryAndBathroomOpen = get_property("ed_spookyravennecklace") == "finished";
+	// note, clovers used at:  trapper, guano, a-boo, bridge.
+	int reservedClovers
+		= (get_property("ed_boopeak") == "finished" ? 0 : 1)  //TODO:  how much left?  do we have clues?
+		+ (get_property("ed_chasmBridgeProgress").to_int() < 25 ? 0 : 1);
+	int spareClovers =  item_amount($item[disassembled clover]) - reservedClovers;
+	if (!galleryAndBathroomOpen || spareClovers <= 0) {
+		//TODO:  account for Taunt and/or Hippy Stench in calculations.  (and other combat rate modifiers?)
+		float galleryExperienceEstimate
+			= (6 + numeric_modifier("Mysticality Experience")) * (18.0/25)
+				+ min(200.0, 3*my_basestat($stat[Mysticality])) * (1+numeric_modifier("Mysticality Experience Percent")/100.0) * (7.0/25);
+		float smoochExperienceEstimate = my_buffedstat($stat[Mysticality]) / 5;
+			//TODO:  when does smooch give better experience than the gallery?
+		print("gallery versus smooch:  " + galleryExperienceEstimate + " / " + smoochExperienceEstimate,"orange");
+		if (galleryExperienceEstimate < smoochExperienceEstimate) {
+			if (ed_LX_smooch()) return true;
+		}
+		if (0 < have_effect($effect[Taunt of Horus]) || 0 < have_effect($effect[Hippy Stench])) {
+			if (ed_LX_smooch()) return true;
+		}
+	}
 	if(get_property("ed_spookyravennecklace") == "finished")
 	{
-		// note, clovers used at:  trapper, guano, a-boo, bridge.
-		if (0 < item_amount($item[disassembled clover])) {
+		if (0 < spareClovers) {
 			print("TODO:  clovering at the bathroom.  is that the best use of this clover??", "orange");
 			use(1, $item[disassembled clover]);
 			visit_url("adventure.php?snarfblat=392&confirm=on");  // The Haunted Bathroom
 			if (contains_text(visit_url("main.php"), "Combat")) {
-				ccAdv(0, $location[The Haunted Bathroom]);
+				ccAdv(1, $location[The Haunted Bathroom]);
 			}
 			use(item_amount($item[ten-leaf clover]), $item[ten-leaf clover]);
 			return true;
@@ -4391,19 +4632,17 @@ boolean ed_LX_xp() {
 		set_property("ed_galleryFarm", TRUE);
 		maximize("exp, -combat", 0, 0, false);
 		set_property("louvreDesiredGoal", "5");
-		if(!possessEquipment($item[serpentine sword]) || !possessEquipment($item[snake shield]))
-		{
-			set_property("choiceAdventure89", "2");
-		}
-		else
-		{
-			set_property("choiceAdventure89", "6");
-		}
+		ed_configureOutInTheGarden();
+		buffMaintain($effect[Shelter of Shed], 0, 1, 1);
+		if (
+			-20.0 <= numeric_modifier("Combat Rate")
+			&& !to_boolean(get_property("_olympicSwimmingPool"))
+		) cli_execute("swim sprints");
+		//buffMaintain($effect[Thaumodynamic], 0, 1, 1);
+		if (!to_boolean(get_property("_aprilShower"))) cli_execute("shower lukewarm");
 		ccAdv(1, $location[The Haunted Gallery]);
 		return true;
-	}
-	else if((my_level() > 9) && (get_property("ed_castlebasement") == "finished"))
-	{
+	} else if((my_level() > 9) && (get_property("ed_castlebasement") == "finished")) {
 		maximize("exp, -combat", 0, 0, false);
 		set_property("choiceAdventure669", "1");
 		set_property("choiceAdventure670", "4");
@@ -4474,8 +4713,6 @@ boolean doTasks()
 	// Autosells junk items to help generate MP
 	sellStuff();
 
-	ed_hermitClovers();
-
 	// Checks to make sure you have all the latest quests up to date
 	if(my_level() > get_property("lastCouncilVisit").to_int())
 	{
@@ -4499,12 +4736,6 @@ boolean doTasks()
 		set_property("ed_newbieOverride", false);
 	}
 
-	//Using +stat buffs
-	buffMaintain($effect[From Nantucket], 0, 1, 1);
-	buffMaintain($effect[Squatting and Thrusting], 0, 1, 1);
-	buffMaintain($effect[You Read the Manual], 0, 1, 1);
-	//TODO:  Add the old rosewater one.
-
 	//Eating before fortune handling, so you can pick up the semirare number
 	if(ed_eatStuff())
 	{
@@ -4513,6 +4744,9 @@ boolean doTasks()
 
 	//Purchase skills from pyramid and releases servants each level
 	ed_buySkills();
+
+	maximize("exp", 1, 0, false);
+		//TODO:  grumpy old man charrrm bracelet
 
 	//Heals
 	if(my_hp() == 0)
@@ -4529,17 +4763,33 @@ boolean doTasks()
 	//and thus combat, plus baabaabaran and such
 	if (fortuneCookieEvent()) return true;
 
+	//Using +stat buffs
+	buffMaintain($effect[From Nantucket], 0, 1, 1);
+	buffMaintain($effect[Squatting and Thrusting], 0, 1, 1);
+	buffMaintain($effect[You Read the Manual], 0, 1, 1);
+	//TODO:  Add the old rosewater one.
+
+	if (ed_LX_lightsOut()) return true;
+	//This should allow us to pick up the semi-rare in the Outskirts for some low level food/drink
+	if (LX_getLunchbox()) return true;
+
 	if(LX_chateauDailyPainting())
 	{
 		return true;
 	}
 
-	if(L1_edVacation(0) || L1_edIslandFallback())
+	if(L1_edVacation(0))
 	{
 		return true;
 	}
 
-	if(LX_islandAccess())
+	if (ed_LX_islandAccess()) return true;
+
+	ed_hermitClovers();
+
+	if (ed_LX_smoochQuest()) return true;
+
+	if(L1_edIslandFallback())
 	{
 		return true;
 	}
@@ -4820,7 +5070,8 @@ boolean doTasks()
 	}
 
 	boolean canDoHidden = true;
-	if((item_amount($item[Moss-Covered Stone Sphere]) == 0) && (get_property("ed_hiddenapartment") != "finished"))
+	if((item_amount($item[Moss-Covered Stone Sphere]) == 0) && (get_property("ed_hiddenapartment") != "finished") && 0 == have_effect($effect[Thrice-Cursed]))
+		//TODO:  i don't quite get it.  added the Thrice-Cursed check....  maybe that belongs in the Fortune Cookie counter check??
 	{
 		if(get_counters("Fortune Cookie", 0, 9) == "Fortune Cookie")
 		{
@@ -5222,6 +5473,7 @@ boolean doTasks()
 			print("My max hp is: " + my_maxhp(), "orange");
 		}
 		print("Let's fight the boss!", "blue");
+		set_property("edDefeatAbort", "5");
 		visit_url("bigisland.php?place=camp&whichcamp=1");
 		visit_url("bigisland.php?place=camp&whichcamp=2");
 		visit_url("bigisland.php?action=bossfight&pwd");
@@ -5247,6 +5499,7 @@ boolean doTasks()
 		if(contains_text(visit_url("place.php?whichplace=nstower"), "ns_10_sorcfight"))
 		{
 			print("We found the jerkwad!! Revenge!!!!!", "blue");
+			set_property("edDefeatAbort", "5");
 			string page = visit_url("place.php?whichplace=nstower&action=ns_10_sorcfight");
 			if(contains_text(page, "Combat"))
 			{
@@ -5370,7 +5623,6 @@ void ed_begin()
 	
 	initializeSettings();
 	initializeDay(my_daycount());
-//Fix-me, planning on creating a custom maximizer for each area, but that will take a while so enjoy sub-optimal clothing for now. :P
 	equipBaseline();
 
 	if(vars["chit.helpers.xiblaxian"] != "false")
@@ -5381,9 +5633,26 @@ void ed_begin()
 	}
 
 	questOverride();
+	set_property("edDefeatAbort", "2");
 
-	while((my_adventures() > 1) && (my_inebriety() <= inebriety_limit()) && (get_property("kingLiberated") == "false") && doTasks())
-	{
+	int retryLimit = 20;
+	int retries = 0;
+	int lastAdventureCount = my_adventures();
+	while (
+		(my_adventures() > 1)
+		&& (my_inebriety() <= inebriety_limit())
+		&& (get_property("kingLiberated") == "false")
+		&& doTasks()
+	) {
+		if (lastAdventureCount != my_adventures()) {
+			retries = 0;
+		} else {
+			retries += 1;
+			if (retryLimit <= retries) {
+				abort("We appear to be stuck in a loop.");
+			}
+		}
+		lastAdventureCount = my_adventures();
 	}
 	
 	doBedtime();

@@ -21,13 +21,13 @@ void ed_initializeSettings()
 	set_property("ed_chasmBusted", "false");
 	set_property("ed_renenutetBought", 0);
 	set_property("ed_edCombatCount", 0);
-	set_property("choiceAdventure1002", 1);
 	set_property("ed_edDelayHauntedKitchen", "true");
+	set_property("choiceAdventure1002", 1);
 	cli_execute("ccs null");
 	cli_execute("set battleAction=custom combat script");
 	cli_execute("mood apathetic");
 	set_property("hpAutoRecoveryItems", "linen bandages");
-	set_property("hpAutoRecovery", 0.0);
+	set_property("hpAutoRecovery", -0.05);
 	set_property("hpAutoRecoveryTarget", 0.0);
 }
 
@@ -37,6 +37,7 @@ void ed_initializeDay(int day)
 	{
 		if(get_property("ed_day1_init") != "finished")
 		{
+			visit_url("place.php?whichplace=desertbeach&action=db_nukehouse");
 			set_property("ed_renenutetBought", 0);
 			if(item_amount($item[transmission from planet Xi]) > 0)
 			{
@@ -208,7 +209,7 @@ boolean ed_buySkills()
 	}
 	int possEdPoints = 0;
 	int skillPoints = 0;
-	
+
 	string page = visit_url("place.php?whichplace=edbase&action=edbase_book");
 	matcher my_skillPoints = create_matcher("You may memorize (\\d\+) more page", page);
 	if(my_skillPoints.find())
@@ -220,7 +221,10 @@ boolean ed_buySkills()
 			possEdPoints += skillPoints;
 		}
 		possEdPoints = skillPoints - 1;
-		
+
+		if (get_property("ed_ignoreSkillPoints") != "") {
+			skillPoints -= to_int(get_property("ed_ignoreSkillPoints"));
+		}
 		if (skillpoints > 8) {
 			while(skillPoints > 0)
 			{
@@ -427,9 +431,14 @@ boolean ed_buySkills()
 	}
 	if(possEdPoints > get_property("edPoints").to_int())
 	{
-		set_property("edPoints", possEdPoints);
+		print("Mismatch between Mafia's edPoints and calculated value from skill points and imbuement points!", "red");
+		// (at the moment, I believe this may happen when we are ignoring some of the points.  I don't think we should mess with Mafia's value, though.)
+		//set_property("edPoints", possEdPoints);
 	}
-	
+
+	if (get_property("ed_ignoreImbuementPoints") != "") {
+		imbuePoints -= to_int(get_property("ed_ignoreImbuementPoints"));
+	}
 	while(servantPoints > 0)
 	{
 		int sid = -1;
@@ -517,9 +526,10 @@ boolean ed_buySkills()
 			imbuePoints -= 1;
 		}
 	}
-	
-	if((imbuePoints == 0) && (servantPoints == 0) && (skillPoints == 0))
+
+	if ((imbuePoints <= 0) && (servantPoints <= 0) && (skillPoints <= 0)) {
 		set_property("ed_edSkills", my_level());
+	}
 
 	return true;
 }
@@ -890,7 +900,7 @@ ed_ShoppingList ed_buildShoppingList(int kaAdjustment, int adventuresAdjustment)
 		// (that's about enough for one full heal)
 		// note, The Horror takes around 150 hp, iirc, when we normally do it.  Maybe keep 5 on hand, if we need to finish A-Boo?  Keep one on hand for Zerg Rush.
 	if (my_level() < 9) linenToBuy = 0;  // (level 9 is peaks quest)
-	if (get_property("booPeakProgress") == "0") linenToBuy = 1;
+	if (get_property("booPeakProgress") == "0") linenToBuy = 3;
 	linenToBuy -= item_amount($item[linen bandages]);
 	while (0 < linenToBuy && 1 <= coins) {
 		result.itemsToBuy[$item[linen bandages]] += 1;
@@ -908,8 +918,9 @@ ed_ShoppingList ed_buildShoppingList(int kaAdjustment, int adventuresAdjustment)
 		coins -= 5;
 	}
 
-	//int cureAllsToBuy = 2 - item_amount($item[ancient cure-all]) - item_amount($item[Soft Green Echo Eyedrop Antidote]);
-	int cureAllsToBuy = 0;  //FIXME:  need to fix cureall wastage, first!  For now, avoid spending Ka on them.
+	int cureAllsToBuy = 2 - item_amount($item[ancient cure-all]) - item_amount($item[Soft Green Echo Eyedrop Antidote]);
+	if (coins < 30) cureAllsToBuy = 0;
+		//FIXME:  need to fix cureall wastage, first!  For now, avoid spending Ka on them.  unless we have plenty of Ka.
 	while (0 < cureAllsToBuy && 5 <= coins) {
 		result.itemsToBuy[$item[ancient cure-all]] += 1;
 		cureAllsToBuy -= 1;
@@ -1062,7 +1073,7 @@ boolean ed_handleAdventureServant(location loc)
 		(loc == $location[The Hidden Temple]) ||
 		(loc == $location[A-Boo Peak]) ||
 		(loc == $location[The Goatlet]) ||
-		(loc == $location[The Hidden Park]) && (get_property("relocatePygmyJanitor") == 25))
+		(loc == $location[The Hidden Park]) && (get_property("relocatePygmyJanitor") == my_ascensions()))
 	{
 		if(!ed_use_servant($servant[Cat]))
 		{
@@ -1112,10 +1123,7 @@ boolean ed_handleAdventureServant(location loc)
 		ed_use_servant($servant[Maid]);
 	}
 //The cat is swapped in at the shrines while macheteing them because your servant still gets xp points and it usually still needs some at this point, also sparrows. :D
-	if((loc == $location[Next To That Barrel With Something Burning In It]) ||
-		(loc == $location[Out By That Rusted-Out Car]) ||
-		(loc == $location[Over Where The Old Tires Are]) ||
-		(loc == $location[Near an Abandoned Refrigerator]) ||
+	if (
 		(loc == $location[The Black Forest] && item_amount($item[reassembled blackbird]) == 0) ||
 		(loc == $location[An Overgrown Shrine (Northwest)]) ||
 		(loc == $location[An Overgrown Shrine (Northeast)]) ||
@@ -1127,12 +1135,15 @@ boolean ed_handleAdventureServant(location loc)
 		(loc == $location[The Royal Guard Chamber] && !have_skill($skill[Lash of the Cobra])) ||
 		(loc == $location[Wartime Frat House] && !have_skill($skill[Wrath of Ra])) ||
 		(loc == $location[The F'c'le])
+		|| (loc == $location[The Secret Council Warehouse])
 	)
 	{
 		ed_use_servant($servant[Cat]);
 	}
 
+	if ($servant[Priest] == ed_servant && 50 <= item_amount($item[Ka coin])) ed_use_servant($servant[Scribe]);
 	if ($servant[Scribe] == ed_servant && 13 <= my_level()) ed_use_servant($servant[Priest]);
+	if (50 <= item_amount($item[Ka coin]) && 13 <= my_level()) ed_use_servant($servant[Cat]);
 	return false;
 }
 
@@ -1248,7 +1259,7 @@ boolean ed_ccAdv(int num, location loc, string option, boolean skipFirstLife)
 
 			if(get_property("_edDefeats").to_int() == 0)
 			{
-				print("Monster defeated in initialization, aborting attempt.", "red");
+				print("Monster defeated in initialization.  Combat is over.", "green");
 				set_property("ed_edCombatStage", 0);
 				set_property("ed_disableAdventureHandling", "no");
 				cli_execute("ed_postadventure.ash");
@@ -1271,7 +1282,7 @@ boolean ed_ccAdv(int num, location loc, string option, boolean skipFirstLife)
 				
 				if(get_property("_edDefeats").to_int() == 0)
 				{
-					print("Monster defeated in initialization, aborting attempt.", "red");
+					print("Monster defeated in initialization.  Combat is over.", "green");
 					set_property("ed_edCombatStage", 0);
 					set_property("ed_disableAdventureHandling", "no");
 					cli_execute("ed_postadventure.ash");
@@ -1295,7 +1306,7 @@ boolean ed_ccAdv(int num, location loc, string option, boolean skipFirstLife)
 
 					if(get_property("_edDefeats").to_int() == 0)
 					{
-						print("Monster defeated in initialization, aborting attempt.", "red");
+						print("Monster defeated in initialization.  Combat is over.", "green");
 						set_property("ed_edCombatStage", 0);
 						set_property("ed_disableAdventureHandling", "no");
 						cli_execute("ed_postadventure.ash");
@@ -1318,7 +1329,7 @@ boolean ed_ccAdv(int num, location loc, string option, boolean skipFirstLife)
 						
 						if(get_property("_edDefeats").to_int() == 0)
 						{
-							print("Monster defeated in initialization, aborting attempt.", "red");
+							print("Monster defeated in initialization.  Combat is over.", "green");
 							set_property("ed_edCombatStage", 0);
 							set_property("ed_disableAdventureHandling", "no");
 							cli_execute("ed_postadventure.ash");

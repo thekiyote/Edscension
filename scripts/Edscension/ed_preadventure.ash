@@ -136,12 +136,23 @@ void handlePreAdventure()
 		{
 			buffMaintain($effect[Purr of the Feline], 10, 1, 5);
 		}
-		if((my_servant() == $servant[Belly-Dancer]) && ($servant[Belly-Dancer].experience < 196) && ($servant[Priest].experience > 80))
+		if((my_servant() == $servant[Belly-Dancer]) && ($servant[Belly-Dancer].experience < 196) && ($servant[Belly-Dancer].experience > 80))
 		{
 			buffMaintain($effect[Purr of the Feline], 10, 1, 5);
 		}
-		if (my_location() != $location[Lair of the Ninja Snowmen]) {
-			buffMaintain($effect[Blessing of Serqet], 15, 1, 1);
+		if (
+			!($locations[
+				The Sleazy Back Alley,
+				Hippy Camp,
+				Lair of the Ninja Snowmen,
+				The SMOOCH Army HQ
+			] contains my_location())
+		) {
+			if (400 < my_meat()) {
+				buffMaintain($effect[Blessing of Serqet], 15, 1, 1);
+				//TODO:  when starting out, we don't want the blessing if jump_chance() is low.
+				// also. it costs a lot.  trying out some new logic for that.
+			}
 		}
 		while((my_mp() > 120) && (have_effect($effect[wisdom of thoth]) < 50))
 		{
@@ -171,7 +182,9 @@ void handlePreAdventure()
 			(my_location() == $location[The Dark Neck of the Woods]) ||
 			(my_location() == $location[The Dark Heart of the Woods]) ||
 			(my_location() == $location[The Dark Elbow of the Woods]) ||
-			(my_location() == $location[The Defiled Cranny]) ||
+			(my_location() == $location[The Defiled Cranny]
+				&& get_property("cyrptCrannyEvilness").to_int() > 26
+			) ||
 			(my_location() == $location[The Defiled Alcove]) ||
 			(my_location() == $location[The Spooky Forest] && ("The Spooky Forest".to_location().turns_spent >= 5)) ||
 			(my_location() == $location[Inside the Palindome]) ||
@@ -223,7 +236,7 @@ void handlePreAdventure()
 			abort("We couldn't restore your MP properly, try autoselling some junk!");
 		}
 		if(((my_location() == $location[Wartime Hippy Camp (Frat Disguise)]) && (get_property("hippiesDefeated") == 1000)) ||
-		(my_location() == $location[The Naughty Sorceress\' Chamber]))
+			(my_location() == $location[The Naughty Sorceress\' Chamber]))
 		{
 			if((my_mp() < 80) && my_meat() > 180)
 			{
@@ -234,7 +247,7 @@ void handlePreAdventure()
 			{
 				doBreak = true;
 			}
-		} else if(((my_location() == $location[Hippy Camp]) && !get_property("ed_legsbeforebread").to_boolean()) ||
+		} else if(((my_location() == $location[Hippy Camp]) && !get_property("ed_legsbeforebread").to_boolean() && 200 < my_meat()) ||
 			(my_location() == $location[The Penultimate Fantasy Airship]  && ((item_amount($item[mohawk wig]) == 0))) ||
 			(my_location() == $location[Cobb\'s Knob Harem] && !have_outfit("Knob Goblin Harem Girl Disguise")) ||
 			(my_location() == $location[Wartime Frat House (Hippy Disguise)]) && !have_outfit("Frat Warrior Fatigues") &&
@@ -246,6 +259,22 @@ void handlePreAdventure()
 				use(1, $item[Doc Galaktik\'s Invigorating Tonic]);
 			}
 			if(my_mp() >= 40)
+			{
+				doBreak = true;
+			}
+		} else if (
+			$locations[
+				The Hidden Bowling Alley,
+				The Hidden Hospital,
+				The Secret Council Warehouse
+			] contains my_location()
+		) {
+			if ((my_mp() < 36) && my_meat() > 180)
+			{
+				buyUpTo(1, $item[Doc Galaktik\'s Invigorating Tonic]);
+				use(1, $item[Doc Galaktik\'s Invigorating Tonic]);
+			}
+			if (my_mp() > 35)
 			{
 				doBreak = true;
 			}
@@ -262,7 +291,6 @@ void handlePreAdventure()
 			(my_location() == $location[The Defiled Nook]) ||
 			(my_location() == $location[Oil Peak]) ||
 			(my_location() == $location[The Black Forest]) ||
-			(my_location() == $location[The Hidden Bowling Alley]) ||
 			(my_location() == $location[The Hidden Apartment Building]) ||
 			(my_location() == $location[The Hidden Office Building]) ||
 			(my_location() == $location[The Hatching Chamber]) ||
@@ -270,7 +298,6 @@ void handlePreAdventure()
 			(my_location() == $location[The Royal Guard Chamber]) ||
 			(my_location() == $location[Cobb\'s Knob Harem]) ||
 			((my_location() == $location[Wartime Frat House (Hippy Disguise)]) && !have_outfit("Frat Warrior Fatigues")) ||
-			(my_location() == $location[The Secret Council Warehouse]) ||
 			((my_location() == $location[The Dark Heart of the Woods]) && (item_amount($item[hot wing]) < 3)) ||
 			((my_location() == $location[The Dark Neck of the Woods]) && (item_amount($item[hot wing]) < 3)) ||
 			((my_location() == $location[The Dark Elbow of the Woods]) && (item_amount($item[hot wing]) < 3)))
@@ -284,11 +311,15 @@ void handlePreAdventure()
 			{
 				doBreak = true;
 			}
-		} else if (my_maxmp() < 30 && my_mp() > 2 * mp_cost($skill[fist of the mummy]))
-		{
+		} else if (my_maxmp() < 30 && my_mp() > 2 * mp_cost($skill[fist of the mummy])) {
 			doBreak = true;
-		} else if (my_mp() < 15 && 180 < my_meat())
-		{
+		} else if ($location[The Sleazy Back Alley] == my_location() && my_mp() > 2 * mp_cost($skill[fist of the mummy])) {
+			doBreak = true;
+		} else if ($location[Hippy Camp] == my_location() && 3 * mp_cost($skill[fist of the mummy]) < my_mp()) {
+			break;
+		} else if ($location[The SMOOCH Army HQ] == my_location() && $location[The SMOOCH Army HQ].turns_spent < 50 && mp_cost($skill[storm of the scarab]) <= my_mp()) {
+			break;
+		} else if (my_mp() < 15 && 180 < my_meat()) {
 			buyUpTo(1, $item[Doc Galaktik\'s Invigorating Tonic]);
 			use(1, $item[Doc Galaktik\'s Invigorating Tonic]);
 		} else if(my_mp() > 14)
