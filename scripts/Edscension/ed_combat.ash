@@ -1014,7 +1014,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 			doRenenutet = false;
 		}
 		if (doRenenutet && forceStasis) {
-			print("Waiting until next combat before we use a talisman of Renenutet.", "blue");
+			print("Waiting until next combat before we use a talisman of Renenutet.", "green");
 			doRenenutet = false;
 		}
 		if (
@@ -1024,7 +1024,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 				// && contains_text(combatState, "flyers")
 				// Will that work for all combat stages where we flyer?
 		) {
-			print("Waiting until we are done using flyers before we use a talisman of Renenutet.", "blue");
+			print("Waiting until we are done using flyers before we use a talisman of Renenutet.", "green");
 			doRenenutet = false;
 		}
 		if (doRenenutet && roundsPerStage < 2) {
@@ -1047,7 +1047,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 				|| !have_skill($skill[Storm of the Scarab]) && ed_fistDamage() < monster_hp()
 			)
 		) {
-			print("Using a talisman of Renenutet right now would be risky!", "blue");
+			print("Using a talisman of Renenutet right now would be risky!", "green");
 			doRenenutet = false;
 		}
 		if (doRenenutet && roundsLeftThisStage < 2) {
@@ -1154,13 +1154,13 @@ string ed_edCombatHandler(int round, string opp, string text)
 	}
 
 	if (roundsBeforeKa * ed_fistDamage() < monster_hp()) {
-		print("This combat would eventually cost Ka if we only use fist.  Trying to expedite it.", "blue");
+		print("This combat would eventually cost Ka if we only use fist.  Trying to expedite it.", "green");
 		return "skill " + ed_stormIfPossible();
 	}
 
 	if (monster_hp() > 300)
 	{
-		print("This opponent is pretty big.  Trying to cut it down to size.", "blue");
+		print("This opponent is pretty big.  Trying to cut it down to size.", "green");
 		return "skill " + ed_stormIfPossible();
 	}
 
@@ -1171,7 +1171,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 			//TODO:  are there other reasons not to die?
 		)
 	) {
-		print("This opponent could kill me this round, and I'd rather not visit the underworld right now.", "blue");
+		print("This opponent could kill me this round, and I'd rather not visit the underworld right now.", "green");
 		return "skill " + ed_stormIfPossible();
 	}
 
