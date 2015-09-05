@@ -2571,31 +2571,37 @@ boolean L8_trapperYeti()
 			print("We don't want Shelter of Shed for ninja snowmen.  Delaying...", "blue");
 			return false;
 		}
-		if (0 < have_effect($effect[Blessing of Serqet])) {
-			effectRemovalItems -= 1;
-		}
-		if (effectRemovalItems <= 0) return false;
 
-		if(possessEquipment($item[The Crown of Ed the Undying]))
+		buffMaintain($effect[Hide of Sobek], 0, 1, 1);
+		buyUpTo(1, $item[hair spray]);
+		buffMaintain($effect[Butt-Rock Hair], 0, 1, 1);
+		buyUpTo(1, $item[Ben-Gal&trade; Balm]);
+		buffMaintain($effect[Go Get \'Em\, Tiger!], 0, 1, 1);
+
+		if (possessEquipment($item[The Crown of Ed the Undying]))
 		{
 			adjustEdHat("weasel");
-		}
-		else if(jump_chance($monster[ninja snowman assassin]) < 70)
-		{
+			//TODO:  is that really the only preparation needed?  Have I inadvertently removed something?
+		} else if (
+			jump_chance($monster[ninja snowman assassin]) < 90
+			&& my_maxhp() <= ed_assassinDamage()
+		) {
+			if (0 < have_effect($effect[Blessing of Serqet]) && effectRemovalItems < 1) {
+				print("We don't want Blessing of Serqet for ninja snowmen, and can't remove it.  Delaying...", "blue");
+				return false;
+			}
 			maximize("-ml, 0.1 hp, cold res, init", 1, 0, false);
 			change_mcd(0);
 
-			if(jump_chance($monster[ninja snowman assassin]) < 70)
-			{
-				if(!uneffect($effect[Blessing of Serqet]))
-				{
+			if (jump_chance($monster[ninja snowman assassin]) < 70 && my_maxhp() <= ed_assassinDamage()) {
+				if (!uneffect($effect[Blessing of Serqet])) {
 					print("Could not uneffect Blessing of Serqet for ninja snowmen, delaying until you can survive an encounter...", "red");
 					handleMcd();
 					maximize("exp", 1, 0, false);
 					return false;
 				}
-				if (my_maxhp() < expected_damage($monster[ninja snowman assassin])) {
-					//FIXME:  it would have been nice to detect this before using up to two SGEAA items!
+				if (my_maxhp() < ed_assassinDamage()) {
+					//FIXME:  it would have been nice to detect this before using an SGEAA item!
 					print("Delaying snowmen until you can survive an encounter...", "red");
 					handleMcd();
 					maximize("exp", 1, 0, false);
@@ -2604,11 +2610,22 @@ boolean L8_trapperYeti()
 			}
 		}
 
-		if ((have_effect($effect[taunt of horus]) == 0) && (item_amount($item[talisman of horus]) == 0)) {
+		buffMaintain($effect[Well-Swabbed Ear], 0, 1, 1);
+		buffMaintain($effect[Sepia Tan], 0, 1, 1);
+		//TODO:
+		//buffMaintain($effect[Hustlin'], 0, 1, 1);
+		print("Anticipated assassin damage:  " + ed_assassinDamage(), "orange");
+		if (jump_chance($monster[ninja snowman assassin]) < 90 && my_maxhp() <= ed_assassinDamage()) {
+			print("Failed to prepare properly for ninja snowman assassins!", "red");
+abort("WHM testing");
+			return false;
+		}
+		buffMaintain($effect[Hippy Stench], 0, 1, 1);
+		if (0 == have_effect($effect[taunt of horus]) && 0 < item_amount($item[talisman of horus])) {
 			use(1, $item[talisman of Horus]);
 		}
-		buffMaintain($effect[Hide of Sobek], 10, 1, 1);
 		ccAdv(1, $location[Lair of the Ninja Snowmen]);
+		maximize("exp", 1, 0, false);
 		return true;
 	}
 	return false;
