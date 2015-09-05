@@ -490,9 +490,11 @@ string ed_edCombatHandler(int round, string opp, string text)
 	string edCombatState = get_property("ed_edCombatHandler");
 
 	float damagePerRound = expected_damage();
-	if ($monster[Your winged yeti] == last_monster()) damagePerRound *= 3;  // (Mafia appears to be inaccurate?  Also, he appears to have some damage reduction applied to my Fist spells....)
+	if ($monster[ninja snowman assassin] == last_monster()) damagePerRound = ed_assassinDamage();
+	if ($monster[Your winged yeti] == last_monster()) damagePerRound *= 3;  // (Mafia appears to be inaccurate?  Also, he has some damage reduction applied to any damage over 50.  (x-50)**(.7)+50. )
 	if ($monster[big swarm of ghuol whelps] == last_monster()) damagePerRound *= 3;  // Mafia appears to be inaccurate here, as well?
-	if (damagePerRound < 1.0) damagePerRound = my_hp()/2 + 1;  // A kludge, to ensure that we treat unknown enemies with respect!  And, avoid dividing by zero!!
+	if ($monster[pygmy headhunter] == last_monster()) damagePerRound *= 2;  //TODO
+	if (damagePerRound < 1.0) damagePerRound = my_maxhp() + 1;  // A kludge, to ensure that we treat unknown enemies with respect!  And, avoid dividing by zero!!
 	int roundsLeftThisStage = 1 + floor(my_hp() / damagePerRound);
 	int roundsPerStage = (jump_chance() < 100 ? 0 : 1) + floor(my_maxhp() / damagePerRound);
 	int roundsBeforeKa = roundsLeftThisStage + roundsPerStage * (2 - combatStage);
@@ -1171,12 +1173,6 @@ string ed_edCombatHandler(int round, string opp, string text)
 	) {
 		print("This opponent could kill me this round, and I'd rather not visit the underworld right now.", "blue");
 		return "skill " + ed_stormIfPossible();
-	}
-
-	if(last_monster().id == 1185)  // (why does this need special logic?)
-	{
-		print("This opponent is a ninja snowman assassin.", "blue");
-		return "skill " + ed_stormOrFist();
 	}
 
 	if ((1 + floor(monster_hp() / ed_fistDamage())) * mp_cost($skill[fist of the mummy])
