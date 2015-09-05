@@ -542,8 +542,12 @@ string ed_edCombatHandler(int round, string opp, string text)
 		set_property("ed_edStatus", "dying");
 		print("test2", "red");
 	}
+	int lastStage = 4;  //FIXME:  when to stop should depend on our Ka supply!
+	if (combatStage >= lastStage) {
+		set_property("ed_edStatus", "dying");
+	}
 	if (
-		(combatStage < 4)
+		combatStage < lastStage
 		&& flyering
 		&& (item_amount($item[ka coin]) > 2)
 		&& !contains_text(combatState, "talismanofrenenutet")
@@ -581,9 +585,11 @@ string ed_edCombatHandler(int round, string opp, string text)
 			return "skill summon love gnats";
 		}
 		if(((!contains_text(combatState, "love gnats") || (contains_text(combatState, "stun resisted"))) || (contains_text(combatState, "gnats disperse"))) && have_skill($skill[Curse of Indecision]) && my_mp() > 25)
+			//FIXME:  we need to check the page text to detect "STUN RESISTED" or dispersal of gnats, in order for those checks to do anything!
 		{
-			set_property("ed_combatHandler", combatState + "(love gnats3)");
-			return "skill Curse of Indecision";
+			print("WHM:  Curse of Indecision removed! (#1)", "red");
+			//set_property("ed_combatHandler", combatState + "(love gnats3)");
+			//return "skill Curse of Indecision";
 		}
 	}
 	else if(get_property("ed_edStatus") == "dying")
@@ -602,10 +608,17 @@ string ed_edCombatHandler(int round, string opp, string text)
 				set_property("ed_combatHandler", combatState + "(love gnats)");
 				return "skill summon love gnats";
 			}
-			if(((!contains_text(combatState, "love gnats") || (contains_text(combatState, "stun resisted"))) || (contains_text(combatState, "gnats disperse"))) && have_skill($skill[Curse of Indecision]) && my_mp() > 25)
+			if (
+				((!contains_text(combatState, "love gnats") || (contains_text(combatState, "stun resisted"))) || (contains_text(combatState, "gnats disperse")))
+				&& have_skill($skill[Curse of Indecision])
+				&& my_mp() > 25
+				&& ed_fistDamage() < monster_hp()
+				&& (!have_skill($skill[Storm of the Scarab]) || ed_stormDamage() < monster_hp())
+			)
 			{
-				set_property("ed_combatHandler", combatState + "(love gnats3)");
-				return "skill Curse of Indecision";
+				print("WHM:  Curse of Indecision removed! (#2)", "red");
+				//set_property("ed_combatHandler", combatState + "(love gnats3)");
+				//return "skill Curse of Indecision";
 			}
 		}
 	}
@@ -935,10 +948,12 @@ string ed_edCombatHandler(int round, string opp, string text)
 		if (ed_opponentHasDesiredItem()) {
 			doRenenutet = true;
 		}
+		//FIXME:  for goat cheese & A-Boo clues, we need to detect if one dropped via Lash!
 		if (
 			enemy == $monster[knob goblin harem girl]
 			&& !(possessEquipment($item[knob goblin harem veil]) && possessEquipment($item[knob goblin harem pants]))
 		) {
+			//TODO:  I believe this is already covered by each of those individual items being desirable...
 			doRenenutet = true;
 		}
 		int renenutetsAvailable = item_amount($item[Talisman of Renenutet]) + 7 - to_int(get_property("ed_renenutetBought"));
@@ -952,6 +967,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 			print("TODO:  skipping renenutet, in order to save it for a royal guard!  Make sure this is working as expected!", "red");
 			doRenenutet = false;
 		}
+		if ($monster[bookbat] == enemy) doRenenutet = false;  // tatters aren't quite valuable enough to warrant a renenutet, I think.  If we don't have lash, then I think we want to save the talismen for filthworms.
 		if((enemy == $monster[Cleanly Pirate]) && (item_amount($item[Rigging Shampoo]) == 0))
 		{
 			doRenenutet = true;
@@ -1009,8 +1025,10 @@ string ed_edCombatHandler(int round, string opp, string text)
 		if (
 			doRenenutet
 			&& $location[The F'c'le] != my_location()
-			&& item_amount($item[talisman of Renenutet]) <= ed_fcleItemsNeeded()
+			&& renenutetsAvailable <= ed_fcleItemsNeeded()
 		) {
+			//TODO:  if f'c'le is done on day 2, are there day 1 renenutet opportunities that this precludes?
+			print("Saving Talismen of Renenutet for the F'c'le.", "green");
 			doRenenutet = false;
 		}
 		if (doRenenutet && forceStasis) {
@@ -1027,13 +1045,26 @@ string ed_edCombatHandler(int round, string opp, string text)
 			print("Waiting until we are done using flyers before we use a talisman of Renenutet.", "green");
 			doRenenutet = false;
 		}
-		if (doRenenutet && roundsPerStage < 2) {
-			print("FIXME:  adventuring logic led us to a place where we would like to use a Renenutet, but we don't expect to get a chance to do so!", "red");
-			// we could only ever use it successfully against this opponent
-			// if we were to get lucky.
-			// (if this happens, we may want to add some checks in the adventuring logic
-			// that led us here, in order to avoid it.)
-			doRenenutet = false;
+		if (doRenenutet && roundsPerStage < 2 && !contains_text(get_property("ed_combatHandler"),"love gnats3")) {
+			if (have_skill($skill[Curse of Indecision])) {
+//abort("FIXME:  Investigate Curse of Indecision!");
+/*
+You call forth a dark curse that opens your opponent's mind to all the possible paths of cause and effect, the infinite possible actions she might take at this moment in time and all their potential consequences. She freezes to the spot, completely unable to decide on a course of action.
+Your opponent, still cursed with the knowledge of every possible action she might take and all their potential consequences, does nothing.
+...
+Your opponent shakes her head rapidly, and her eyes gradually refocus. Looks like she's shaking off your curse.
+*/
+				// perhaps a Curse of Indecision will buy enough time?  (Sadly, this code is quite hard to test.  sometimes we get here when looking for a pirate outfit.  looks like goatlet is a good candidate, too.)
+				set_property("ed_combatHandler", combatState + "(love gnats3)");
+				return "skill Curse of Indecision";
+			} else {
+				print("FIXME:  adventuring logic led us to a place where we would like to use a Renenutet, but we don't expect to get a chance to do so!", "red");
+				// we could only ever use it successfully against this opponent
+				// if we were to get lucky.
+				// (if this happens, we may want to add some checks in the adventuring logic
+				// that led us here, in order to avoid it.)
+				doRenenutet = false;
+			}
 		}
 		//TODO:  there may still be 2-round fights where Ed ought to soften up the opponent
 		//       in this fight, so that he is guaranteed to finish the next fight with Renenutet
@@ -1046,12 +1077,23 @@ string ed_edCombatHandler(int round, string opp, string text)
 			&& (ed_stormDamage() < monster_hp()
 				|| !have_skill($skill[Storm of the Scarab]) && ed_fistDamage() < monster_hp()
 			)
+			//&& !contains_text(get_property("ed_combatHandler"), "love gnats3")
+			&& !contains_text(text, "still cursed")
+				//FIXME:  how can we tell if opponent is currently stunned?
 		) {
 			print("Using a talisman of Renenutet right now would be risky!", "green");
 			doRenenutet = false;
+			if (2 <= roundsPerStage && combatStage < 2) {
+				print("However, we can die and try again next combat.", "green");
+				forceStasis = true;
+			}
 		}
-		if (doRenenutet && roundsLeftThisStage < 2) {
-			print("Using a talisman of Renenutet right now would be very risky!", "blue");
+		if (doRenenutet && roundsLeftThisStage < 2
+			//&& !contains_text(get_property("ed_combatHandler"), "love gnats3")
+			&& !contains_text(text, "still cursed")
+				//FIXME:  how can we tell if opponent is currently stunned?
+		) {
+			print("Using a talisman of Renenutet right now would be very risky!", "green");
 			doRenenutet = false;
 		}
 		if (doRenenutet) {
@@ -1072,7 +1114,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 		set_property("ed_edStatus", "dying");
 	}
 
-	if(get_property("ed_edStatus") == "UNDYING!" || forceStasis)
+	if(get_property("ed_edStatus") == "UNDYING!" || forceStasis)  //TODO:  at this point, is forceStasis the best way to decide to stasis?
 	{
 		if(my_location() == $location[The Secret Government Laboratory])
 		{
@@ -1106,6 +1148,12 @@ string ed_edCombatHandler(int round, string opp, string text)
 			return "item holy spring water";
 		}
 
+		if (2.5 * ed_fistDamage() < monster_hp()) {
+			return "skill Fist of the Mummy";
+		}
+		if (ed_fistDamage() < monster_hp()) {
+			return "skill Mild Curse";
+		}
 		//TODO:  if opponent has high current hp, we might want to soften it up a bit.
 		if(item_amount($item[Dictionary]) > 0)
 		{
@@ -1129,9 +1177,15 @@ string ed_edCombatHandler(int round, string opp, string text)
 	{
 		fightStat = fightStat - 50;
 	}
-	
-	if((fightStat > monster_defense()) && (round < 20) && ((expected_damage() * 1.1) < my_hp()))
+
+	if (
+		(fightStat > monster_defense())
+		&& (round < 20)
+		&& ((expected_damage() * 1.1) < my_hp())
+		&& 2 < roundsLeftThisStage
+	)
 	{
+		//TODO:  at the start of the run, with the MCD turned down, we can hit things at the sleazy back alley just fine, but this block does not trigger.
 		return "attack with weapon";
 	}
 
@@ -1144,6 +1198,10 @@ string ed_edCombatHandler(int round, string opp, string text)
 	if (my_mp() < mp_cost($skill[fist of the mummy]))
 	{
 		print("We aren't able to restore enough MP to cast a real spell!  Attacking might be better than Mild Curse", "red");
+		return "attack with weapon";
+	}
+
+	if (!have_skill($skill[fist of the mummy])) {
 		return "attack with weapon";
 	}
 
