@@ -1122,7 +1122,10 @@ boolean ed_handleAdventureServant(location loc)
 	{
 		ed_use_servant($servant[Maid]);
 	}
-//The cat is swapped in at the shrines while macheteing them because your servant still gets xp points and it usually still needs some at this point, also sparrows. :D
+
+	//The cat is swapped in at the shrines while macheteing them because your servant still gets xp points and it usually still needs some at this point, also sparrows. :D
+	// For the rest of these locations, the cat is used for item drops.
+	//TODO:  do we want the cat for the gremlins, for deleveling?
 	if (
 		(loc == $location[The Black Forest] && item_amount($item[reassembled blackbird]) == 0) ||
 		(loc == $location[An Overgrown Shrine (Northwest)]) ||
@@ -1130,7 +1133,7 @@ boolean ed_handleAdventureServant(location loc)
 		(loc == $location[An Overgrown Shrine (Southwest)]) ||
 		(loc == $location[An Overgrown Shrine (Southeast)]) ||
 		(loc == $location[A Massive Ziggurat] && item_amount($item[stone triangle]) == 0) ||
-		(loc == $location[The Hatching Chamber] && !have_skill($skill[Lash of the Cobra])) ||
+		(loc == $location[The Hatching Chamber] && !have_skill($skill[Lash of the Cobra])) ||  //TODO:  or, if we are low/out of lashes?  Will that ever happen?
 		(loc == $location[The Feeding Chamber] && !have_skill($skill[Lash of the Cobra])) ||
 		(loc == $location[The Royal Guard Chamber] && !have_skill($skill[Lash of the Cobra])) ||
 		(loc == $location[Wartime Frat House] && !have_skill($skill[Wrath of Ra])) ||

@@ -104,6 +104,7 @@ void ed_replacePublicSettings() {
 	set_property("afterAdventureScript", "ed_postadventure.ash");
 		//TODO:  does it do anything useful?  Can I just remove it?
 	set_property("counterScript", "");
+	//cli_execute("spookyraven on");  //TODO
 }
 
 void ed_restorePublicSettings() {
@@ -1000,7 +1001,7 @@ boolean L11_hiddenCityZones()
 
 	if(get_property("ed_hiddenzones") == "0")
 	{
-		//TODO:  why do we abandon the park after 10 adventures there??  Fewer janitors in the hospital and bowling alley is a good idea!
+		//TODO:  why do we abandon the park after 10 adventures there??  Fewer janitors in the hospital and bowling alley is a good idea!  Plus, book of matches for skipping battles & Fog Murderers.
 		if(possessEquipment($item[antique machete]) && ((item_amount($item[book of matches]) > 0) || ("The Hidden Park".to_location().turns_spent > 9)))
 		{
 			set_property("ed_hiddenzones", "1");
@@ -1171,7 +1172,8 @@ boolean fortuneCookieEvent()
 		$location[The Sleazy Back Alley] != to_location(get_property("semirareLocation"))
 	) {
 		ccAdv(1, $location[The Sleazy Back Alley]);
-		//FIXME:  we can't tell the difference between an auto-stop due to clover protection, and a non-combat that didn't cost an adventure.
+		//FIXME:  with the current approach, we can't tell the difference between an auto-stop due to the semi-rare counter, and a non-combat that didn't cost an adventure.
+		// Does Mafia know to clear the counter, in the latter case?
 		if (my_turncount() == semiRareTurn) ccAdv(1, $location[The Sleazy Back Alley]);
 		//ccAdvBypass(112);  // The Sleazy Back Alley
 		if(item_amount($item[distilled fortified wine]) > 0)
@@ -1223,6 +1225,7 @@ boolean L11_unlockHiddenCity()
 	if(ccAdvBypass(280))
 	{
 		print("Wandering monster interrupted our attempt at the Hidden City", "red");
+		//FIXME:  um, or maybe we didn't have any stone wool.
 		return true;
 	}
 	
@@ -1823,7 +1826,7 @@ boolean L12_sonofaBeach()
 		set_property("ed_doCombatCopy", "yes");
 	}
 
-	//TODO:  is ed_preadventure supposed to take care of these?
+	//TODO:  is ed_preadventure supposed to take care of these?  (it seems to have been missing the first adventure)
 	buffMaintain($effect[Hippy Stench], 0, 1, 1);
 	if (0 == have_effect($effect[taunt of horus]) && 0 < item_amount($item[talisman of horus])) {
 		use(1, $item[talisman of Horus]);
@@ -2708,8 +2711,6 @@ boolean L5_goblinKing()
 		return false;
 	}
 
-	//print("Death to the gobbo!! If you want a specific drop, please reset your MCD now.", "blue");
-	//wait(15);
 	cli_execute("outfit knob goblin harem girl disguise");
 	buffMaintain($effect[Knob Goblin Perfume], 0, 1, 1);
 	if(my_hp() > 5 && have_effect($effect[Knob Goblin Perfume]) == 0)
@@ -2815,6 +2816,7 @@ boolean L4_batCave()
 		if(ccAdvBypass(31, $location[Guano Junction]))
 		{
 			print("Wandering monster interrupt at Guano Junction", "red");
+			//TODO:  use any assembled clovers in inventory!  (no need for this if block)
 			return true;
 		}
 
@@ -2951,7 +2953,6 @@ boolean L2_spookySapling()
 	set_property("choiceAdventure504", "3");
 
 	//TODO:  need to do servant switching, maintain buffs, etc.
-#	cli_execute("aa none");
 	if(contains_text(visit_url("adventure.php?snarfblat=15"), "Combat"))
 	{
 		//TODO:  ccAdv does servant switching & buff maintenance, which produces "You are currently in a fight."  get rid of that.
@@ -3271,17 +3272,12 @@ boolean L9_aBooPeak()
 		return true;
 	}
 
-/*
-	if(get_property("ed_war") != "finished")
-	{
-		return false;
-	}
-*/
 	print("A-Boo Peak: " + get_property("booPeakProgress"), "blue");
 	if(item_amount($item[a-boo clue]) > 0 && to_int(get_property("booPeakProgress")) > 2)
 	{
 		buffMaintain($effect[Go Get \'Em\, Tiger!], 0, 1, 1);
-		
+
+		//TODO:  the following check should be removed.  if we have enough HP, it is counterproductive.
 		if(item_amount($item[Linen Bandages]) == 0)
 		{
 			return false;
@@ -4567,16 +4563,6 @@ boolean L3_tavern()
 	}
 
 	handleMCD();
-/*
-	while(ed_tavern())
-	{
-		if(my_adventures() <= 0)
-		{
-			abort("Ran out of adventures while doing the tavern.");
-		}
-		wait(4);
-	}
-*/
 	if (!ed_tavern()) return false;
 
 	if (index_of(get_property("tavernLayout"), "3") != -1) {
@@ -4588,6 +4574,7 @@ boolean L3_tavern()
 }
 
 boolean ed_LX_xp() {
+	//TODO:  need to make sure we behave appropriately if we have Taunt or Hippy Stench.
 	if (my_level() >= 13) return false;
 
 	print("We've done everything possible at this time and have not reached the next level, so power-leveling in the most basic way Ed can, abort if you want to do this on your own.", "blue");
@@ -4600,6 +4587,7 @@ boolean ed_LX_xp() {
 	int spareClovers =  item_amount($item[disassembled clover]) - reservedClovers;
 	if (!galleryAndBathroomOpen || spareClovers <= 0) {
 		//TODO:  account for Taunt and/or Hippy Stench in calculations.  (and other combat rate modifiers?)
+		//FIXME:  also, what if we have Taunt, and no access to SMOOCH?
 		float galleryExperienceEstimate
 			= (6 + numeric_modifier("Mysticality Experience")) * (18.0/25)
 				+ min(200.0, 3*my_basestat($stat[Mysticality])) * (1+numeric_modifier("Mysticality Experience Percent")/100.0) * (7.0/25);
@@ -5017,38 +5005,7 @@ boolean doTasks()
 		set_property("ed_nunsTrick", "false");
 		set_property("ed_ignoreFlyer", true);
 	}
-	
-//	if(get_property("ed_nunsTrick") == "true")
-//	{
-//		if(possessEquipment($item[reinforced beaded headband]) && possessEquipment($item[bullet-proof corduroys]) && possessEquipment($item[round purple sunglasses]))
-//		{
-//			print("Had gotten War Hippy Fatigues during the Ferret rescue. Don't need to worry about them now.", "blue");
-//			set_property("ed_nunsTrick", "got");
-//		}
-//		else
-//		{
-//			print("Only have some of the War Hippy Fatigues, so I'm going to closet everything relevant to get them in the desert", "blue");
-//			put_closet(item_amount($item[beer helmet]), $item[beer helmet]);
-//			put_closet(item_amount($item[distressed denim pants]), $item[distressed denim pants]);
-//			put_closet(item_amount($item[bejeweled pledge pin]), $item[bejeweled pledge pin]);
-//			put_closet(item_amount($item[reinforced beaded headband]), $item[reinforced beaded headband]);
-//			put_closet(item_amount($item[bullet-proof corduroys]), $item[bullet-proof corduroys]);
-//			put_closet(item_amount($item[round purple sunglasses]), $item[round purple sunglasses]);
-//				
-//			ccAdv(1, $location[The Arid\, Extra-Dry Desert]);
-//				
-//			if(contains_text(get_property("lastEncounter"), "He Got His Just Desserts"))
-//			{
-//				take_closet(1, $item[beer helmet]);
-//				take_closet(1, $item[distressed denim pants]);
-//				take_closet(1, $item[bejeweled pledge pin]);
-//				set_property("ed_nunsTrick", "got");
-//			}
-//
-//			return true;
-//		}
-//	}
-	
+
 	if((get_property("ed_nunsTrick") == "got") && (get_property("currentNunneryMeat").to_int() < 100000) && !get_property("ed_100familiar").to_boolean())
 	{
 		set_property("ed_nunsTrickActive", "yes");
@@ -5611,7 +5568,6 @@ void ed_begin()
 #	print("This is version: 1.0.0.7");
 	print("This is day " + my_daycount() + ".");
 	print("Turns played: " + my_turncount() + " current adventures: " + my_adventures());
-	print("Current Ascension: " + my_path());
 	
 	if ((my_class() != $class[Ed]))
 	{
