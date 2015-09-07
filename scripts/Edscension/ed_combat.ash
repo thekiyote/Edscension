@@ -662,7 +662,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 		set_property("ed_edStatus", "dying");
 	}
 
-	if((item_amount($item[The Big Book of Pirate Insults]) > 0) && (!contains_text(combatState, "insults")) && (my_location() == $location[barrrney\'s barrr]))
+	if((item_amount($item[The Big Book of Pirate Insults]) > 0) && (!contains_text(combatState, "insults")) && (my_location() == $location[barrrney\'s barrr]) && insultCount() < 8)
 	{
 		if(((expected_damage() * 1.1) > my_hp()) && (get_property("ed_edStatus") == "dying"))
 		{
