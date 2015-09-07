@@ -258,7 +258,7 @@ boolean ccAdvBypass(string url, location loc)
 	if((my_hp() == 0) || (get_property("_edDefeats").to_int() == 1))
 	{
 		print("Uh oh! Died when starting a combat indirectly.", "red");
-		return ed_ccAdv(1, loc, "", true);
+		return ed_ccAdv(1, loc, "", true);  //TODO:  are we at the underworld choice, or are we starting another adventure??
 	}
 	if(contains_text(page, "Combat"))
 	{
@@ -668,7 +668,7 @@ void doBedtime()
 		return;
 	}
 
-	if(get_property("ed_priorCharpaneMode").to_int() == 1)
+	if(get_property("ed_priorCharpaneMode").to_int() == 1)  //TODO:  remove.
 	{
 		print("Resuming Compact Character Mode.");
 		visit_url("account.php?am=1&pwd=&action=flag_compactchar&value=1&ajax=0", true);
@@ -684,7 +684,7 @@ void doBedtime()
 
 	if((friars_available()) && (!get_property("friarsBlessingReceived").to_boolean()))
 	{
-		cli_execute("friars familiar");
+		cli_execute("friars familiar");  //FIXME:  ?? I don't think that helps Ed's servants.
 	}
 	
 	if((my_hp() < my_maxhp()) && (get_property("_hotTubSoaks").to_int() < 5))
@@ -2212,6 +2212,7 @@ boolean L7_crypt()
 	if(get_property("cyrptTotalEvilness").to_int() <= 0)
 	{
 		boolean tryBoner = ccAdv(1, $location[Haert of the Cyrpt]);
+		//FIXME:  if (0 < item_amount($item[skull of the bonerdagon]) && 0 < item_amount($item[batskin belt])) create(1, $item[badass belt]);
 		if(item_amount($item[chest of the bonerdagon]) == 1)
 		{
 			set_property("ed_crypt", "finished");
@@ -2271,7 +2272,7 @@ boolean ed_LX_legDay()
 	// note that once we have wisdom of thoth, we defeat them with a single spell, crit or otherwise.  (is that really true?  even at low mys & no +damage astral item?  What if we have, say, Lapdog in effect?)
 	buffMaintain($effect[Bounty of Renenutet], 35, 1, 1);
 	if (300 < my_meat() && 90 < jump_chance($monster[filthy hippy])) buffMaintain($effect[Blessing of Serqet], 30, 1, 1);
-	set_property("edDefeatAbort", "3");
+	set_property("edDefeatAbort", "3");  //TODO:  allow 1 Ka to be spent
 	ccAdv(1, $location[Hippy Camp]);
 	return true;
 }
@@ -2488,6 +2489,7 @@ boolean L6_friarsGetParts()
 		print("Delaying the Friars due to low Ka & adventures", "red");
 	}
 
+	//FIXME:  visit_url("friars.php?action=friars&pwd");  // This could be necessary; see fronobulax's comments in the Mafia thread.  For whatever reason, the script works fine for me without it.
 	if(item_amount($item[box of birthday candles]) == 0)
 	{
 		print("Getting Box of Birthday Candles", "blue");
@@ -2777,6 +2779,7 @@ boolean L4_batCave()
 	if(contains_text(batHole, "bathole_bg4"))
 	{
 		ccAdv(1, $location[The Boss Bat\'s Lair]);
+		//FIXME:  if (0 < item_amount($item[skull of the bonerdagon]) && 0 < item_amount($item[batskin belt])) create(1, $item[badass belt]);
 		if(contains_text(get_property("lastEncounter"), "Boss Bat?"))
 		{
 			council();
@@ -3014,6 +3017,8 @@ boolean L2_mosquito()
 
 boolean L5_getEncryptionKey()
 {
+	//TODO:  note that this should handle both acquisition of the key, as well as getting the lunchbox from the first semi-rare.  And it does, although I believe that it currently skips out on the lunchbox if it happens to get the key first.
+	//FIXME:  maybe put just the maximization and ccAdv stuff in a separate, common, function called in both cases....
 	if(get_property("ed_day1_cobb") == "finished")
 	{
 		return false;
@@ -3025,6 +3030,8 @@ boolean L5_getEncryptionKey()
 		change_mcd(3);
 		maximize("exp, -ml", 0, 0, false);
 	}
+	//FIXME:  if (!contains_text(visit_url("place.php?whichplace=plains"), to_url($location[the outskirts of cobb's knob]))) return false;
+	//FIXME:  although, the above line maybe should check get_counters("Semirare window end", 0, 10) == "Semirare window end"
 	print("Looking for the knob.", "blue");
 	if (0 == item_amount($item[Knob Goblin Encryption Key])) {
 		ccAdv(1, $location[the outskirts of cobb\'s knob]);
@@ -4063,6 +4070,7 @@ boolean L11_blackMarket()
 	}
 
 	ccAdv(1, $location[The Black Forest]);
+	//FIXME:  if (0 < item_amount($item[broken wings]) && 0 < item_amount($item[sunken eyes])) create(1, $item[reassembled blackbird]);
 	if(black_market_available())
 	{
 		buyUpTo(2, $item[can of black paint]);
@@ -5586,6 +5594,7 @@ void ed_begin()
 		setvar("chit.helpers.xiblaxian", false);
 	}
 
+	//TODO:  council();
 	questOverride();
 	set_property("edDefeatAbort", "3");
 

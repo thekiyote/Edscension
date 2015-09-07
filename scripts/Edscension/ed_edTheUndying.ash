@@ -702,6 +702,7 @@ ed_ShoppingList ed_buildShoppingList(int kaAdjustment, int adventuresAdjustment)
 	int adventures = my_adventures() + adventuresAdjustment;
 
 	// Top priority is ensuring access the Hippy Camp, in order to guarantee 2Ka/adv.
+	//TODO:  if we have access to, e.g., SMOOCH, then we don't need to prioritize the legs.
 	if (!have_skill($skill[Upgraded Legs])) {
 		if (10 <= coins) result.skillsToBuy[$skill[Upgraded Legs]] = true;
 		return result;
@@ -1354,6 +1355,7 @@ boolean ed_ccAdv(int num, location loc, string option, boolean skipFirstLife)
 				else if(contains_text(page, "What? That's outrageous!")) 
 				{
 					abort("Third deaths the toll, pay up if you wish to continue.");
+					//FIXME:  honor whatever the edDefeatAbort setting is
 				}
 			}
 		}
