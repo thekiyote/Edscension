@@ -44,6 +44,19 @@ x ed_resumeCombat isn't working.  ??  It sometimes works.  Why is this?
 
 
 TODO:
+- if we are low on adventures, but have not yet filled our spleen, we need to
+  force a visit to the underworld.  normal adventuring won't necessarily do
+  this if we have, e.g., a hot plate equipped.  also, get the dictionary
+  sooner, so that we can die more effectively!  also also, the priest
+  sometimes "helps" kill undead things...
+- high ML not handled properly.  (astral belt)
+x XP much better at Dinseyland than Hippy Camp
+x 350 Ka?
+x Outskirts of the Knob ??
+x didn't talk to the friars??
+- Need Wisniewski tweaks:  when we don't have Storm, but have enough ka, set
+  edDefeatAbort higher.  Don't abort with the "third death" message.  Make
+  sure we have enough MP.
 - On a day-1 FoB, I didn't get More Legs.  Then, on day 2 I couldn't beat
   goats or the Goblin King....
 - what's the deal with 'Manual control requested'?
@@ -81,10 +94,11 @@ TODO:
 - holiday monster can interrupt clovering @ bathroom  (okay, sure.  it's
   harmless though, right?  or, do we potentially leave a reassembled clover in
   our inventory?
-- in low-skill runs, defer friars until Shelter of Shed.
+- in low-skill runs, defer friars until Shelter of Shed.  (oh, except that's
+  level 10.  maybe not?)
 - in low-skill runs, defer Nook until Cat is available??
 - haunted kitchen always takes at least 7 turns.  Can we do it before even
-  more elemental wards?
+  more elemental wards?  (12 turns at +3/+3?)
 - did I change the servant used on the gremlins to scribe?  (was cat, I
   think?  for deleveling?  If cat can delevel, then it may make sense to use
   it.)
@@ -93,6 +107,12 @@ TODO:
 - Ka budget & such within combat should be controlled via edDefeatAbort
   setting.
 - Macroify stasis.
+- better handling of low pool skill?
+- if opponent won't do much damage, use flyers even if this is our last
+  combat.
+- 2015/9/6:  ldk ate a cookie, and then ate another cookie later on.  How/why
+  did Mafia lose the counters??
+- ed_disableAdventureHandling can be left set, when we abort or interrupt the adventure
 
 - replace ccAdv.  One feature I would like is adventure functions that accept
   callbacks for equipment maximization, servant selection, buff maintenance.
@@ -101,6 +121,10 @@ TODO:
   callbacks provide a "predictive" mode... streamlining some of the more
   situation-dependent task logic.
 
+- 2015/9/6:  ldk got sunken eyes turn 628, got broken wings 616.  no blackbird
+  made.  presumably, this is due to autoCraft = false?
+- avoid changing mcd so much
+- invigorating tonic costs 90 meat.
 - if we can detect when lash succeeds in getting a writ of habeas corpus,
   then we can use it immediately, on its former owner....
 - Shelter of Shed @ Black Forest, if no galoshes?
