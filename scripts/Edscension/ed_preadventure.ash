@@ -189,7 +189,9 @@ void handlePreAdventure()
 			(my_location() == $location[The Defiled Cranny]
 				&& get_property("cyrptCrannyEvilness").to_int() > 26
 			) ||
-			(my_location() == $location[The Defiled Alcove]) ||
+			(my_location() == $location[The Defiled Alcove]
+				&& get_property("cyrptAlcoveEvilness").to_int() > 26
+			) ||
 			(my_location() == $location[The Spooky Forest] && ("The Spooky Forest".to_location().turns_spent >= 5)) ||
 			(my_location() == $location[Inside the Palindome]) ||
 			(my_location() == $location[Barrrney\'s Barrr] && item_amount($item[Cap\'m Caronch\'s Map]) == 0 && item_amount($item[Cap\'m Caronch\'s Nasty Booty]) == 0 && (get_property("ed_pirateoutfit") == "insults")) ||
