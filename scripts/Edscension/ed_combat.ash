@@ -467,10 +467,10 @@ string ed_edCombatHandler(int round, string opp, string text)
 			set_property("ed_edCombatCount", 1 + get_property("ed_edCombatCount").to_int());
 		if (combatStage < 3 && flyering) {
 			set_property("ed_edStatus", "UNDYING!");
-			print("test1", "red");
+			print("test1", "orange");
 		} else if (combatStage < 3) {
 			set_property("ed_edStatus", "dying");
-			print("test4", "red");
+			print("test4", "orange");
 		} else {
 			//FIXME:  ???
 			set_property("ed_edStatus", "dying");
@@ -510,7 +510,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 	) {
 		//TODO:  why?  is this to go shopping?  I think I've handled that elsewhere.
 		set_property("ed_edStatus", "UNDYING!");
-		print("test5", "red");
+		print("test5", "orange");
 	}
 
 	int insultCount() {
@@ -534,13 +534,13 @@ string ed_edCombatHandler(int round, string opp, string text)
 		(enemy == $monster[tipsy pirate] && insultCount() < 8))
 	{
 		set_property("ed_edStatus", "UNDYING!");
-		print("test6", "red");
+		print("test6", "orange");
 	}
 	
 	if ((combatStage >= 2) && !flyering)
 	{
 		set_property("ed_edStatus", "dying");
-		print("test2", "red");
+		print("test2", "orange");
 	}
 	int lastStage = 4;  //FIXME:  when to stop should depend on our Ka supply!
 	if (combatStage >= lastStage) {
@@ -554,7 +554,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 	)
 	{
 		set_property("ed_edStatus", "UNDYING!");
-		print("test3", "red");
+		print("test3", "orange");
 	}
 	
 	#Handle different path is monster_level_adjustment() > 150 (immune to staggers?)
@@ -587,7 +587,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 		if(((!contains_text(combatState, "love gnats") || (contains_text(combatState, "stun resisted"))) || (contains_text(combatState, "gnats disperse"))) && have_skill($skill[Curse of Indecision]) && my_mp() > 25)
 			//FIXME:  we need to check the page text to detect "STUN RESISTED" or dispersal of gnats, in order for those checks to do anything!
 		{
-			print("WHM:  Curse of Indecision removed! (#1)", "red");
+			print("WHM:  Curse of Indecision removed! (#1)", "orange");
 			//set_property("ed_combatHandler", combatState + "(love gnats3)");
 			//return "skill Curse of Indecision";
 		}
@@ -616,7 +616,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 				&& (!have_skill($skill[Storm of the Scarab]) || ed_stormDamage() < monster_hp())
 			)
 			{
-				print("WHM:  Curse of Indecision removed! (#2)", "red");
+				print("WHM:  Curse of Indecision removed! (#2)", "orange");
 				//set_property("ed_combatHandler", combatState + "(love gnats3)");
 				//return "skill Curse of Indecision";
 			}
