@@ -333,7 +333,25 @@ void handlePreAdventure()
 			doBreak = true;
 		}
 	}
-		
+
+	// sanity check.  Are we getting in over our 'ed?
+	//TODO:  this would fail for, say, the Limerick Dungeon.  Should it be more robust?
+	boolean survivableCombat = false;
+	foreach i,m in get_monsters(my_location()) {
+//		print(m + " " + expected_damage(m) + " " + jump_chance(m));
+		if (
+			expected_damage(m) < my_maxhp()
+			|| 50 < jump_chance(m)
+			|| my_servant() == $servant[Bodyguard]  //FIXME:  ed_preadventure is called before servant switching has happened.
+			|| my_servant() == $servant[Maid] && 14 <= $servant[Maid].level
+			|| $location[Hippy Camp] == my_location() && 10 <= item_amount($item[Ka coin]) && !have_skill($skill[Upgraded Legs])
+		) survivableCombat = true;
+	}
+	if (!survivableCombat) {
+		abort("This script wants to adventure at " + my_location() + ".  I doubt you'd survive.");
+			// (in these shoes?)
+	}
+
 	print("Pre Adventure done, beep.", "orange");
 	return;
 }
