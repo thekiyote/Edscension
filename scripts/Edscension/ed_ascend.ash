@@ -2155,7 +2155,9 @@ boolean L7_crypt()
 	}
 	if (
 		(get_property("cyrptAlcoveEvilness").to_int() > 0)
+		&& (get_property("cyrptAlcoveEvilness").to_int() <= 26)
 		&& ((my_maxhp() > 50) || (elemental_resist($element[spooky]) > 3))
+		&& noTauntActive  //FIXME:  remove this.  however, ed_preadventure needs to know that it is okay to adventure there.
 	)
 	{
 		print("The Alcove boss! (or maybe the last guy before him?)", "blue");
