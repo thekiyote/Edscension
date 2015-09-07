@@ -1012,7 +1012,6 @@ boolean ed_shopping()
 
 servant ed_servant;
 boolean ed_use_servant(servant which) {
-	print("WHM: ed_use_servant(" + which  +")");
         if (have_servant(which)) {
 		ed_servant = which;
 		return true;
