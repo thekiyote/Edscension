@@ -3019,6 +3019,7 @@ boolean L5_getEncryptionKey()
 {
 	//TODO:  note that this should handle both acquisition of the key, as well as getting the lunchbox from the first semi-rare.  And it does, although I believe that it currently skips out on the lunchbox if it happens to get the key first.
 	//FIXME:  maybe put just the maximization and ccAdv stuff in a separate, common, function called in both cases....
+	//FIXME:  yeah.  fix it for real, with a separate function....
 	if(get_property("ed_day1_cobb") == "finished")
 	{
 		return false;
@@ -3030,8 +3031,14 @@ boolean L5_getEncryptionKey()
 		change_mcd(3);
 		maximize("exp, -ml", 0, 0, false);
 	}
-	//FIXME:  if (!contains_text(visit_url("place.php?whichplace=plains"), to_url($location[the outskirts of cobb's knob]))) return false;
-	//FIXME:  although, the above line maybe should check get_counters("Semirare window end", 0, 10) == "Semirare window end"
+	if (
+		!contains_text(visit_url("place.php?whichplace=plains"), to_url($location[the outskirts of cobb's knob]))
+		&& get_counters("Semirare window end", 0, 10) != "Semirare window end"
+	) {
+		set_property("ed_day1_cobb", "finished");
+		council();
+		return false;
+	}
 	print("Looking for the knob.", "blue");
 	if (0 == item_amount($item[Knob Goblin Encryption Key])) {
 		ccAdv(1, $location[the outskirts of cobb\'s knob]);
