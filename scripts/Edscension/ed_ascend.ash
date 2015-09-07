@@ -535,10 +535,11 @@ void handleMCD()
 		visit_url("choice.php?pwd&whichchoice=835&option=2", true);
 	} else if(!knoll_available())
 	{
-		change_mcd(10);
 		if(canadia_available())
 		{
 			change_mcd(11);
+		} else {
+			change_mcd(10);
 		}
 	} else
 	{
