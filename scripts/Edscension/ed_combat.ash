@@ -1157,10 +1157,12 @@ Your opponent shakes her head rapidly, and her eyes gradually refocus. Looks lik
 		//TODO:  if opponent has high current hp, we might want to soften it up a bit.
 		if(item_amount($item[Dictionary]) > 0)
 		{
-			return "item dictionary";
+			return "use dictionary; repeat";
+				//TODO:  gremlins are handled separately, so I assume in this case stasis is always an attempt to visit the underworld...  need to make sure that's true.
 		}
 
-		return "skill Mild Curse";
+		return "skill Mild Curse; repeat";
+			//TODO:  as mentioned above, gremlins are handled separately, so I assume in this case stasis is always an attempt to visit the underworld...  need to make sure that's true.
 	}
 
 	if((my_mp() >= 15) && (my_location() == $location[The Secret Government Laboratory]) && have_skill($skill[Roar of the Lion]))
