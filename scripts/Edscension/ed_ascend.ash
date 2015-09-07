@@ -1338,6 +1338,7 @@ boolean LX_handleSpookyravenFirstFloor()
 	{
 		return false;
 	}
+	//TODO:  even if we don't have ed_edDelayHauntedKitchen set, we may want to at least make sure we have More Elemental Wards.
 	if(!have_skill($skill[Even More Elemental Wards]) && get_property("ed_edDelayHauntedKitchen").to_boolean())
 	{
 		print("Delaying kitchen till you got some more resistance", "blue");
@@ -2721,8 +2722,10 @@ boolean L5_goblinKing()
 	if(my_hp() > 5 && have_effect($effect[Knob Goblin Perfume]) == 0)
 	{
 		ccAdv(1, $location[Cobb\'s Knob Harem]);
+			//FIXME:  in low-skill runs, we may want to use a renenutet here, but might not get a chance.
 		if(contains_text(get_property("lastEncounter"), "Cobb's Knob lab key"))
 		{
+			//TODO:  can't we just let the main loop handle this case???
 			ccAdv(1, $location[Cobb\'s Knob Harem]);
 		}
 		return true;
@@ -2730,6 +2733,7 @@ boolean L5_goblinKing()
 	{
 		if(item_amount($item[linen bandages]) > 0)
 		{
+			//TODO:  fix duplicated code.
 			use(1, $item[linen bandages]);
 			ccAdv(1, $location[Cobb\'s Knob Harem]);
 			if(contains_text(get_property("lastEncounter"), "Cobb's Knob lab key"))
@@ -2739,6 +2743,7 @@ boolean L5_goblinKing()
 		} else
 		{
 			abort("Your HP is too low to get some perfume without being beaten up and you have no restoratives, restore some HP somehow before continuing.");
+				//FIXME:  how about just returning false?  Ed will presumably heal by visiting the underworld in the next combat...
 		}
 	}
 
@@ -5583,7 +5588,7 @@ void ed_begin()
 	cli_execute("spookyraven off");
 
 	print("Hello " + my_name() + ", time to explode!");
-#	print("This is version: 1.0.0.7");
+	print("This is version: chwone.1");
 	print("This is day " + my_daycount() + ".");
 	print("Turns played: " + my_turncount() + " current adventures: " + my_adventures());
 	
