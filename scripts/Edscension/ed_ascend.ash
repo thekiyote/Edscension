@@ -2248,6 +2248,16 @@ boolean L7_crypt()
 	return false;
 }
 
+boolean ed_visitSleazyBackAlley() {
+	if(jump_chance($monster[Rushing Bum]) < 70 && my_maxhp() < 30)
+	{
+		change_mcd(3);
+	}
+
+	ccAdv(1, $location[the sleazy back alley]);
+	return true;
+}
+
 boolean ed_LX_legDay()
 {
 	if (0 == item_amount($item[Dingy Dinghy])) {
@@ -2260,14 +2270,8 @@ boolean ed_LX_legDay()
 
 	if(item_amount($item[Ka Coin]) < 10 && !have_skill($skill[Upgraded Legs]))
 	{
-		if(jump_chance($monster[Rushing Bum]) < 70 && my_maxhp() < 30)
-		{
-			change_mcd(3);
-		}
-
 		print("Getting ka to upgrade legs.", "blue");
-		ccAdv(1, $location[the sleazy back alley]);
-		return true;
+		return ed_visitSleazyBackAlley();
 	}
 
 	print("Doing leg-day.", "blue");
@@ -2490,8 +2494,7 @@ boolean L1_edIslandFallback()
 	if (ed_LX_islandAccess()) return true;
 	if (ed_LX_legDay()) return true;
 	print("We need to gather Ka, but we don't have island access.", "red");
-	ccAdv(1, $location[the sleazy back alley]);
-	return true;
+	return ed_visitSleazyBackAlley();
 }
 
 boolean L6_friarsGetParts()
@@ -3035,6 +3038,25 @@ boolean L2_mosquito()
 	return true;
 }
 
+boolean ed_visitKnobOutskirts() {
+	if((jump_chance($monster[Knob Goblin Barbecue Team]) < 50 && my_maxhp() < 30))
+	{
+		change_mcd(3);
+		ed_setMaximization("exp, -ml");
+	} else {
+		ed_setMaximization("exp");
+	}
+	ccAdv(1, $location[the outskirts of cobb\'s knob]);
+	if (get_property("ed_day1_cobb") != "finished") {
+		cli_execute("refresh inventory");
+		if (item_amount($item[Knob Goblin Encryption Key]) == 1) {
+			set_property("ed_day1_cobb", "finished");
+			council();
+		}
+	}
+	return true;
+}
+
 boolean L5_getEncryptionKey()
 {
 	//TODO:  note that this should handle both acquisition of the key, as well as getting the lunchbox from the first semi-rare.  And it does, although I believe that it currently skips out on the lunchbox if it happens to get the key first.
@@ -3045,37 +3067,25 @@ boolean L5_getEncryptionKey()
 		return false;
 	}
 	
-	maximize("exp", 0, 0, false);
-	if((jump_chance($monster[Knob Goblin Barbecue Team]) < 50 && my_maxhp() < 30))
-	{
-		change_mcd(3);
-		maximize("exp, -ml", 0, 0, false);
-	}
 	if (
 		!contains_text(visit_url("place.php?whichplace=plains"), to_url($location[the outskirts of cobb's knob]))
-		&& get_counters("Semirare window end", 0, 10) != "Semirare window end"
 	) {
 		set_property("ed_day1_cobb", "finished");
 		council();
-		return false;
+		return true;
 	}
 	print("Looking for the knob.", "blue");
 	if (0 == item_amount($item[Knob Goblin Encryption Key])) {
-		ccAdv(1, $location[the outskirts of cobb\'s knob]);
-		cli_execute("refresh inventory");
+		if (!ed_visitKnobOutskirts()) return false;
 	}
 
-	if(item_amount($item[Knob Goblin Encryption Key]) == 1)
-	{
-		set_property("ed_day1_cobb", "finished");
-		council();
-	}
 	return true;
 }
 
 boolean LX_getLunchbox() {
 	if(get_counters("Semirare window end", 0, 10) == "Semirare window end") {
-		return L5_getEncryptionKey();
+		print("Looking for the knob lunchbox.", "blue");
+		return ed_visitKnobOutskirts();
 	}
 	return false;
 }
