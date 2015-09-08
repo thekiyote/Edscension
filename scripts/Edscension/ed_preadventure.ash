@@ -340,19 +340,23 @@ void handlePreAdventure()
 
 	// sanity check.  Are we getting in over our 'ed?
 	//TODO:  this would fail for, say, the Limerick Dungeon.  Should it be more robust?
-	boolean survivableCombat = false;
-	foreach i,m in get_monsters(my_location()) {
-//		print(m + " " + expected_damage(m) + " " + jump_chance(m));
-		if (
+	// switching it around....
+	monster nonsurvivableCombat;
+	foreach m,f in appearance_rates(my_location(), true) {
+		print(m + " " + f + " " + expected_damage(m) + " " + jump_chance(m));
+		if ($monster[none] == m || f <= 0.0) continue;
+		if ($monster[modern zmobie] == m && get_property("cyrptAlcoveEvilness").to_int() <= 25) m = $monster[conjoined zmombie];
+		if (!(
 			expected_damage(m) < my_maxhp()
 			|| 50 < jump_chance(m)
 			|| my_servant() == $servant[Bodyguard]  //FIXME:  ed_preadventure is called before servant switching has happened.
 			|| my_servant() == $servant[Maid] && 14 <= $servant[Maid].level
 			|| $location[Hippy Camp] == my_location() && 10 <= item_amount($item[Ka coin]) && !have_skill($skill[Upgraded Legs])
-		) survivableCombat = true;
+		)) nonsurvivableCombat = m;
 	}
-	if (!survivableCombat) {
-		abort("This script wants to adventure at " + my_location() + ".  I doubt you'd survive.");
+	if ($monster[none] != nonsurvivableCombat) {
+		abort("This script wants to adventure at " + my_location() + ".  It seems risky.  I doubt you'd survive against a " + nonsurvivableCombat);
+		//abort("This script wants to adventure at " + my_location() + ".  I doubt you'd survive.");
 			// (in these shoes?)
 	}
 
