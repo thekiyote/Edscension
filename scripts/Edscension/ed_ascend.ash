@@ -2180,6 +2180,11 @@ boolean L7_crypt()
 		buffMaintain($effect[Butt-Rock Hair], 0, 1, 1);
 		buffMaintain($effect[Well-Swabbed Ear], 0, 1, 1);
 		buffMaintain($effect[Sepia Tan], 0, 1, 1);
+		ed_maximize();  //FIXME
+		if (my_maxhp() + 5 < expected_damage($monster[modern zmobie])) {
+			print("No, not the alcove.  I changed my mind.", "red");
+			return false;
+		}
 		ccAdv(1, $location[The Defiled Alcove]);
 		return true;
 	}
