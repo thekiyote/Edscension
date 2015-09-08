@@ -2541,7 +2541,8 @@ boolean L6_friarsGetParts()
 		print("Delaying the Friars due to low Ka & adventures", "red");
 	}
 
-	//FIXME:  visit_url("friars.php?action=friars&pwd");  // This could be necessary; see fronobulax's comments in the Mafia thread.  For whatever reason, the script works fine for me without it.
+	visit_url("friars.php?action=friars&pwd");  // This could be necessary; see fronobulax's comments in the Mafia thread.  For whatever reason, the script works fine for me without it.
+		//TODO:  it would be nice to eliminate the extra server hit here.
 	if(item_amount($item[box of birthday candles]) == 0)
 	{
 		print("Getting Box of Birthday Candles", "blue");
