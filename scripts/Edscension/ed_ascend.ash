@@ -4725,6 +4725,7 @@ boolean ed_LX_xp() {
 		ccAdv(1, $location[The Castle in the Clouds in the Sky (Basement)]);
 		return true;
 	}
+	else if (elementalPlanes_access($element[stench])) L1_edDinsey();
 	else if(my_level() <= 10)
 	{
 		if (have_skill($skill[Even More Elemental Wards]))
