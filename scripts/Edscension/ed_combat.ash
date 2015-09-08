@@ -11,10 +11,11 @@ void handleRenenutet(monster enemy);
 
 int ed_fistDamage() {  // (ignores physical resistance, 5 MP)
 	// (see http://kol.coldfront.net/thekolwiki/index.php/Calculating_Spell_Damage)
-	float baseDamage = min(my_buffedstat($stat[mysticality]), 50);
+	float baseDamage = min(max(1,my_buffedstat($stat[mysticality])-2), 50);
 	float multiplier = 1.0; //FIXME
 	float spellDamagePercent = numeric_modifier("Spell Damage Percent");
-	return ceil(baseDamage * multiplier * (1+spellDamagePercent/100.0));
+	return floor(baseDamage * multiplier * (1+spellDamagePercent/100.0));
+		//TODO:  a few opponents have damage reduction applied
 }
 
 int ed_howlDamage() {  // (spooky damage, 10 MP)
@@ -1148,13 +1149,14 @@ Your opponent shakes her head rapidly, and her eyes gradually refocus. Looks lik
 			return "item holy spring water";
 		}
 
-		if (2.5 * ed_fistDamage() < monster_hp()) {
+		//TODO:  beware the hot plate.  Over 30 rounds of combat, it can wind up finishing our opponent off
+		if (2.1 * ed_fistDamage() < monster_hp()) {
 			return "skill Fist of the Mummy";
 		}
 		if (ed_fistDamage() < monster_hp()) {
 			return "skill Mild Curse";
 		}
-		//TODO:  if opponent has high current hp, we might want to soften it up a bit.
+		//TODO:  we may also want to consider 'attack with weapon' to soften it up...
 		if(item_amount($item[Dictionary]) > 0)
 		{
 			return "use dictionary; repeat";
@@ -1204,6 +1206,15 @@ Your opponent shakes her head rapidly, and her eyes gradually refocus. Looks lik
 	}
 
 	if (!have_skill($skill[fist of the mummy])) {
+		return "attack with weapon";
+	}
+
+	if (
+		monster_defense() < 20
+		&& 10 < my_buffedstat($stat[Muscle])
+	)
+	{
+		// experimental support for fighting without burning MP....
 		return "attack with weapon";
 	}
 
