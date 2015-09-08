@@ -2308,10 +2308,10 @@ boolean ed_LX_legDay()
 
 	print("Doing leg-day.", "blue");
 
-	string extra;
+	string extra = ", -equip astral belt";  //TODO:  we need to test this.  in any case, it's probably just a temporary fix.  the belt is probably one of the better choices, if it's available.  so we should support it better.  e.g., disable blessing of serqet instead of the bracer....  see jeff's changes.  (which still need to be incorporated)
 	if (jump_chance($monster[filthy hippy]) < 50) {
 		change_mcd(0);  //TODO:  does it make a difference?
-		extra = ", init";
+		extra += ", init";
 		buyUpTo(1, $item[third-hand lantern]);
 		//TODO:  Hustlin'?
 	} else {
