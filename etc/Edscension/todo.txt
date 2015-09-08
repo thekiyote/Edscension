@@ -44,6 +44,16 @@ x ed_resumeCombat isn't working.  ??  It sometimes works.  Why is this?
 
 
 TODO:
+- with +91ML (! not possible in hardcore?) had trouble with pygmy lawyer;
+  storm damage estimate not accurate.
+- ran out of mana vs racecar bob.  grep 15/9/8 [680]  (failed to stasis, too!)
+- "That area is not available" (& looping) from breaking amulet of e p s
+- need a task that will do a reliable job at visiting the underworld, in order
+  to ensure that we fill our spleen!
+- ldk 2015/9/8 "A choice follows this fight immediately" goblin king
+- beaten up by big swarm of ghuol whelps.  Could not get the jump.
+- need more testing of changes to equipment maximization.  look for adventures
+  via visit_url or use.  (or any other unusual ways of initiating them)
 - if we are low on adventures, but have not yet filled our spleen, we need to
   force a visit to the underworld.  normal adventuring won't necessarily do
   this if we have, e.g., a hot plate equipped.  also, get the dictionary
@@ -60,6 +70,8 @@ x didn't talk to the friars??
 - On a day-1 FoB, I didn't get More Legs.  Then, on day 2 I couldn't beat
   goats or the Goblin King....
 - what's the deal with 'Manual control requested'?
+- If I lose initiative twice in a row, I get dropped into 'Manual control
+  requested' for choiceAdventure1023.
 - "too many undeaths" if gremlin does not reveal its tool-havingness.
 - ed_LX_xp does not work with Taunt of Horus active.
 - "You are currently in a fight", and council.php: redirected to a fight page.
@@ -113,6 +125,8 @@ x didn't talk to the friars??
 - 2015/9/6:  ldk ate a cookie, and then ate another cookie later on.  How/why
   did Mafia lose the counters??
 - ed_disableAdventureHandling can be left set, when we abort or interrupt the adventure
+- lights out didn't work.  grep 15/9/8, [618]  (fortune cookie worked fine
+  after that..)
 
 - replace ccAdv.  One feature I would like is adventure functions that accept
   callbacks for equipment maximization, servant selection, buff maintenance.
@@ -121,6 +135,14 @@ x didn't talk to the friars??
   callbacks provide a "predictive" mode... streamlining some of the more
   situation-dependent task logic.
 
+- "Uh oh! Died when starting a combat indirectly."  not really a problem,
+  afaict.  but, red message....  grep 15/9/8
+- jump_chance appears to be wildly inaccurate for the mechamech.  (+65 ML. ldk
+  15/9/8)
+- if we have low pool skill, we should improve it before we try to beat the
+  ghost.
+- "You are currently in a fight" hulking bridge troll.  (preadventure
+  disabling)
 - 2015/9/6:  ldk got sunken eyes turn 628, got broken wings 616.  no blackbird
   made.  presumably, this is due to autoCraft = false?
 - avoid changing mcd so much
