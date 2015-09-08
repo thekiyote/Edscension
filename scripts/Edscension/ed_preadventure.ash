@@ -317,7 +317,11 @@ void handlePreAdventure()
 			{
 				doBreak = true;
 			}
+		} else if(my_mp() == my_maxmp()) {
+			doBreak = true;
 		} else if (my_maxmp() < 30 && my_mp() > 2 * mp_cost($skill[fist of the mummy])) {
+			doBreak = true;
+		} else if ($location[The Sleazy Back Alley] == my_location()) {
 			doBreak = true;
 		} else if ($location[The Sleazy Back Alley] == my_location() && my_mp() > 2 * mp_cost($skill[fist of the mummy])) {
 			doBreak = true;
@@ -325,7 +329,7 @@ void handlePreAdventure()
 			break;
 		} else if ($location[The SMOOCH Army HQ] == my_location() && $location[The SMOOCH Army HQ].turns_spent < 50 && mp_cost($skill[storm of the scarab]) <= my_mp()) {
 			break;
-		} else if (my_mp() < 15 && 180 < my_meat()) {
+		} else if (my_mp() < 15 && 20 < my_maxmp() && 180 < my_meat()) {
 			buyUpTo(1, $item[Doc Galaktik\'s Invigorating Tonic]);
 			use(1, $item[Doc Galaktik\'s Invigorating Tonic]);
 		} else if(my_mp() > 14)
