@@ -345,7 +345,6 @@ boolean ed_opponentHasDesiredItem(monster o) {
 		Bag of Park Garbage,
 		Swashbuckling Pants,
 		Eyepatch,
-		goat cheese,
 		rusty hedge trimmers,
 		enchanted bean,
 		tattered scrap of paper,
@@ -949,7 +948,11 @@ string ed_edCombatHandler(int round, string opp, string text)
 		if (ed_opponentHasDesiredItem()) {
 			doRenenutet = true;
 		}
-		//FIXME:  for goat cheese & A-Boo clues, we need to detect if one dropped via Lash!
+		//FIXME:  for goat cheese & A-Boo clues, we need to detect if one dropped via Lash!  (all other items are no longer desired once we have one).  For now:
+		if (
+			($monster[dairy goat] == last_monster() || $location[A-Boo Peak] == my_location())
+			&& have_skill($skill[Lash of the Cobra])
+		) doRenenutet = false;
 		if (
 			enemy == $monster[knob goblin harem girl]
 			&& !(possessEquipment($item[knob goblin harem veil]) && possessEquipment($item[knob goblin harem pants]))
