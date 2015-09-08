@@ -1102,7 +1102,10 @@ boolean fortuneCookieEvent()
 		return false;
 	}
 
-	if(get_counters("Fortune Cookie", 0, 0) != "Fortune Cookie") return false;
+	boolean fortuneCookieTimerNow() {
+		return get_counters("Fortune Cookie", 0, 0) == "Fortune Cookie";
+	}
+	if (!fortuneCookieTimerNow()) return false;
 
 	print("Semi rare time!", "blue");
 	int semiRareTurn = my_turncount();
@@ -1127,9 +1130,8 @@ boolean fortuneCookieEvent()
 		set_property("choiceAdventure579", "2");
 		ed_use_servant($servant[cat]);
 		ed_use_servant();
-		//TODO:  can we add "confirm=on", to avoid the extra call to ccAdv?  Or at least detect if the first call did its thing.
 		ccAdv(1, $location[The Hidden Temple]);
-		if (my_turncount() == semiRareTurn) ccAdv(1, $location[The Hidden Temple]);
+		if (fortuneCookieTimerNow()) return true;  //TODO:  this seems like the right approach.  i've added protection against excessive looping at the top level.
 		//ccAdvBypass(280);  // The Hidden Temple
 		if(item_amount($item[stone wool]) > 0)
 		{
@@ -1144,7 +1146,7 @@ boolean fortuneCookieEvent()
 		&& $location[The Castle in the Clouds in the Sky (Top Floor)] != to_location(get_property("semirareLocation"))
 	) {
 		ccAdv(1, $location[The Castle in the Clouds in the Sky (Top Floor)]);
-		if (my_turncount() == semiRareTurn) ccAdv(1, $location[The Castle in the Clouds in the Sky (Top Floor)]);
+		if (fortuneCookieTimerNow()) return true;
 		//ccAdvBypass(324);  // The Castle in the Clouds in the Sky (Top Floor)
 		if(item_amount($item[Mick\'s IcyVapoHotness Inhaler]) > 0)
 		{
@@ -1161,7 +1163,7 @@ boolean fortuneCookieEvent()
 		&& 0 == item_amount($item[cyclops eyedrops])
 	) {
 		ccAdv(1, $location[The Limerick Dungeon]);
-		if (my_turncount() == semiRareTurn) ccAdv(1, $location[The Limerick Dungeon]);
+		if (fortuneCookieTimerNow()) return true;
 		//ccAdvBypass(19);  // The Limerick Dungeon
 		if(item_amount($item[cyclops eyedrops]) > 0)
 		{
@@ -1175,7 +1177,7 @@ boolean fortuneCookieEvent()
 		ccAdv(1, $location[The Sleazy Back Alley]);
 		//FIXME:  with the current approach, we can't tell the difference between an auto-stop due to the semi-rare counter, and a non-combat that didn't cost an adventure.
 		// Does Mafia know to clear the counter, in the latter case?
-		if (my_turncount() == semiRareTurn) ccAdv(1, $location[The Sleazy Back Alley]);
+		if (fortuneCookieTimerNow()) return true;
 		//ccAdvBypass(112);  // The Sleazy Back Alley
 		if(item_amount($item[distilled fortified wine]) > 0)
 		{
@@ -1187,7 +1189,7 @@ boolean fortuneCookieEvent()
 	else
 	{
 		ccAdv(1, $location[The Haunted Pantry]);
-		if (my_turncount() == semiRareTurn) ccAdv(1, $location[The Haunted Pantry]);
+		if (fortuneCookieTimerNow()) return true;
 		//ccAdvBypass(113);  // The Haunted Pantry
 		if(item_amount($item[tasty tart]) > 0)
 		{
