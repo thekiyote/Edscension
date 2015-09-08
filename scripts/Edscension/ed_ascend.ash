@@ -4934,17 +4934,19 @@ boolean doTasks()
 	{
 		return true;
 	}
-	
+
 	if(L5_getEncryptionKey())
 	{
 		return true;
 	}
 
+	if(LX_getDictionary() || LX_dictionary()) return true;
+
 	if(L6_friarsGetParts())
 	{
 		return true;
 	}
-	
+
 	if(L8_trapperStart() || L8_trapperGround() || L8_trapperYeti())
 	{
 		return true;
@@ -5039,6 +5041,7 @@ boolean doTasks()
 	}
 
 	if(LX_pirateOutfit() || LX_pirateInsults() || LX_nastyBooty() || LX_pirateBlueprint() || LX_pirateBeerPong() || LX_fcle())
+		//TODO:  these are already handled further up.
 	{
 		return true;
 	}
