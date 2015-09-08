@@ -2260,7 +2260,7 @@ boolean L7_crypt()
 	if(get_property("cyrptTotalEvilness").to_int() <= 0)
 	{
 		boolean tryBoner = ccAdv(1, $location[Haert of the Cyrpt]);
-		//FIXME:  if (0 < item_amount($item[skull of the bonerdagon]) && 0 < item_amount($item[batskin belt])) create(1, $item[badass belt]);
+		if (0 < item_amount($item[skull of the bonerdagon]) && 0 < item_amount($item[batskin belt])) create(1, $item[badass belt]);
 		if(item_amount($item[chest of the bonerdagon]) == 1)
 		{
 			set_property("ed_crypt", "finished");
@@ -2836,7 +2836,7 @@ boolean L4_batCave()
 	if(contains_text(batHole, "bathole_bg4"))
 	{
 		ccAdv(1, $location[The Boss Bat\'s Lair]);
-		//FIXME:  if (0 < item_amount($item[skull of the bonerdagon]) && 0 < item_amount($item[batskin belt])) create(1, $item[badass belt]);
+		if (0 < item_amount($item[skull of the bonerdagon]) && 0 < item_amount($item[batskin belt])) create(1, $item[badass belt]);
 		if(contains_text(get_property("lastEncounter"), "Boss Bat?"))
 		{
 			council();
@@ -4141,7 +4141,7 @@ boolean L11_blackMarket()
 	}
 
 	ccAdv(1, $location[The Black Forest]);
-	//FIXME:  if (0 < item_amount($item[broken wings]) && 0 < item_amount($item[sunken eyes])) create(1, $item[reassembled blackbird]);
+	if (0 < item_amount($item[broken wings]) && 0 < item_amount($item[sunken eyes])) create(1, $item[reassembled blackbird]);
 	if(black_market_available())
 	{
 		buyUpTo(2, $item[can of black paint]);
