@@ -3095,9 +3095,6 @@ boolean ed_visitKnobOutskirts() {
 
 boolean L5_getEncryptionKey()
 {
-	//TODO:  note that this should handle both acquisition of the key, as well as getting the lunchbox from the first semi-rare.  And it does, although I believe that it currently skips out on the lunchbox if it happens to get the key first.
-	//FIXME:  maybe put just the maximization and ccAdv stuff in a separate, common, function called in both cases....
-	//FIXME:  yeah.  fix it for real, with a separate function....
 	if(get_property("ed_day1_cobb") == "finished")
 	{
 		return false;
@@ -3836,6 +3833,13 @@ boolean L9_chasmBuild()
 		&& 0 < clovers
 		&& need <= 3*clovers
 		&& 0 == need % 3
+		&& ($location[The Smut Orc Logging Camp].turns_spent-2) % 20 < 18
+		//&& ($location[The Smut Orc Logging Camp].turns_spent-7) % 20 < 18
+			// i.e., we can finish with clovers, without under-utilizing any, and the pervert isn't
+			// about to appear.
+			//TODO:  18?  19?  what should the cutoff be?
+			//FIXME:  Wiki says pervert on 21st turn, but I got him on 25th.  and, 22nd.  22nd again.  and again!
+			// perhaps the wiki means after 21 encounters with other orcs?  (i.e., not counting clover use, which could account for the 25th-turn one)
 	)
 	{
 		use(1, $item[disassembled clover]);
@@ -3853,7 +3857,7 @@ boolean L9_chasmBuild()
 	print("Turns spent at Smut:  " + $location[The Smut Orc Logging Camp].turns_spent + ", bridge " + get_property("chasmBridgeProgress").to_int() + "/30", "orange");
 	ccAdv(1, $location[The Smut Orc Logging Camp]);
 
-	if(item_amount($item[Smut Orc Keepsake Box]) > 0)
+	if(item_amount($item[Smut Orc Keepsake Box]) > 0)  //TODO:  keep it until we need it, so that we can easily tell that we have already encountered the pervert.
 	{
 		use(1, $item[Smut Orc Keepsake Box]);
 	}
