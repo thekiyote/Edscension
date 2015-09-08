@@ -4208,7 +4208,7 @@ boolean LX_getDictionary()
 		return false;
 	}
 	buyUpTo(1, $item[abridged dictionary]);
-	return true;
+	return item_amount($item[abridged dictionary]) >= 1;
 }
 
 boolean LX_fcle()
