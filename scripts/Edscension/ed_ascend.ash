@@ -2079,6 +2079,7 @@ boolean L10_basement()
 	{
 		print("We was fast and furry-ous!", "blue");
 		equip($item[titanium assault umbrella]);
+		ed_appendMaximization(", equip titanium assault umbrella");
 		set_property("choiceAdventure669", "1");
 		ccAdv(1, $location[The Castle in the Clouds in the Sky (Basement)]);
 		set_property("ed_castlebasement", "finished");
