@@ -323,7 +323,7 @@ void warOutfit()
 	if(!get_property("ed_hippyInstead").to_boolean())
 	{
 		//outfit("frat warrior fatigues");
-		ed_appendMaximization(", outfit war hippy fatigues");
+		ed_appendMaximization(", outfit frat warrior fatigues");
 	}
 	else
 	{
