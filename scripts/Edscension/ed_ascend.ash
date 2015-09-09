@@ -1741,6 +1741,7 @@ boolean L12_sonofaFinish()
 	}
 
 	warOutfit();
+	ed_maximize();
 	visit_url("bigisland.php?place=lighthouse&action=pyro&pwd");
 	visit_url("bigisland.php?place=lighthouse&action=pyro&pwd");
 	set_property("ed_sonata", "finished");
@@ -1809,6 +1810,7 @@ boolean L12_gremlins()
 		return true;
 	}
 	warOutfit();
+	ed_maximize();
 	visit_url("bigisland.php?action=junkman&pwd");
 	set_property("ed_gremlins", "finished");
 	return true;
@@ -1948,6 +1950,7 @@ boolean L12_orchardStart()
 	}
 
 	warOutfit();
+	ed_maximize();
 	visit_url("bigisland.php?place=orchard&action=stand&pwd");
 	set_property("ed_orchard", "start");
 	return true;
@@ -1962,6 +1965,7 @@ boolean L12_orchardFinalize()
 	set_property("ed_orchard", "finished");
 
 	warOutfit();
+	ed_maximize();
 	visit_url("bigisland.php?place=orchard&action=stand&pwd");
 	visit_url("bigisland.php?place=orchard&action=stand&pwd");
 	return true;
@@ -5329,6 +5333,7 @@ boolean doTasks()
 	if((item_amount($item[barrel of gunpowder]) >= 5) && ((get_property("ed_hippyInstead") == "no") || (get_property("fratboysDefeated").to_int() >= 64)))
 	{
 		warOutfit();
+		ed_maximize();
 		visit_url("bigisland.php?place=lighthouse&action=pyro&pwd");
 		visit_url("bigisland.php?place=lighthouse&action=pyro&pwd");
 		set_property("ed_sonata", "finished");
@@ -5359,6 +5364,7 @@ boolean doTasks()
 			return true;
 		}
 		warOutfit();
+		ed_maximize();
 		visit_url("bigisland.php?action=junkman&pwd");
 		set_property("ed_gremlins", "finished");
 		return true;
@@ -5501,6 +5507,7 @@ boolean doTasks()
 		}
 
 		warOutfit();
+		ed_maximize();
 		cli_execute("refresh equip");
 		if(my_hp() < my_maxhp())
 		{
