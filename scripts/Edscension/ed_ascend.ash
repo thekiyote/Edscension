@@ -1865,7 +1865,7 @@ boolean L12_sonofaBeach()
 	try {
 		set_property("autoAbortThreshold", "-0.05");
 		//set_property("hpAutoRecovery", "-0.05");
-		ccAdv(1, $location[Sonofa Beach]);
+		(!ccAdv(1, $location[Sonofa Beach]));
 	} finally {
 		//TODO:  does the autoAbortThreshold setting above prevent any auto-stops here?
 		set_property("ed_doCombatCopy", "no");
