@@ -247,6 +247,14 @@ void ed_resumeCombat() {
 	ed_ccAdv(1 + defeatQuota, my_location(), "", true);
 }
 
+void ed_doPreadventure(location l) {
+	ed_use_servant();
+	set_location(l);
+	ed_maximize();
+	cli_execute("ed_preadventure.ash");
+	set_property("ed_disableAdventureHandling", "yes");
+}
+
 boolean ed_ccAdv(int num, location loc, string option)
 {
 	return ed_ccAdv(num, loc, option, false);
@@ -909,7 +917,7 @@ boolean LX_chateauDailyPainting()
 			if((have_effect($effect[Everything Looks Yellow]) == 0) && have_skill($skill[Wrath of Ra]) && (my_mp() >= 40) &&
 			(oreHave < 3) && (get_property("ed_trapper") == "start"))
 			{
-				ed_maximize();
+				ed_maximize();  //TODO:  I think ccAdvBypass does this already.  ed_use_servant, too.
 				ed_use_servant($servant[scribe]);
 				ed_use_servant();
 				visit_url("place.php?whichplace=chateau&action=chateau_painting");
@@ -3909,6 +3917,7 @@ boolean L9_chasmStart()
 	if(!get_property("ed_chasmBusted").to_boolean())
 	{
 		print("It's a troll on a bridge!!!!", "blue");
+		ed_doPreadventure($location[The Obligatory Pirate\'s Cove]);
 		string page = visit_url("place.php?whichplace=orc_chasm&action=bridge_done");
 		page = visit_url("place.php?whichplace=orc_chasm&action=bridge_done");
 		if(contains_text(page, "Combat"))
@@ -3920,6 +3929,7 @@ boolean L9_chasmStart()
 			set_property("ed_chasmBusted", true);
 			print("Looks like we've already been here.", "blue");
 		}
+		set_property("ed_disableAdventureHandling", "no");
 		set_property("ed_chasmBusted", true);
 		//set_property("chasmBridgeProgress", 0);
 		return true;
@@ -4346,10 +4356,7 @@ boolean LX_nastyBooty()
 		buffMaintain($effect[Go Get \'Em\, Tiger!], 0, 1, 1);
 	}
 
-	ed_use_servant();
-	set_location($location[The Obligatory Pirate\'s Cove]);
-	cli_execute("ed_preadventure.ash");
-	set_property("ed_disableAdventureHandling", "yes");
+	ed_doPreadventure($location[The Obligatory Pirate\'s Cove]);
 	visit_url("inv_use.php?pwd=&which=3&whichitem=2950");
 	ccAdvBypass(1, $location[Noob Cave]);
 	set_property("ed_disableAdventureHandling", "no");
@@ -5516,6 +5523,8 @@ boolean doTasks()
 		}
 		print("Let's fight the boss!", "blue");
 		set_property("edDefeatAbort", "5");
+		ed_maximize();
+		ed_preAdv(1, $location[Noob Cave]);
 		visit_url("bigisland.php?place=camp&whichcamp=1");
 		visit_url("bigisland.php?place=camp&whichcamp=2");
 		visit_url("bigisland.php?action=bossfight&pwd");
@@ -5542,6 +5551,8 @@ boolean doTasks()
 		{
 			print("We found the jerkwad!! Revenge!!!!!", "blue");
 			set_property("edDefeatAbort", "5");
+			ed_maximize();
+			ed_preAdv(1, $location[Noob Cave]);
 			string page = visit_url("place.php?whichplace=nstower&action=ns_10_sorcfight");
 			if(contains_text(page, "Combat"))
 			{
