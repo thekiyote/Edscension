@@ -502,17 +502,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 	print("combat stage " + combatStage + ", round " + round + ":  " + roundsLeftThisStage + " more 'til underworld, " + roundsBeforeKa + " more 'til we need to spend Ka.", "blue");
 	print("opponent has about " + monster_hp() + " HP.  Ed has " + my_hp() + ".  Fist does " + ed_fistDamage() + ", Storm does (?) " + ed_stormDamage() + ", opponent does " + damagePerRound, "blue");
 
-	if (
-		(item_amount($item[ka coin]) > 30)
-		&& (!have_skill($skill[Healing Scarabs]) || (my_spleen_use() < spleen_limit()))
-		&& 0 == combatStage
-		&& (!contains_text(combatState, "talismanofrenenutet") && !contains_text(combatState, "curse of fortune") || contains_text(edCombatState, "insults"))
-	) {
-		//TODO:  why?  is this to go shopping?  I think I've handled that elsewhere.
-		set_property("ed_edStatus", "UNDYING!");
-		print("test5", "orange");
-	}
-
+	boolean forceStasis = false;
 	int insultCount() {
 		return
 			to_int(to_boolean(get_property("lastPirateInsult1")))
@@ -535,8 +525,9 @@ string ed_edCombatHandler(int round, string opp, string text)
 	{
 		set_property("ed_edStatus", "UNDYING!");
 		print("test6", "orange");
+		if (combatStage < 2 || flyering) forceStasis = true;
 	}
-	
+
 	if ((combatStage >= 2) && !flyering)
 	{
 		set_property("ed_edStatus", "dying");
@@ -550,11 +541,13 @@ string ed_edCombatHandler(int round, string opp, string text)
 		combatStage < lastStage
 		&& flyering
 		&& (item_amount($item[ka coin]) > 2)
-		&& !contains_text(combatState, "talismanofrenenutet")
+		&& !contains_text(combatState, "talismanofrenenutet")  //TODO:  renenutet and fortune use should probably be deferred until we are done flyering this opponent.
+		&& !contains_text(combatState, "curse of fortune")
 	)
 	{
 		set_property("ed_edStatus", "UNDYING!");
 		print("test3", "orange");
+		forceStasis = true;
 	}
 	
 	#Handle different path is monster_level_adjustment() > 150 (immune to staggers?)
@@ -562,7 +555,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 
 	if(have_effect($effect[temporary amnesia]) > 0)
 	{
-		return "attack with weapon";
+		return "attack with weapon";  //TODO:  the sooner we visit the underworld, though, the better....
 	}
 
 	if((!contains_text(combatState, "love scarab")) && have_skill($skill[Summon Love Scarabs]))
@@ -584,13 +577,6 @@ string ed_edCombatHandler(int round, string opp, string text)
 			set_property("ed_combatHandler", combatState + "(love gnats)");
 			return "skill summon love gnats";
 		}
-		if(((!contains_text(combatState, "love gnats") || (contains_text(combatState, "stun resisted"))) || (contains_text(combatState, "gnats disperse"))) && have_skill($skill[Curse of Indecision]) && my_mp() > 25)
-			//FIXME:  we need to check the page text to detect "STUN RESISTED" or dispersal of gnats, in order for those checks to do anything!
-		{
-			print("WHM:  Curse of Indecision removed! (#1)", "orange");
-			//set_property("ed_combatHandler", combatState + "(love gnats3)");
-			//return "skill Curse of Indecision";
-		}
 	}
 	else if(get_property("ed_edStatus") == "dying")
 	{
@@ -607,18 +593,6 @@ string ed_edCombatHandler(int round, string opp, string text)
 			{
 				set_property("ed_combatHandler", combatState + "(love gnats)");
 				return "skill summon love gnats";
-			}
-			if (
-				((!contains_text(combatState, "love gnats") || (contains_text(combatState, "stun resisted"))) || (contains_text(combatState, "gnats disperse")))
-				&& have_skill($skill[Curse of Indecision])
-				&& my_mp() > 25
-				&& ed_fistDamage() < monster_hp()
-				&& (!have_skill($skill[Storm of the Scarab]) || ed_stormDamage() < monster_hp())
-			)
-			{
-				print("WHM:  Curse of Indecision removed! (#2)", "orange");
-				//set_property("ed_combatHandler", combatState + "(love gnats3)");
-				//return "skill Curse of Indecision";
 			}
 		}
 	}
@@ -809,7 +783,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 		}
 		if(enemy == $monster[knight (Snake)] && !possessEquipment($item[serpentine sword]) && !possessEquipment($item[snake shield]) && (my_daycount() < 3))
 		{
-			doWrath = true;  //TODO:  I think this is to keep it from interfering with other Wrath use to get the war outfit?
+			doWrath = true;  //TODO:  I think the daycount condition is to keep it from interfering with other Wrath use to get the war outfit?
 		}
 		if(enemy == $monster[Mountain Man])
 		{
@@ -877,6 +851,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 	}
 
 	if((my_location() == $location[Oil Peak]) && (item_amount($item[duskwalker syringe]) > 0) && (get_property("ed_edStatus") == "UNDYING!"))
+		//TODO:  why the ed_edStatus check?
 	{
 		return "item duskwalker syringe";
 	}
@@ -914,9 +889,8 @@ string ed_edCombatHandler(int round, string opp, string text)
 		}
 	}
 
-	boolean forceStasis = false;
 	if (
-		roundsPerStage < 20
+		roundsPerStage < 20  //TODO:  now that we batch up most stasis, can we remove this check?  I think it was just there to avoid slowing things down.
 		&& roundsLeftThisStage*3/2 < roundsPerStage
 		&& combatStage < 2
 		&& monster_hp() < roundsPerStage * ed_stormDamage()
@@ -963,12 +937,10 @@ string ed_edCombatHandler(int round, string opp, string text)
 		int renenutetsAvailable = item_amount($item[Talisman of Renenutet]) + 7 - to_int(get_property("ed_renenutetBought"));
 		if (enemy == $monster[Larval Filthworm] && renenutetsAvailable < 8)
 		{
-			print("TODO:  skipping renenutet, in order to save it for later filthworm stages!  Make sure this is working as expected!", "red");
 			doRenenutet = false;
 		}
 		if(enemy == $monster[Filthworm Drone] && renenutetsAvailable < 3)
 		{
-			print("TODO:  skipping renenutet, in order to save it for a royal guard!  Make sure this is working as expected!", "red");
 			doRenenutet = false;
 		}
 		if ($monster[bookbat] == enemy) doRenenutet = false;  // tatters aren't quite valuable enough to warrant a renenutet, I think.  If we don't have lash, then I think we want to save the talismen for filthworms.
@@ -1051,6 +1023,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 		}
 		if (doRenenutet && roundsPerStage < 2 && !contains_text(get_property("ed_combatHandler"),"love gnats3")) {
 			if (have_skill($skill[Curse of Indecision])) {
+				//TODO:  with +ML, we might not be buying any time.  Probably not an issue for hardcore Ed, though?
 //abort("FIXME:  Investigate Curse of Indecision!");
 /*
 You call forth a dark curse that opens your opponent's mind to all the possible paths of cause and effect, the infinite possible actions she might take at this moment in time and all their potential consequences. She freezes to the spot, completely unable to decide on a course of action.
@@ -1072,9 +1045,7 @@ Your opponent shakes her head rapidly, and her eyes gradually refocus. Looks lik
 		}
 		//TODO:  there may still be 2-round fights where Ed ought to soften up the opponent
 		//       in this fight, so that he is guaranteed to finish the next fight with Renenutet
-		//       active.  We need the stasis logic
-		//       to support that. first, before we can really do anything about it here.  For
-		//       now, I'll avoid using renenutets:
+		//       active.  (the stasis logic should handle that reasonably well at the moment)
 		if (
 			doRenenutet
 			&& 2 == roundsLeftThisStage
@@ -1242,6 +1213,7 @@ Your opponent shakes her head rapidly, and her eyes gradually refocus. Looks lik
 		expected_damage() * 1.25 >= my_hp() && (
 			1 < combatStage
 			|| contains_text(combatState, "talismanofrenenutet")
+			|| contains_text(combatState, "curse of fortune")
 			//TODO:  are there other reasons not to die?
 		)
 	) {
