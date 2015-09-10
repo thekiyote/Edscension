@@ -2571,9 +2571,11 @@ boolean L6_friarsGetParts()
 
 	if(item_amount($item[dodecagram]) == 0)
 	{
-		print("Getting Dodecagram", "blue");
-		ccAdv(1, $location[The Dark Neck of the Woods]);
-		return true;
+		if (50 < jump_chance($monster[Hellion]) || expected_damage($monster[Hellion]) < my_maxhp()) {
+			print("Getting Dodecagram", "blue");
+			ccAdv(1, $location[The Dark Neck of the Woods]);
+			return true;
+		}
 	}
 	
 	if(item_amount($item[eldritch butterknife]) == 0)
@@ -2726,7 +2728,7 @@ boolean L8_trapperGround()
 
 	if(item_amount($item[goat cheese]) < 3)
 	{
-		if (jump_chance($monster[dairy goat]) < 60) return false;
+		if (jump_chance($monster[dairy goat]) < 70) return false;
 		print("Yay for goat cheese!", "blue");
 		if (get_property("friarsBlessingReceived") == "false") {
 			cli_execute("friars food");
