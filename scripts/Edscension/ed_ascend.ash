@@ -1415,16 +1415,22 @@ boolean LX_handleSpookyravenFirstFloor()
 			return false;
 		}
 		if (0 < numeric_modifier("combat rate")) return false;
-		set_property("choiceAdventure875" , "1");
 		buffMaintain($effect[Chalky Hand], 0, 1, 1);
-		if(item_amount($item[7964]) > 0)
+		if(available_amount($item[7964]) > 0)
 		{
 			ed_appendMaximization(", equip [7964]");
 		}
-		if(item_amount($item[2268]) > 0)
+		if(available_amount($item[2268]) > 0)
 		{
 			ed_appendMaximization(", equip [2268]");
 		}
+		ed_maximize(); //TODO
+		int skillEstimate
+			= numeric_modifier("Pool Skill")
+			+ 2 * my_inebriety()
+			+ get_property("poolSkill").to_int()
+			+ floor(2*get_property("poolSharkCount").to_int()**0.5);
+		set_property("choiceAdventure875" , skillEstimate < 14 ? "2" : "1");
 		print("It's billiards time!", "blue");
 		ccAdv(1, $location[The Haunted Billiards Room]);
 	}
