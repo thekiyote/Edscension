@@ -255,7 +255,7 @@ string ccsJunkyard(int round, string opp, string text)
 		= 0 < item_amount($item[rock band flyers]) && get_property("flyeredML").to_int() < 10000;
 
 	if ((!contains_text(combatState, "flyers")) && flyering && edDefeats < 3) {
-		if((item_amount($item[rock band flyers]) > 0) && (get_property("flyeredML").to_int() < 10000))
+		if(flyering)
 		{
 			set_property("ed_combatHandler", combatState + "(flyers)");
 			return "item rock band flyers";
@@ -263,7 +263,7 @@ string ccsJunkyard(int round, string opp, string text)
 	}
 	if (edDefeats > 2 && (!contains_text(combatState, "flyers")) && ((expected_damage() * 1.1) <= my_hp()))
 	{
-		if((item_amount($item[rock band flyers]) > 0) && (get_property("flyeredML").to_int() < 10000))
+		if(flyering)
 		{
 			set_property("ed_combatHandler", combatState + "(flyers)");
 			return "item rock band flyers";
@@ -522,6 +522,16 @@ string ed_edCombatHandler(int round, string opp, string text)
 	print("combat stage " + combatStage + ", round " + round + ":  " + roundsLeftThisStage + " more 'til underworld, " + roundsBeforeKa + " more 'til we need to spend Ka.", "blue");
 	print("opponent has about " + monster_hp() + " HP.  Ed has " + my_hp() + ".  Fist does " + ed_fistDamage() + ", Storm does (?) " + ed_stormDamage() + ", opponent does " + damagePerRound, "blue");
 
+	if (flyering) {
+		if (20 < item_amount($item[Ka coin])) {
+			set_property("edDefeatAbort", "4");
+		}
+		if (50 < item_amount($item[Ka coin])) {
+			set_property("edDefeatAbort", "5");
+		}
+	}
+	int lastStage = get_property("edDefeatAbort").to_int() - 1;
+
 	boolean forceStasis = false;
 	int insultCount() {
 		return
@@ -539,29 +549,23 @@ string ed_edCombatHandler(int round, string opp, string text)
 		(enemy == $monster[vegetable gremlin] && item_amount($item[molybdenum screwdriver]) == 0) ||
 		(enemy == $monster[spider gremlin] && item_amount($item[molybdenum pliers]) == 0) ||
 		(enemy == $monster[erudite gremlin] && item_amount($item[molybdenum crescent wrench]) == 0) ||
+			// note, gremlins are currently handled by a separate combat filter.
 		(enemy == $monster[tetchy pirate] && insultCount() < 8) ||
 		(enemy == $monster[toothy pirate] && insultCount() < 8) ||
 		(enemy == $monster[tipsy pirate] && insultCount() < 8))
 	{
 		set_property("ed_edStatus", "UNDYING!");
 		print("test6", "orange");
-		if (combatStage < 2 || flyering) forceStasis = true;
+		if (combatStage < lastStage) forceStasis = true;
 	}
 
-	if ((combatStage >= 2) && !flyering)
-	{
-		set_property("ed_edStatus", "dying");
-		print("test2", "orange");
-	}
-	int lastStage = 4;  //FIXME:  when to stop should depend on our Ka supply!
 	if (combatStage >= lastStage) {
 		set_property("ed_edStatus", "dying");
 	}
 	if (
 		combatStage < lastStage
 		&& flyering
-		&& (item_amount($item[ka coin]) > 2)
-		&& !contains_text(combatState, "talismanofrenenutet")  //TODO:  renenutet and fortune use should probably be deferred until we are done flyering this opponent.
+		&& !contains_text(combatState, "talismanofrenenutet")  //FIXME:  renenutet and fortune use should probably be deferred until we are done flyering this opponent.  these checks will then be unneeded.
 		&& !contains_text(combatState, "curse of fortune")
 	)
 	{
@@ -629,7 +633,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 
 	if((!contains_text(combatState, "flyers")))
 	{
-		if (flyering && combatStage < 4)  //TODO:  Ka budget.
+		if (flyering && (combatStage < lastStage || combatStage == lastStage && 1 < roundsLeftThisStage))
 		{
 			set_property("ed_combatHandler", combatState + "(flyers)");
 			return "item rock band flyers";
