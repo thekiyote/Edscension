@@ -9,6 +9,22 @@ void handleYellowRay(monster enemy, skill yellowRay);
 void handleLashes(monster enemy);
 void handleRenenutet(monster enemy);
 
+int ed_weaponAttackMaxDamage() {
+	float result
+		= max(1, (max(0, floor(my_buffedstat($stat[Muscle]) - last_monster().base_defense))
+				+ 20 * 1 * 1
+				+ numeric_modifier("Weapon Damage"))
+				* (1+numeric_modifier("Weapon Damage Percent")/100.0)
+				* (1-last_monster().physical_resistance/100.0))
+			+ numeric_modifier("Hot Damage")
+			+ numeric_modifier("Cold Damage")
+			+ numeric_modifier("Stench Damage")
+			+ numeric_modifier("Spooky Damage")
+			+ numeric_modifier("Sleaze Damage");
+		//FIXME:  apply elemental resistance & vulernability
+	return result;
+}
+
 int ed_fistDamage() {  // (ignores physical resistance, 5 MP)
 	// (see http://kol.coldfront.net/thekolwiki/index.php/Calculating_Spell_Damage)
 	float baseDamage = min(max(1,my_buffedstat($stat[mysticality])-2), 50);
@@ -1125,14 +1141,24 @@ Your opponent shakes her head rapidly, and her eyes gradually refocus. Looks lik
 			return "item holy spring water";
 		}
 
-		//TODO:  beware the hot plate.  Over 30 rounds of combat, it can wind up finishing our opponent off
-		if (2.1 * ed_fistDamage() < monster_hp()) {
+		int excessHp = monster_hp();
+		if (have_equipped($item[hot plate])) {
+			//TODO:  hit chance?  also, element vulernability?
+			excessHp -= 4 * roundsLeftThisStage;
+		}
+		//TODO:  beware other passive damage.
+		//TODO:  If opponent has very high hp, we can even cast Storm.  I'm looking at you, Wisniewski.  (Although, we should also have a rule that prevents stasis in fights where we already expect to visit the Underworld.  That would probably be a better solution.  Maybe.)
+		if (2.1 * ed_fistDamage() < excessHp && 60 < my_mp()) {
+			//TODO:  don't waste mp.
 			return "skill Fist of the Mummy";
 		}
-		if (ed_fistDamage() < monster_hp()) {
+		if (ed_weaponAttackMaxDamage() * 1.1 < excessHp) {
+			print("Predicted maximum damage from attacking with weapon:  " + ed_weaponAttackMaxDamage(), "orange");
+			return "attack with weapon";
+		}
+		if (ed_fistDamage() < excessHp) {
 			return "skill Mild Curse";
 		}
-		//TODO:  we may also want to consider 'attack with weapon' to soften it up...
 		if(item_amount($item[Dictionary]) > 0)
 		{
 			return "use dictionary; repeat";
