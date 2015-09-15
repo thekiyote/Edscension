@@ -14,8 +14,10 @@ int ed_fistDamage() {  // (ignores physical resistance, 5 MP)
 	float baseDamage = min(max(1,my_buffedstat($stat[mysticality])-2), 50);
 	float multiplier = 1.0; //FIXME
 	float spellDamagePercent = numeric_modifier("Spell Damage Percent");
-	return floor(baseDamage * multiplier * (1+spellDamagePercent/100.0));
-		//TODO:  a few opponents have damage reduction applied
+	float damage = floor(baseDamage * multiplier * (1+spellDamagePercent/100.0));
+	if ($monster[Your winged yeti] == last_monster() && 50 < damage) damage = 50 + (damage-50)**0.7;
+		//TODO:  do other opponents have damage reduction applied?
+	return damage;
 }
 
 int ed_howlDamage() {  // (spooky damage, 10 MP)
