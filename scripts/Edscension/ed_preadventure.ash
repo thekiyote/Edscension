@@ -100,6 +100,10 @@ void handlePreAdventure()
 			buyUpTo(1, $item[Doc Galaktik\'s Invigorating Tonic]);
 			use(1, $item[Doc Galaktik\'s Invigorating Tonic]);
 		}
+		while (my_mp() < 60 && 80 < my_maxmp() && 5000 < my_meat()) {
+			buyUpTo(1, $item[Doc Galaktik\'s Invigorating Tonic]);
+			use(1, $item[Doc Galaktik\'s Invigorating Tonic]);
+		}
 
 
 //Handle buffs
