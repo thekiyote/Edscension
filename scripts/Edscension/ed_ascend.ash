@@ -2395,7 +2395,7 @@ boolean ed_LX_smooch()
 	ed_setMaximization("exp, 0.5 mys");
 	if (ed_smoochTurnsToday() < 40 || 50 < ed_smoochTurnsToday() || !ed_smoochQuestToday()) {
 		//  this should avoid Serqet for bosses.
-		buffMaintain($effect[Blessing of Serqet], 0, 1, 1);
+		if (monster_level_adjustment() < 20) buffMaintain($effect[Blessing of Serqet], 0, 1, 1);
 	}
 	buffMaintain($effect[Bounty of Renenutet], 0, 1, 1);
 	buffMaintain($effect[Glittering Eyelashes], 0, 1, 1);
@@ -2540,9 +2540,12 @@ boolean L1_edIslandFallback()
 		) return false;
 			// with our current ka & adventures, we already expect to chew at least one more haunch.
 	}
+	if (elementalPlanes_access($element[hot])) {
+		return ed_LX_smooch();
+	}
 	if(elementalPlanes_access($element[stench]))
 	{
-		L1_edDinsey();
+		return L1_edDinsey();
 	}
 	int reodorantNeeded = ceil(
 		("finished" != get_property("questL08Trapper") ? 1.5 : 0)
