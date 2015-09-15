@@ -645,7 +645,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 		return "item cocktail napkin";
 	}
 
-	if((enemy == $monster[dirty thieving brigand]) && (!contains_text(combatState, "curse of fortune")))
+	if((enemy == $monster[dirty thieving brigand]) && (!contains_text(combatState, "curse of fortune") && 1 < roundsLeftThisStage))
 	{
 		if((item_amount($item[Ka Coin]) > 0) && (have_skill($skill[Curse of Fortune])))
 		{
@@ -654,7 +654,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 			return "skill curse of fortune";
 		}
 	}
-	
+
 	if(contains_text(combatState, "curse of fortune"))
 	{
 		set_property("ed_edStatus", "dying");
