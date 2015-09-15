@@ -2399,20 +2399,25 @@ boolean ed_LX_smooch()
 	}
 	buffMaintain($effect[Bounty of Renenutet], 0, 1, 1);
 	buffMaintain($effect[Glittering Eyelashes], 0, 1, 1);
-	if (10000 < my_meat()) buffMaintain($effect[Erudite], 0, 1, 1);
+	if (10000 < my_meat()) buffMaintain($effect[Erudite], 0, 1, 1);  //TODO: is the appropriate pirate literature available?
 	if (0 < item_amount($item[CSA bravery badge])) cli_execute("use CSA bravery badge");
 	if (0 == ed_smoochTurnsToday()) {
 		set_property("ed_dayOfSmoochAdventureCount", my_daycount());
 		set_property("ed_smoochAdventureCount", $location[The SMOOCH Army HQ].turns_spent);
 
 		//buffMaintain($effect[Lapdog], 0, 1, 1);
-		if (!to_boolean(get_property("_olympicSwimmingPool"))) cli_execute("swim laps");
+		if (
+			monster_level_adjustment() < 25
+			&& !to_boolean(get_property("_olympicSwimmingPool"))
+			&& 0 < item_amount($item[Clan VIP Lounge key])
+		) cli_execute("swim laps");
 		//buffMaintain($effect[Thaumodynamic], 0, 1, 1);
 		if (!to_boolean(get_property("_aprilShower"))) cli_execute("shower lukewarm");
 	}
 	if (50 == ed_smoochTurnsToday()) {
 		//TODO:  is there a reasonable strategy to beat the bosses?  current ed_combat.ash cast an ineffective Curse of Indecision....  But I think that without the +ML, it may be a reasonable fight.  I think the only times I've beaten one of them involved a good deal of luck.  More Legs?  DR/DA upgrades?
 		//       Yes, with 0 ML, Pener fell to a single (albeit critical) Storm of the Scarab.  Got the jump, too.
+		// i couldn't get the jump on deuce after the first combat without More Legs.  +20ML.
 		//TODO:  also, when does the choice adventure re-appear, if we get beaten up by the boss?
 		buffMaintain($effect[Power of Heka], 0, 1, 1);
 		if (ed_smoochQuestToday()) {
