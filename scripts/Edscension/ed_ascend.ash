@@ -1575,6 +1575,7 @@ boolean LX_spookyravenSecond()
 			print("Finished a Spookyraven Bedroom Sequence", "blue");
 			return true;
 		}
+		if (0 < have_effect($effect[Taunt of Horus])) return false;
 		if(item_amount($item[Lady Spookyraven\'s Dancing Shoes]) == 0)
 		{
 			if(my_mp() < 40)
