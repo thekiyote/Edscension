@@ -1542,22 +1542,22 @@ boolean LX_spookyravenSecond()
 
 	if(get_property("ed_ballroomopen") == "open")
 	{
-		if((item_amount($item[Lord Spookyraven\'s Spectacles]) == 1) && (item_amount($item[Disposable Instant Camera]) == 1))
+		if((item_amount($item[Lord Spookyraven\'s Spectacles]) == 1) && (item_amount($item[Disposable Instant Camera]) == 1 || get_property("ed_palindome") == "finished"))
 		{
 			set_property("ed_spookyravensecond", "finished");
 		}
 		else
 		{
-			if(item_amount($item[Lord Spookyraven\'s Spectacles]) == 0)
+			if(available_amount($item[Lord Spookyraven\'s Spectacles]) == 0)
 			{
 				print("Need Spectacles, damn it.", "blue");
 				set_property("choiceAdventure878", "3");
 				LX_spookyBedroomCombat();
 				print("Finished 1 Spookyraven Bedroom Spectacle Sequence", "blue");
 			}
-			if(item_amount($item[Disposable Instant Camera]) == 0)
+			if(item_amount($item[Disposable Instant Camera]) == 0 && get_property("ed_palindome") != "finished")
 			{
-				print("Need Spectacles, damn it.", "blue");
+				print("Need A Camera, damn it.", "blue");
 				set_property("choiceAdventure878", "4");
 				LX_spookyBedroomCombat();
 				print("Finished 1 Spookyraven Bedroom Spectacle Sequence", "blue");
