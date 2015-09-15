@@ -515,6 +515,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 	if (damagePerRound < 0.0) damagePerRound = my_maxhp() + 1;  // A kludge, to ensure that we treat unknown enemies with respect!
 	if (damagePerRound == 0.0) damagePerRound = 1;  // Avoid dividing by zero!
 	int roundsLeftThisStage = 1 + floor(my_hp() / damagePerRound);
+	if (contains_text(text, "still cursed")) roundsLeftThisStage += 1;  // (Curse of Indecision is in effect)
 	int roundsPerStage = (jump_chance() < 100 ? 0 : 1) + floor(my_maxhp() / damagePerRound);
 	int roundsBeforeKa = roundsLeftThisStage + roundsPerStage * (2 - combatStage);
 
