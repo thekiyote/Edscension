@@ -114,9 +114,10 @@ void ed_replacePublicSettings() {
 		}
 	}
 	set_property("afterAdventureScript", "ed_postadventure.ash");
-		//TODO:  does it do anything useful?  Can I just remove it?
+		//TODO:  does it do anything essential?  Can I just remove it?
 	set_property("counterScript", "");
-	//cli_execute("spookyraven on");  //TODO
+	//TODO:  spookyraven
+	set_property("choiceAdventure1023", "2");
 }
 
 void ed_restorePublicSettings() {
