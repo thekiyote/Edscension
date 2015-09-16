@@ -808,6 +808,15 @@ boolean questOverride()
 			set_property("ed_haveoven", true);
 		}
 	}
+	if (contains_text(visit_url("place.php?whichplace=manor2"), to_url($location[The Haunted Gallery]))) {
+		set_property("ed_spookyravennecklace", "finished");
+		cli_execute("spookyraven on");
+	}
+	if (get_property("questM21Dance") == "finished" && get_property("ed_ballroomopen") != "open") {
+		print("Found completed Lady Spookyraven second floor");
+		set_property("ed_ballroomopen", "open");
+	}
+
 	if((get_property("questL02Larva") == "finished") && (get_property("ed_mosquito") != "finished"))
 	{
 		print("Found completed Mosquito Larva (2)");
@@ -1310,14 +1319,16 @@ boolean L11_unlockHiddenCity()
 	}
 
 	print("Searching for the Hidden City", "blue");
+	boolean usingStoneWool = 0 < item_amount($item[stone wool]);
 	buffMaintain($effect[Stone-Faced], 0, 1, 1);
 	set_property("choiceAdventure584", "4");
 	set_property("choiceAdventure582", "2");
 
 	if(ccAdvBypass(280))
 	{
-		print("Wandering monster interrupted our attempt at the Hidden City", "red");
-		//FIXME:  um, or maybe we didn't have any stone wool.
+		if (usingStoneWool) {
+			print("Wandering monster interrupted our attempt at the Hidden City", "red");
+		}
 		return true;
 	}
 	
@@ -1445,6 +1456,7 @@ boolean LX_handleSpookyravenFirstFloor()
 	{
 		visit_url("place.php?whichplace=manor2&action=manor2_ladys");
 		set_property("ed_spookyravennecklace", "finished");
+		cli_execute("spookyraven on");
 		return true;
 	}
 	
@@ -1709,10 +1721,18 @@ boolean L11_mauriceSpookyraven()
 		set_property("choiceAdventure891", "1");
 	}
 
-	if((item_amount($item[blasting soda]) == 1) && (item_amount($item[bottle of Chateau de Vinegar]) == 1))
+	if (
+		(item_amount($item[blasting soda]) == 1) && (item_amount($item[bottle of Chateau de Vinegar]) == 1)
+		&& (get_property("ed_haveoven").to_boolean() || 1000 <= my_meat()) )
 	{
 		print("Time to cook up something explosive! Science fair unstable fulminate time!", "green");
-		craft("cook", 1, $item[bottle of Chateau de Vinegar], $item[blasting soda]);
+		int created = craft("cook", 1, $item[bottle of Chateau de Vinegar], $item[blasting soda]);
+		if (0 == created) {
+			buyUpTo(1, $item[Dramatic&trade; range]);
+			use(1, $item[Dramatic&trade; range]);
+			set_property("ed_haveoven", true);
+			craft("cook", 1, $item[bottle of Chateau de Vinegar], $item[blasting soda]);
+		}
 		set_property("ed_winebomb", "partial");
 	}
 
@@ -2157,6 +2177,7 @@ boolean L10_basement()
 		set_property("choiceAdventure669", "1");
 		ccAdv(1, $location[The Castle in the Clouds in the Sky (Basement)]);
 		set_property("ed_castlebasement", "finished");
+		set_property("choiceAdventure670", "4");
 	}
 	else if(contains_text(get_property("lastEncounter"), "You Don\'t Mess Around with Gym"))
 	{
@@ -2912,14 +2933,15 @@ boolean L4_batCave()
 
 	print("In the bat hole!", "blue");
 
-	if(item_amount($item[sonar-in-a-biscuit]) > 0)
-	{
-		use(item_amount($item[sonar-in-a-biscuit]), $item[sonar-in-a-biscuit]);
-		return true;
-	}
-	
 	string batHole = visit_url("place.php?whichplace=bathole");
 
+	if(contains_text(batHole, "bathole_bg5"))
+	{
+		if (0 < item_amount($item[skull of the bonerdagon]) && 0 < item_amount($item[batskin belt])) create(1, $item[badass belt]);
+		council();
+		set_property("ed_bat", "finished");
+		return true;
+	}
 	if(contains_text(batHole, "bathole_bg4"))
 	{
 		ccAdv(1, $location[The Boss Bat\'s Lair]);
@@ -2931,7 +2953,13 @@ boolean L4_batCave()
 		}
 		return true;
 	}
-	
+
+	if(item_amount($item[sonar-in-a-biscuit]) > 0)
+	{
+		use(item_amount($item[sonar-in-a-biscuit]), $item[sonar-in-a-biscuit]);
+		return true;
+	}
+
 	if(contains_text(batHole, "bathole_bg3"))
 	{
 		if(have_skill($skill[Wrath of Ra]) && (have_effect($effect[Everything Looks Yellow]) == 0))
@@ -2949,7 +2977,7 @@ boolean L4_batCave()
 		ccAdv(1, $location[The Beanbat Chamber]);
 		return true;
 	}
-	
+
 	if(contains_text(batHole, "bathole_bg2"))
 	{
 		ccAdv(1, $location[The Batrat and Ratbat Burrow]);
@@ -3212,17 +3240,24 @@ boolean ed_LX_lightsOut() {
 	if (get_counters("Spookyraven Lights Out", 0, 0) == "Spookyraven Lights Out") {
 		location l = to_location(get_property("nextSpookyravenStephenRoom"));
 		if ($location[The Haunted Laboratory] == l) l = to_location(get_property("nextSpookyravenElizabethRoom"));
+			//TODO:  if basement is not open yet we may want to start the Elizabeth sequence.
 		if ($locations[none, The Haunted Gallery] contains l) return false;
+
+		buffer page;
+		for i from 1 to 10 if (length(page) == 0) page = visit_url(to_url(l));
+			// The loop is so that we ignore any auto-stops from Mafia.
+		if (contains_text(page, "You shouldn't be here")) return false;
+		if (contains_text(page, "Combat")) abort("Spookyraven Lights Out quest automation failure!");
+		if (!contains_text(page, "Lights Out")) abort("Spookyraven Lights Out quest automation failure!");
 		string oldSetting = get_property("lightsOutAutomation");
 		set_property("lightsOutAutomation", "1");
-		try {
-			buffer page = visit_url(to_url(l) + "&confirm=on");
-			if (contains_text(page, "Combat")) abort("Spookyraven Lights Out quest automation failure!");
-			//ccAdv(0, l);
-			adv1(l, 0, "");
-		} finally {
+			//FIXME:  need to set the property back when we are done, even if we abort.  try-finally may work in newer Mafia builds, but I need to migrate my other code first, before I can update...
+		//try {
+			adv1(l, 0, "");  // Note that we should only get here on a Lights Out....
+		//} finally {
 			set_property("lightsOutAutomation", oldSetting);
-		}
+		//}
+		return false;
 	}
 	return false;
 }
@@ -4875,6 +4910,7 @@ boolean doTasks()
 	if(my_level() > get_property("lastCouncilVisit").to_int())
 	{
 		council();
+		questOverride();
 	}
 
 	// Noob override that makes sure you don't accidentally go to the Noob Cave, and if you do aborts so you can see what went wrong.
@@ -5404,9 +5440,10 @@ boolean doTasks()
 
 	if((my_level() >= 12) && (get_property("ed_gremlins") == ""))
 	{
+		//FIXME:  ??? should we just add my_level() >= 12 to the gremlins code?  do we even need that?
 		print("Gremlin prep", "blue");
 		set_property("ed_gremlins", "start");
-		return true;
+		return true;   //FIXME:  we didn't actually do anything.
 	}
 
 	if((item_amount($item[barrel of gunpowder]) >= 5) && ((get_property("ed_hippyInstead") == "no") || (get_property("fratboysDefeated").to_int() >= 64)))
@@ -5734,8 +5771,6 @@ boolean doTasks()
 
 void ed_begin()
 {
-	cli_execute("spookyraven off");
-
 	print("Hello " + my_name() + ", time to explode!");
 	print("This is version: chwone.1");
 	print("This is day " + my_daycount() + ".");
