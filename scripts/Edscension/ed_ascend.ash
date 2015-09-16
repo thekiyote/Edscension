@@ -25,19 +25,6 @@ import <ed_equipment.ash>
 import <ed_edTheUndying.ash>
 import <ed_eudora.ash>
 import <ed_elementalPlanes.ash>
-//import <zlib.ash>
-
-string ed_maximizationString;
-void ed_setMaximization(string maxString) {
-	ed_maximizationString = maxString;
-}
-void ed_appendMaximization(string maxString) {
-	ed_maximizationString += maxString;
-}
-void ed_maximize() {
-	print("maximizing '" + ed_maximizationString + "'", "orange");
-	maximize(ed_maximizationString, 1, 0, false);
-}
 
 boolean LX_chateauDailyPainting();
 boolean LX_handleSpookyravenFirstFloor();

@@ -320,3 +320,67 @@ void equipRollover()
 		equip($slot[acc3], toEquip);
 	}
 }
+
+string ed_maximizationString;
+string ed_maximizationStringForCachedEquipmentPredictions;
+item[int] ed_equipmentForCachedEquipmentPredictions;
+	//TODO:  are there other factors that the maximizer took into account, that may have changed since we cached its reccomendations?
+
+void ed_setMaximization(string maxString) {
+	ed_maximizationString = maxString;
+	//if (60 <= my_basestat($stat[Mysticality]) && !contains_text(maxString, "swash")) ed_maximizationString += ", equip solid gold pegleg";
+		// (handicap)
+	ed_maximizationStringForCachedEquipmentPredictions = "";
+}
+
+void ed_appendMaximization(string maxString) {
+	if (contains_text(maxString, "swash")) ed_maximizationString = ed_maximizationString.replace_string(", equip solid gold pegleg", "");
+	ed_maximizationString += maxString;
+	ed_maximizationStringForCachedEquipmentPredictions = "";
+}
+
+float ed_predictMaximizationModifier(string modifier) {
+	if (ed_maximizationStringForCachedEquipmentPredictions != ed_maximizationString) {
+		ed_equipmentForCachedEquipmentPredictions.clear();
+		foreach i,r in maximize(ed_maximizationString, 0, 0, true, true) {
+			if ($slot[none] == to_slot(r.item)) continue;
+			if ($slot[off-hand] == to_slot(r.item)) {
+				boolean noConflict = true;
+				foreach j,w in ed_equipmentForCachedEquipmentPredictions {
+					if ($slot[weapon] == to_slot(w) && 2 == weapon_hands(w)) {
+						noConflict = false;
+						break;
+					}
+				}
+				if (!noConflict) continue;
+			}
+			ed_equipmentForCachedEquipmentPredictions[count(ed_equipmentForCachedEquipmentPredictions)] = r.item;
+		}
+		ed_maximizationStringForCachedEquipmentPredictions = ed_maximizationString;
+	}
+	float result = 0.0;
+	foreach s in $slots[] {
+		result -= numeric_modifier(equipped_item(s), modifier);
+	}
+	foreach i,equippedItem in ed_equipmentForCachedEquipmentPredictions {
+		result += numeric_modifier(equippedItem, modifier);
+	}
+	return result;
+}
+
+void ed_maximize() {
+	float[string] predictions;
+	foreach mn in $strings[cold resistance, spooky resistance, Maximum HP, Muscle, Muscle Percent, Pool Skill, Initiative, ML] {
+		predictions[mn] = numeric_modifier(mn) + ed_predictMaximizationModifier(mn);
+	}
+
+	print("maximizing '" + ed_maximizationString + "'", "orange");
+	//boolean success = maximize("equip solid gold pegleg, " + ed_maximizationString, 1, 0, false);
+	boolean success = maximize(ed_maximizationString, 1, 0, false);
+	if (!success) abort("We seem to be unabled to equip some required item(s).");
+
+	foreach mn,v in predictions {
+		if (numeric_modifier(mn) != predictions[mn]) abort("Our prediction for " + mn + " was not correct.  Predicted " + predictions[mn] + ", but got " + numeric_modifier(mn) + ".");
+	}
+}
+
