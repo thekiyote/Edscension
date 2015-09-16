@@ -151,6 +151,7 @@ void handlePreAdventure()
 		if (
 			!($locations[
 				The Sleazy Back Alley,
+				The Outskirts of Cobb's Knob,
 				Hippy Camp,
 				Lair of the Ninja Snowmen,
 				The SMOOCH Army HQ
@@ -160,6 +161,8 @@ void handlePreAdventure()
 				buffMaintain($effect[Blessing of Serqet], 15, 1, 1);
 				//TODO:  when starting out, we don't want the blessing if jump_chance() is low.
 				// also. it costs a lot.  trying out some new logic for that.
+				//TODO:  although, I seem to be able to handle +20 ML in those starting areas.  Other users have reported significant issues, though.
+				//TODO:  Check for More Legs, as well.
 			}
 		}
 		while((my_mp() > 120) && (have_effect($effect[wisdom of thoth]) < 50))
