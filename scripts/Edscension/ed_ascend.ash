@@ -282,11 +282,13 @@ boolean ccAdvBypass(string url, location loc)
 	if((my_hp() == 0) || (get_property("_edDefeats").to_int() == 1))
 	{
 		print("Uh oh! Died when starting a combat indirectly.", "red");
-		return ed_ccAdv(1, loc, "", true);  //TODO:  are we at the underworld choice, or are we starting another adventure??
+		if (contains_text(page, "whichchoice value=1023")) {
+			return ed_resumeUnderworld();
+		}
 	}
 	if(contains_text(page, "Combat"))
 	{
-		return ccAdv(1, loc);
+		return ed_resumeCombat(loc);
 	}
 	return false;
 }
@@ -313,7 +315,8 @@ boolean tryAdventure(string loc, int snarfblat)
 	if(contains_text(visit_url("adventure.php?snarfblat=" + snarfblat), "Combat"))
 	{
 		print("Overriding unknown location: " + loc + " + at: " + snarfblat, "red");
-		return ccAdv(1, $location[Noob Cave]);
+		//return ccAdv(1, $location[Noob Cave]);
+		ed_resumeCombat($location[Noob Cave]);
 	}
 	return false;
 }
@@ -995,11 +998,11 @@ boolean LX_chateauDailyPainting()
 			if((have_effect($effect[Everything Looks Yellow]) == 0) && have_skill($skill[Wrath of Ra]) && (my_mp() >= 40) &&
 			(oreHave < 3) && (get_property("ed_trapper") == "start"))
 			{
-				ed_maximize();  //TODO:  I think ccAdvBypass does this already.  ed_use_servant, too.
+				ed_maximize();
 				ed_use_servant($servant[scribe]);
 				ed_use_servant();
 				visit_url("place.php?whichplace=chateau&action=chateau_painting");
-				ccAdvBypass(1, $location[Noob Cave]);
+				ed_resumeCombat();
 				return true;
 			}
 		} else if(get_property("chateauMonster") == "Bram the Stoker")
@@ -1016,7 +1019,7 @@ boolean LX_chateauDailyPainting()
 				ed_use_servant($servant[scribe]);
 				ed_use_servant();
 				visit_url("place.php?whichplace=chateau&action=chateau_painting");
-				ccAdvBypass(1, $location[Noob Cave]);
+				ed_resumeCombat();
 				return true;
 			} else
 			{
@@ -1029,7 +1032,7 @@ boolean LX_chateauDailyPainting()
 						wait(20);
 						ed_maximize();
 						visit_url("place.php?whichplace=chateau&action=chateau_painting");
-						ccAdvBypass(1, $location[Noob Cave]);
+						ed_resumeCombat();
 						return true;
 					}
 				}
@@ -1044,7 +1047,7 @@ boolean LX_chateauDailyPainting()
 				ed_use_servant($servant[scribe]);
 				ed_use_servant();
 				visit_url("place.php?whichplace=chateau&action=chateau_painting");
-				ccAdvBypass(1, $location[Noob Cave]);
+				ed_resumeCombat();
 				return true;
 			} else
 			{
@@ -1057,7 +1060,7 @@ boolean LX_chateauDailyPainting()
 						print("Trying Lobsterfrogman, this is untested so continue at your own risk. Let me know the results.", "red");
 						wait(20);
 						visit_url("place.php?whichplace=chateau&action=chateau_painting");
-						ccAdvBypass(1, $location[Noob Cave]);
+						ed_resumeCombat();
 						return true;
 					}
 				}
@@ -1071,7 +1074,7 @@ boolean LX_chateauDailyPainting()
 			ed_use_servant($servant[scribe]);
 			ed_use_servant();
 			visit_url("place.php?whichplace=chateau&action=chateau_painting");
-			ccAdvBypass(1, $location[Noob Cave]);
+			ed_resumeCombat();
 			return true;
 		}
 	}
@@ -3143,10 +3146,12 @@ boolean L2_spookySapling()
 	set_property("choiceAdventure504", "3");
 
 	//TODO:  need to do servant switching, maintain buffs, etc.
-	if(contains_text(visit_url("adventure.php?snarfblat=15"), "Combat"))
+	ed_doPreadventure($location[The Spooky Forest]);
+	if(contains_text(visit_url(to_url($location[The Spooky Forest])), "Combat"))
 	{
-		//TODO:  ccAdv does servant switching & buff maintenance, which produces "You are currently in a fight."  get rid of that.
-		ccAdv(1, $location[The Spooky Forest]);
+		//ccAdv(1, $location[The Spooky Forest]);
+		//ed_ccAdv(1, $location[The Spooky Forest], "", true);
+		ed_resumeCombat($location[The Spooky Forest]);
 	}
 	else
 	{
@@ -3681,7 +3686,8 @@ boolean L9_aBooPeak()
 			if(contains_text(page, "Combat"))
 			{
 				print("Wandering monster interrupt at a-boo peak", "red");
-				ccAdv(1, $location[A-Boo Peak]);
+				//ccAdv(1, $location[A-Boo Peak]);
+				ed_resumeCombat($location[A-Boo Peak]);
 			}
 			else
 			{
@@ -3947,7 +3953,8 @@ boolean L9_chasmBuild()
 		page = visit_url("place.php?whichplace=orc_chasm&action=bridge_done");
 		if(contains_text(page, "Combat"))
 		{
-			ccAdv(1, $location[The Smut Orc Logging Camp]);
+			//ccAdv(1, $location[The Smut Orc Logging Camp]);
+			ed_resumeCombat($location[The Smut Orc Logging Camp]);
 		}
 		else
 		{
@@ -3980,7 +3987,8 @@ boolean L9_chasmBuild()
 		visit_url("adventure.php?snarfblat=295&confirm=on");
 		if(contains_text(visit_url("main.php"), "Combat"))
 		{
-			ccAdv(1, $location[The Smut Orc Logging Camp]);
+			//ccAdv(1, $location[The Smut Orc Logging Camp]);
+			ed_resumeCombat($location[The Smut Orc Logging Camp]);
 			use(item_amount($item[ten-leaf clover]), $item[ten-leaf clover]);
 			return true;
 		}
@@ -4038,12 +4046,13 @@ boolean L9_chasmStart()
 	if(!get_property("ed_chasmBusted").to_boolean())
 	{
 		print("It's a troll on a bridge!!!!", "blue");
-		ed_doPreadventure($location[The Obligatory Pirate\'s Cove]);
+		ed_doPreadventure($location[The Smut Orc Logging Camp]);
 		string page = visit_url("place.php?whichplace=orc_chasm&action=bridge_done");
 		page = visit_url("place.php?whichplace=orc_chasm&action=bridge_done");
 		if(contains_text(page, "Combat"))
 		{
-			ccAdv(1, $location[The Smut Orc Logging Camp]);
+			ed_ccAdv(1, $location[The Smut Orc Logging Camp], "", true);
+			//ccAdv(1, $location[The Smut Orc Logging Camp]);
 		}
 		else
 		{
@@ -4434,7 +4443,8 @@ boolean LX_pirateBeerPong()
 	}
 	else if(contains_text(page, "Combat"))
 	{
-		ccAdv(1, $location[barrrney\'s barrr]);
+		//ccAdv(1, $location[barrrney\'s barrr]);
+		ed_resumeCombat($location[Barrrney's Barrr]);
 	}
 	return true;
 }
@@ -4479,7 +4489,8 @@ boolean LX_nastyBooty()
 
 	ed_doPreadventure($location[The Obligatory Pirate\'s Cove]);
 	visit_url("inv_use.php?pwd=&which=3&whichitem=2950");
-	ccAdvBypass(1, $location[Noob Cave]);
+	//ccAdvBypass(1, $location[Noob Cave]);
+	ed_resumeCombat();
 	set_property("ed_disableAdventureHandling", "no");
 	return true;
 }
@@ -4688,12 +4699,12 @@ boolean ed_tavern()
 			}
 
 			string page = visit_url("main.php");
-			if(contains_text(page, "You've already explored that spot."))
+			if(contains_text(page, "You've already explored that spot."))  //FIXME:  I don't think the message appears on the main map page.
 			{
-				needReset = true;
+				needReset = true;  //FIXME:  well, it's a good thing this won't get executed, because this looks to otherwise be an infinite loop.
 				print("tavernLayout is not reporting places we've been to.", "red");
 			}
-			if(contains_text(page, "Darkness (5,5)"))
+			if(contains_text(page, "Darkness (5,5)"))  //FIXME:  again, afaict this almost certainly does nothing.
 			{
 				needReset = true;
 				print("tavernLayout is reporting too many places as visited.", "red");
@@ -4821,14 +4832,14 @@ boolean ed_LX_xp() {
 			if (ed_LX_smooch()) return true;
 		}
 	}
-	if(get_property("ed_spookyravennecklace") == "finished")
-	{
+	if (galleryAndBathroomOpen) {
 		if (0 < spareClovers) {
 			print("TODO:  clovering at the bathroom.  is that the best use of this clover??", "orange");
 			use(1, $item[disassembled clover]);
 			visit_url("adventure.php?snarfblat=392&confirm=on");  // The Haunted Bathroom
 			if (contains_text(visit_url("main.php"), "Combat")) {
-				ccAdv(1, $location[The Haunted Bathroom]);
+				//ccAdv(1, $location[The Haunted Bathroom]);
+				ed_resumeCombat($location[The Haunted Bathroom]);
 			}
 			use(item_amount($item[ten-leaf clover]), $item[ten-leaf clover]);
 			return true;
@@ -5639,19 +5650,17 @@ boolean doTasks()
 		warOutfit();
 		ed_maximize();
 		cli_execute("refresh equip");
-		if(my_hp() < my_maxhp())
-		{
-			print("My hp is: " + my_hp(), "orange");
-			print("My max hp is: " + my_maxhp(), "orange");
-		}
 		print("Let's fight the boss!", "blue");
 		set_property("edDefeatAbort", "5");
-		ed_maximize();
-		ed_preAdv(1, $location[Noob Cave]);
-		visit_url("bigisland.php?place=camp&whichcamp=1");
-		visit_url("bigisland.php?place=camp&whichcamp=2");
-		visit_url("bigisland.php?action=bossfight&pwd");
-		ccAdvBypass(1, $location[Noob Cave]);
+		set_property("ed_disableAdventureHandling", "no");  //TODO:  ???
+		ed_preAdv(1, $location[Wartime Hippy Camp (Frat Disguise)]);
+		set_location($location[Noob Cave]);  //TODO:  ?
+		if (!contains_text(visit_url("bigisland.php"), "<center>A peaceful Meadow</center>")) {
+			visit_url("bigisland.php?place=camp&whichcamp=1");
+			visit_url("bigisland.php?place=camp&whichcamp=2");
+			visit_url("bigisland.php?action=bossfight&pwd");
+			ed_resumeCombat();
+		}
 		council();
 		set_property("ed_war", "finished");
 		return true;
@@ -5679,7 +5688,8 @@ boolean doTasks()
 			string page = visit_url("place.php?whichplace=nstower&action=ns_10_sorcfight");
 			if(contains_text(page, "Combat"))
 			{
-				ccAdv(1, $location[Noob Cave]);
+				//ccAdv(1, $location[Noob Cave]);
+				ed_resumeCombat($location[Noob Cave]);
 			}
 			if(item_amount($item[Thwaitgold Scarab Beetle Statuette]) > 0)
 			{

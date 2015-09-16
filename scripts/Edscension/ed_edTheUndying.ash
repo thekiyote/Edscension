@@ -1201,35 +1201,45 @@ boolean ed_preAdv(int num, location loc)
 boolean ed_ccAdv(int num, location loc, string option, boolean skipFirstLife)
 {
 	boolean status = false;
-	if(option == "") option = "ed_edCombatHandler";  //TODO:  it's always ed_edCombatHandler, right??
+	if(option == "") option = "ed_edCombatHandler";  //TODO:  it's always ed_edCombatHandler, right??  No, sometimes it's the gremlins one.
+	buffer page = visit_url("main.php");
+	boolean mainMapAvailable = contains_text(page, "<b>The Kingdom of Loathing</b>");
+	boolean inCombat = contains_text(page, "<b>Combat!</b>");
+		//FIXME:  this is just for testing purposes.  remove.
 	if(!skipFirstLife)
 	{
+		if (!mainMapAvailable) {
+			abort("Edscension internal error!  ed_ccAdv called with \"!skipFirstLife\", but no access to the main map!");
+		}
 		ed_preAdv(num, loc);
 		ed_use_servant();
+	} else {
+		if (mainMapAvailable) {
+			// (note that this is harmless.  we don't start any new adventures, and break out of the loop when we see that we have access to the main map.)
+			abort("Edscension internal error!  ed_ccAdv called with \"skipFirstLife\", but we are not yet in an adventure!");
+		}
 	}
 
-	while(num > 0)
-	{
-		set_property("autoAbortThreshold", "-10.0");
-		num = num - 1;
-		if(num > 1)
-		{
-			print("This fight and " + num + " more left.", "blue");
-		}
+	set_property("ed_disableAdventureHandling", "yes");
 
-		//FIXME:  replace nested if's with a loop.
-		set_property("ed_disableAdventureHandling", "yes");
-		set_property("ed_edCombatHandler", "");
-		if(!skipFirstLife)
+	if (get_property("_edDefeats") == "0") set_property("ed_edCombatHandler", "");
+		//FIXME:  that only works heuristically; false positives & negatives both possible.
+	for i from 0 to get_property("edDefeatAbort").to_int()+3 {  //TODO:  the +3 is because I am adjusting edDefeatAbort from within the combat filter, if we are flyering.
+		int stage = get_property("_edDefeats").to_int();
+
+		set_property("autoAbortThreshold", "-10.0");
+		set_property("ed_edCombatStage", stage);
+
+		if(!skipFirstLife || contains_text(page, "<b>Combat!</b>"))
 		{
-			set_property("ed_edCombatStage", 0);
-			print("Starting Ed Battle at " + loc, "blue");
-			status = adv1(loc, 1, option);
+			print("Automating stage " + stage + " of Ed Battle at " + loc, "blue");
+			status = adv1(loc, 0, option);
 			if(!status && (get_property("lastEncounter") == "Like a Bat Into Hell"))
 			{
 				set_property("ed_disableAdventureHandling", "no");
 				abort("Either a\) We had a connection problem and lost track of the battle, or b\) we were defeated multiple times beyond our usual UNDYING. Manually handle the fight and rerun.");
 			}
+			page = visit_url("main.php");
 		}
 
 		if(last_monster() == $monster[Crate])
@@ -1237,134 +1247,47 @@ boolean ed_ccAdv(int num, location loc, string option, boolean skipFirstLife)
 			abort("We went to the Noob Cave for reals... uh oh");
 		}
 
-		string page = visit_url("main.php");
+		if (contains_text(page, "<b>The Kingdom of Loathing</b>")) break;
 		matcher m = create_matcher("<input type=hidden name=whichchoice value=([0-9]+)>", page);
 		int whichChoice = m.find() ? m.group(1).to_int() : -1;
 		if (
-			contains_text(page, "<b>Combat!</b>")
-			|| -1 != whichChoice && 1023 != whichChoice && 1024 != whichChoice
+			-1 != whichChoice && 1023 != whichChoice && 1024 != whichChoice
+				// this covers all choice adventures, except for entering/leaving The Underworld.
 		) {
-			//TODO: are there multi-stage battles where visiting the main map triggers the next one?  Well, I guess Ed works that way, but uh, we don't fight Ed as Ed, do we?  This code assumes that there are no others.
-			adv1(loc, 0, option);
+			print("Automating choice " + whichChoice + " at " + my_location() , "blue");
+			status = adv1(loc, 0, option);
 			page = visit_url("main.php");
+			whichChoice = m.find() ? m.group(1).to_int() : -1;
 		}
-		if (1023 == whichChoice || 1024 == whichChoice || contains_text(page, "<b>The Underworld</b>"))
+		if (contains_text(page, "<b>The Kingdom of Loathing</b>")) break;
+		if (1023 != whichChoice && 1024 != whichChoice && !contains_text(page, "<b>The Underworld</b>")) break;
+
+		if (get_property("edDefeatAbort").to_int() <= get_property("_edDefeats").to_int()) {
+			abort("We have exceeded the number of UNDEATHS that this script handles automatically!  You'll have to manually pay up, or spend an adventure to return to your tomb.");
+				//TODO:  automatically spend an adventure, as long as we simply appear to be a bit unlucky.
+		}
+
+		print("Ed has UNDYING!" , "blue");
+		if (1024 == whichChoice) {
+			page = visit_url("choice.php?pwd=&whichchoice=1024&option=3", true);
+		}
+		if(!ed_shopping())
 		{
-			print("Ed has UNDYING once!" , "blue");
-			if (1024 == whichChoice) {
-				visit_url("choice.php?pwd=&whichchoice=1024&option=3", true);
-			}
-			if(!ed_shopping())
-			{
-				visit_url("choice.php?pwd=&whichchoice=1023&option=2", true);
-			}
-			set_property("ed_edCombatStage", 1);
-			print("Ed returning to battle Stage 1", "blue");
-
-			if(get_property("_edDefeats").to_int() == 0)
-			{
-				print("Monster defeated in initialization.  Combat is over.", "green");
-				set_property("ed_edCombatStage", 0);
-				set_property("ed_disableAdventureHandling", "no");
-				cli_execute("ed_postadventure.ash");
-				return true;
-			}
-
-			status = adv1(loc, 1, option);
-			if(last_monster() == $monster[Crate])
-			{
-				abort("We went to the Noob Cave for reals... uh oh");
-			}
-
-			page = visit_url("main.php");
-			if(contains_text(page, "whichchoice value=1023"))
-			{
-				print("Ed has UNDYING twice! Time to kick ass!" , "blue");
-				visit_url("choice.php?pwd=&whichchoice=1023&option=2", true);
-				set_property("ed_edCombatStage", 2);
-				print("Ed returning to battle Stage 2", "blue");
-				
-				if(get_property("_edDefeats").to_int() == 0)
-				{
-					print("Monster defeated in initialization.  Combat is over.", "green");
-					set_property("ed_edCombatStage", 0);
-					set_property("ed_disableAdventureHandling", "no");
-					cli_execute("ed_postadventure.ash");
-					return true;
-				}
-				
-				status = adv1(loc, 1, option);
-				if(last_monster() == $monster[Crate])
-				{
-					abort("We went to the Noob Cave for reals... uh oh");
-				}
-
-				page = visit_url("main.php");
-				
-				if((contains_text(page, "whichchoice value=1023")) && (item_amount($item[rock band flyers]) == 1) && (get_property("flyeredML").to_int() < 10000) && (item_amount($item[ka coin]) > 2))
-				{
-					print("Ed has UNDYING thrice! Time to flyer ass!" , "blue");
-					visit_url("choice.php?pwd=&whichchoice=1023&option=2", true);
-					set_property("ed_edCombatStage", 3);
-					print("Ed returning to battle Stage 3", "blue");
-
-					if(get_property("_edDefeats").to_int() == 0)
-					{
-						print("Monster defeated in initialization.  Combat is over.", "green");
-						set_property("ed_edCombatStage", 0);
-						set_property("ed_disableAdventureHandling", "no");
-						cli_execute("ed_postadventure.ash");
-						return true;
-					}
-					
-					status = adv1(loc, 1, option);
-					if(last_monster() == $monster[Crate])
-					{
-						abort("We went to the Noob Cave for reals... uh oh");
-					}
-
-					page = visit_url("main.php");
-					if(contains_text(page, "whichchoice value=1023"))
-					{
-						print("Ed has UNDYING fhrice?! Time to finish flyering ass!" , "blue");
-						visit_url("choice.php?pwd=&whichchoice=1023&option=2", true);
-						set_property("ed_edCombatStage", 4);
-						print("Ed returning to battle Stage 4", "blue");
-						
-						if(get_property("_edDefeats").to_int() == 0)
-						{
-							print("Monster defeated in initialization.  Combat is over.", "green");
-							set_property("ed_edCombatStage", 0);
-							set_property("ed_disableAdventureHandling", "no");
-							cli_execute("ed_postadventure.ash");
-							return true;
-						}
-						
-						status = adv1(loc, 1, option);
-						if(last_monster() == $monster[Crate])
-						{
-							abort("We went to the Noob Cave for reals... uh oh");
-						}
-
-						page = visit_url("main.php");
-						if(contains_text(page, "What? That's outrageous!"))
-						{
-							abort("Too many undeaths aren't good for you, pay up to continue.");
-						}
-					}
-				}
-				else if(contains_text(page, "What? That's outrageous!")) 
-				{
-					abort("Third deaths the toll, pay up if you wish to continue.");
-					//FIXME:  honor whatever the edDefeatAbort setting is
-				}
-			}
+			page = visit_url("choice.php?pwd=&whichchoice=1023&option=2", true);
 		}
-		
-		set_property("ed_edCombatStage", 0);
-		set_property("ed_disableAdventureHandling", "no");
-		cli_execute("ed_postadventure.ash");
+
+		if(get_property("_edDefeats").to_int() == 0)
+		{
+			print("Monster defeated in initialization.  Combat is over.", "green");
+			break;
+		}
+
+		skipFirstLife = get_property("_edDefeats").to_int() == stage + 2;
 	}
+	set_property("ed_edCombatStage", 0);
+	set_property("ed_disableAdventureHandling", "no");
+	cli_execute("ed_postadventure.ash");
+
 	return status;
 }
 
