@@ -2978,6 +2978,10 @@ boolean L4_batCave()
 	{
 		return false;
 	}
+	if (0 < item_amount($item[batskin belt]) || 0 < item_amount($item[badass belt])) {
+		set_property("ed_bat", "finished");
+		return false;
+	}
 
 	print("In the bat hole!", "blue");
 
@@ -3012,6 +3016,7 @@ boolean L4_batCave()
 	{
 		if(have_skill($skill[Wrath of Ra]) && (have_effect($effect[Everything Looks Yellow]) == 0))
 		{
+			//TODO:  it looks like we don't actually use Wrath against beanbats....
 			if(my_mp() < 40)
 			{
 				while(my_meat() > 89 && my_mp() < 40)
@@ -3165,6 +3170,10 @@ boolean L2_spookySapling()
 {
 	if(get_property("ed_spookysapling") == "finished")
 	{
+		return false;
+	}
+	if (get_property("lastTempleUnlock") == my_ascensions()) {
+		set_property("ed_spookysapling", "finished");
 		return false;
 	}
 	if(my_meat() < 100)
