@@ -253,6 +253,7 @@ void ed_doPreadventure(location l) {
 	ed_use_servant();
 	set_location(l);
 	ed_maximize();
+	ed_autoMcd(l);
 	cli_execute("ed_preadventure.ash");
 	set_property("ed_disableAdventureHandling", "yes");
 }
@@ -265,6 +266,7 @@ boolean ed_ccAdv(int num, location loc, string option)
 boolean ccAdv(int num, location loc, string option)
 {
 	ed_maximize();
+	ed_autoMcd(loc);
 	return ed_ccAdv(num, loc, option);
 }
 
@@ -275,8 +277,10 @@ boolean ccAdv(int num, location loc)
 
 boolean ccAdvBypass(string url, location loc)
 {
+	set_location(loc);
 	ed_maximize();
 	ed_preAdv(1, loc);
+	ed_autoMcd(loc);
 	print("About to start a combat indirectly at " + loc + "...", "blue");
 	string page = visit_url(url);
 	if((my_hp() == 0) || (get_property("_edDefeats").to_int() == 1))
@@ -383,7 +387,7 @@ int ed_safeMl(location l) {
 
 		int safeMl = safeMlForJump < safeMlForSurviveHit ? safeMlForSurviveHit : safeMlForJump;
 
-print("For " + m + ", we can go as high as " + safeMlForJump + " to not get jumped, or " + safeMlForSurviveHit + " to survive a hit (max damage " + maxDamage + ")");
+//print("For " + m + ", we can go as high as " + safeMlForJump + " to not get jumped, or " + safeMlForSurviveHit + " to survive a hit (max damage " + maxDamage + ")");
 		if (safeMl < highestSafeMl) highestSafeMl = safeMl;
 	}
 	return highestSafeMl;
@@ -536,7 +540,8 @@ boolean doThemtharHills(boolean trickMode)
 	buffMaintain($effect[Sinuses For Miles], 0, 1, 1);
 	buffMaintain($effect[Big Meat Big Prizes], 0, 1, 1);
 	//TODO:  Dances with Tweedles
-	ed_setMaximization("meat drop, exp, -hat, -pants, -acc3");
+	//ed_setMaximization("meat drop, exp, -hat, -pants, -acc3");
+	ed_setMaximization("meat drop, exp");
 
 	if(fightCopy)
 	{
@@ -1508,9 +1513,8 @@ boolean LX_handleSpookyravenFirstFloor()
 		{
 			ed_appendMaximization(", equip [2268]");
 		}
-		ed_maximize(); //TODO
 		int skillEstimate
-			= numeric_modifier("Pool Skill")
+			= ed_predictMaximizationModifier("Pool Skill")
 			+ 2 * my_inebriety()
 			+ get_property("poolSkill").to_int()
 			+ floor(2*get_property("poolSharkCount").to_int()**0.5);
@@ -2294,7 +2298,11 @@ boolean L7_crypt()
 		buffMaintain($effect[Well-Swabbed Ear], 0, 1, 1);
 		buffMaintain($effect[Sepia Tan], 0, 1, 1);
 		ed_maximize();  //FIXME
-		if (my_maxhp() + 5 < expected_damage($monster[modern zmobie])) {
+		float damage = (60 + monster_level_adjustment()) * 1.25 - my_buffedstat($stat[Moxie]) - numeric_modifier("Damage Reduction");
+		damage *= 1-((numeric_modifier("Damage Absorption")/10.0)**0.5-1)/10;
+			// (maximum damage inflicted by a modern zmobie)
+		print("modern zmobie damage " + damage + " (Mafia predicts " + expected_damage($monster[modern zmobie]) + ")", "orange");  //TODO
+		if (my_maxhp() < damage) {
 			print("No, not the alcove.  I changed my mind.", "red");
 			return false;
 		}
@@ -2892,10 +2900,18 @@ boolean L5_goblinKing()
 		return false;
 	}
 
+	ed_autoMcd($location[Throne Room]);
+	if (ed_safeMl($location[Throne Room]) + 5 < monster_level_adjustment()) {
+		print("Skipping the King for now.", "red");
+		handleMcd();
+		return false;
+	}
+
 	cli_execute("outfit knob goblin harem girl disguise");
 	buffMaintain($effect[Knob Goblin Perfume], 0, 1, 1);
 	if(my_hp() > 5 && have_effect($effect[Knob Goblin Perfume]) == 0)
 	{
+		ed_autoMcd($location[Cobb's Knob Harem]);
 		ccAdv(1, $location[Cobb\'s Knob Harem]);
 			//FIXME:  in low-skill runs, we may want to use a renenutet here, but might not get a chance.
 		if(contains_text(get_property("lastEncounter"), "Cobb's Knob lab key"))
@@ -2909,6 +2925,7 @@ boolean L5_goblinKing()
 		if(item_amount($item[linen bandages]) > 0)
 		{
 			//TODO:  fix duplicated code.
+			ed_autoMcd($location[Cobb's Knob Harem]);
 			use(1, $item[linen bandages]);
 			ccAdv(1, $location[Cobb\'s Knob Harem]);
 			if(contains_text(get_property("lastEncounter"), "Cobb's Knob lab key"))
@@ -2926,11 +2943,6 @@ boolean L5_goblinKing()
 	buffMaintain($effect[Go Get \'Em\, Tiger!], 0, 1, 1);
 	buyUpTo(1, $item[Hair Spray]);
 	buffMaintain($effect[Butt-Rock Hair], 0, 1, 1);
-
-	if(monster_level_adjustment() > 150)
-	{
-		equip($slot[acc2], $item[none]);
-	}
 
 	ccAdv(1, $location[Throne Room]);
 	if((item_amount($item[Crown of the Goblin King]) > 0) || (item_amount($item[Glass Balls of the Goblin King]) > 0) || (item_amount($item[Codpiece of the Goblin King]) > 0))
@@ -4659,7 +4671,7 @@ boolean LX_pirateOutfit()
 			set_property("choiceAdventure24", "1");
 		}
 
-		change_mcd(0);
+		//change_mcd(0);
 		ccAdv(1, $location[The Obligatory Pirate\'s Cove]);
 		return true;
 	}
