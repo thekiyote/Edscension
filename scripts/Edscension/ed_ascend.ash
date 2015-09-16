@@ -2710,7 +2710,7 @@ boolean L6_friarsGetParts()
 		}
 	}
 
-	if((item_amount($item[hot wing]) < 3) && (get_property("questM12Pirate").to_int() < 3))
+	if((item_amount($item[hot wing]) < 3) && (get_property("questM12Pirate").to_int() < 3))  //FIXME:  'The string "unstarted" is not an integer"...
 	{
 		if (90 < jump_chance($monster[Fallen Archfiend]) || expected_damage($monster[Fallen Archfiend]) < my_maxhp()) {
 			print("Need more Hot Wings", "blue");
@@ -5262,6 +5262,7 @@ boolean doTasks()
 		return true;
 	}
 
+	//FIXME:  clean up!
 	if(get_property("ed_hippyInstead").to_boolean() && (get_property("ed_nunsTrick") == "true"))
 	{
 		set_property("ed_nunsTrick", "false");

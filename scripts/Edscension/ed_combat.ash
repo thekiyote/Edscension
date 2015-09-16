@@ -226,7 +226,7 @@ string ccsJunkyard(int round, string opp, string text)
 	}
 	if((!contains_text(combatState, "heredity")) && have_skill($skill[Curse of Heredity]) && (my_mp() > 15))
 	{
-		set_property("ed_combatHandler", combatState + "(heredity)");
+		set_property("ed_combatHandler", combatState + "(heredity)");  //TODO:  wiki sez "You can cast this a second time..."
 		return "skill Curse of the Heredity";
 	}
 	if((!contains_text(combatState, "love scarab")) && have_skill($skill[Summon Love Scarabs]))
@@ -580,6 +580,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 	if(have_effect($effect[temporary amnesia]) > 0)
 	{
 		return "attack with weapon";  //TODO:  the sooner we visit the underworld, though, the better....
+			//TODO:  iirc, using a skill just wastes a round.  so if combatStage < lastStage, we could "skill mild curse; repeat"
 	}
 
 	if((!contains_text(combatState, "love scarab")) && have_skill($skill[Summon Love Scarabs]))
@@ -590,6 +591,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 
 	if((!contains_text(combatState, "love scarab")) && get_property("lovebugsUnlocked").to_boolean())
 	{
+		//TODO:  i'm confused.  if we have the 'summon love scarabs' skill, the if block above should execute.  It's probably not worth investing in the pheromones.
 		set_property("ed_combatHandler", combatState + "(love scarab2)");
 		return "skill summon love scarabs";
 	}
@@ -1111,11 +1113,13 @@ Your opponent shakes her head rapidly, and her eyes gradually refocus. Looks lik
 
 	if (((enemy == $monster[Pygmy Headhunter]) || (enemy == $monster[Pygmy witch nurse])) && (item_amount($item[Short Writ of Habeas Corpus]) > 0))
 	{
+		//TODO:  do the orderlies have something useful?  should we also be checking which zone we are in?
 		return "item short writ of habeas corpus";
 	}
 
 	if(!needShop(ed_buildShoppingList()) && (my_level() >= 10) && (item_amount($item[Rock Band Flyers]) == 0) && (my_location() != $location[The Hidden Apartment Building]) && (type != to_phylum("Undead")) && (my_mp() > 20) && (my_location() != $location[Barrrney\'s Barrr]) && !forceStasis)
 	{
+		//TODO:  does this ever do anything?
 		set_property("ed_edStatus", "dying");
 	}
 
