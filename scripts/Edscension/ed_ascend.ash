@@ -231,11 +231,13 @@ void initializeSettings()
 
 boolean ed_resumeCombat(location l) {
 	if ($location[The Typical Tavern Cellar] == l) l = $location[Noob Cave];
+	if ($location[none] == l) l = $location[Noob Cave];
 	return ed_ccAdv(1, l, "", true);
 }
 
 boolean ed_resumeUnderworld(location l) {
 	if ($location[The Typical Tavern Cellar] == l) l = $location[Noob Cave];
+	if ($location[none] == l) l = $location[Noob Cave];
 	return ed_ccAdv(1, l, "", true);
 }
 
