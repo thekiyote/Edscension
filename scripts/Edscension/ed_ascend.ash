@@ -314,6 +314,73 @@ boolean ed_acquire(int quantity, item which) {
 	return ed_buy(quantityToBuy, which);
 }
 
+float ed_predictModifier(string modifierName) {
+	return numeric_modifier(modifierName) + ed_predictMaximizationModifier(modifierName);
+}
+
+int ed_predictHp() {
+	return my_maxhp()
+		+ ed_predictMaximizationModifier("Maximum HP")
+		+ ed_predictMaximizationModifier("Muscle")
+		- ceil(my_basestat($stat[Muscle]) * numeric_modifier("Muscle Percent") / 100)
+		+ ceil(my_basestat($stat[Muscle]) * (numeric_modifier("Muscle Percent") + ed_predictMaximizationModifier("Muscle Percent")) / 100);
+}
+
+int ed_smoochTurnsToday();
+
+int ed_safeMl(location l) {
+	int predictedInitBonuses = ed_predictModifier("Initiative");
+	int predictedMl = ed_predictModifier("Monster Level");
+	int dr = ed_predictModifier("Damage Reduction");
+	int da = ed_predictModifier("Damage Absorption");
+	float daFactor = 1-((da/10.0)**0.5-1)/10;
+	int highestSafeMl = 100;
+	foreach m,f in appearance_rates(l, true) {
+		if ($monster[none] == m) continue;
+		if (f <= 0.0) continue;
+		if (
+			$monsters[geve smimmons, raul stamley, pener crisp, deuce freshly] contains m
+			&& ed_smoochTurnsToday() < 50
+		) continue;
+		if (
+			$monster[SMOOCH general] == m
+			&& ed_smoochTurnsToday() < 40  //TODO:  ?
+		) continue;
+		if (
+			$monster[SMOOCH sergeant] == m
+			&& ed_smoochTurnsToday() < 20  //TODO:  ?
+		) continue;
+
+		//TODO:  how quickly can we defeat them?  Will one turn suffice?
+
+		int rawJumpChance = 100 - m.raw_initiative + predictedInitBonuses
+			+ max(0, my_basestat($stat[Mysticality]) - m.raw_attack);
+		int safeMlForJump = rawJumpChance - 100;
+
+		int attack = m.raw_attack + predictedMl;
+		float maxDamage = max(0, attack - my_buffedstat($stat[Moxie])) + attack * 0.25 - dr;
+		maxDamage *= daFactor;
+			//TODO:  no elemental resistance is applied here.
+		maxDamage = max(1, maxDamage);
+		int safeMlForSurviveHit = predictedMl + (my_maxhp() - maxDamage) / daFactor / 1.25;
+
+		int safeMl = safeMlForJump < safeMlForSurviveHit ? safeMlForSurviveHit : safeMlForJump;
+
+print("For " + m + ", we can go as high as " + safeMlForJump + " to not get jumped, or " + safeMlForSurviveHit + " to survive a hit (max damage " + maxDamage + ")");
+		if (safeMl < highestSafeMl) highestSafeMl = safeMl;
+	}
+	return highestSafeMl;
+}
+
+void ed_autoMcd(location l) {
+	int safe = ed_safeMl(l);
+	if (safe < ed_predictModifier("Monster Level")) {
+		int targetSetting = current_mcd() + safe - ed_predictModifier("Monster Level");
+		targetSetting = max(0, min(canadia_available() ? 11 : 10, targetSetting));
+		change_mcd(targetSetting);
+	}
+}
+
 void warOutfit()
 {
 	if(!get_property("ed_hippyInstead").to_boolean())
