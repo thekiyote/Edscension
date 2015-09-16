@@ -2825,7 +2825,6 @@ boolean L8_trapperYeti()
 		print("Anticipated assassin damage:  " + ed_assassinDamage(), "orange");
 		if (jump_chance($monster[ninja snowman assassin]) < 90 && my_maxhp() <= ed_assassinDamage()) {
 			print("Failed to prepare properly for ninja snowman assassins!", "red");
-abort("WHM testing");
 			return false;
 		}
 		buffMaintain($effect[Hippy Stench], 0, 1, 1);
