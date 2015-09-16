@@ -631,6 +631,10 @@ string ed_edCombatHandler(int round, string opp, string text)
 		return "skill fire sewage pistol";
 	}
 
+	if (flyering && monster_level_adjustment() < 80 && !contains_text(combatState, "love gnats3") && have_skill($skill[curse of indecision]) && my_mp() <= mp_cost($skill[Curse of Indecision]) && combatStage == lastStage) {
+		set_property("ed_combatHandler", combatState + "(love gnats3)");
+		return "Curse of Indecision";
+	}
 	if((!contains_text(combatState, "flyers")))
 	{
 		if (flyering && (combatStage < lastStage || combatStage == lastStage && 1 < roundsLeftThisStage))
@@ -664,7 +668,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 	{
 		if(((expected_damage() * 1.1) > my_hp()) && (get_property("ed_edStatus") == "dying"))
 		{
-			if((monster_level_adjustment() < 51) && !contains_text(combatState, "love gnats3") && have_skill($skill[curse of indecision]))
+			if((monster_level_adjustment() < 80) && !contains_text(combatState, "love gnats3") && have_skill($skill[curse of indecision]) && my_mp() <= mp_cost($skill[Curse of Indecision]))
 			{
 				set_property("ed_combatHandler", combatState + "(love gnats3)");
 				return "skill Curse of Indecision";
@@ -684,7 +688,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 		return "item the big book of pirate insults";
 	}
 
-	if(!contains_text(edCombatState, "curseofstench") && (have_skill($skill[Curse of Stench])) && (my_mp() >= 35) && (get_property("stenchCursedMonster") != opp) && (get_property("ed_edStatus") == "UNDYING!"))
+	if(!contains_text(edCombatState, "curseofstench") && (have_skill($skill[Curse of Stench])) && (my_mp() >= 35) && (get_property("stenchCursedMonster") != opp))
 	{
 		if((enemy == $monster[bob racecar]) ||
 			(enemy == $monster[pygmy bowler]) ||
@@ -861,6 +865,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 			(enemy == $monster[banshee librarian]) ||
 			(enemy == $monster[grassy pirate]) ||
 			(enemy == $monster[crusty pirate]))
+				// how about the shady pirate?
 		{
 			set_property("ed_combatHandler", combatState + "(curse of vacation)");
 			handleBanish(enemy, $skill[Curse of Vacation]);
