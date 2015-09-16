@@ -4566,13 +4566,14 @@ boolean LX_pirateInsults()
 	{
 		return false;
 	}
-	if(my_maxhp() < 60)
+	if (0 < have_effect($effect[Taunt of Horus])) return false;
+	ed_appendMaximization(", outfit swashbuckling getup");
+	if(ed_predictHp() < 55)  //TODO
 	{
 		return false;
 	}
-	print("Insult gathering party.", "blue");
-	ed_appendMaximization(", outfit swashbuckling getup");
 
+	print("Insult gathering party.", "blue");
 	if((item_amount($item[the big book of pirate insults]) == 0) && (my_meat() > 500))
 	{
 		buyUpTo(1, $item[the big book of pirate insults]);
