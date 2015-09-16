@@ -3533,46 +3533,22 @@ boolean L9_aBooPeak()
 		int spookyResist = elemental_resist($element[spooky]);
 		int expectedMaximumHp = my_maxhp();
 
-		foreach s in $slots[] {
-			coldResist -= numeric_modifier(equipped_item(s), "cold resistance");
-			spookyResist -= numeric_modifier(equipped_item(s), "spooky resistance");
-			expectedMaximumHp -= numeric_modifier(equipped_item(s), "Maximum HP");
-			expectedMaximumHp -= numeric_modifier(equipped_item(s), "Muscle");
-			expectedMaximumHp -= ceil(my_basestat($stat[Muscle]) * numeric_modifier(equipped_item(s), "Muscle Percent") / 100);
-		}
-
 		if(possessEquipment($item[The Crown of Ed the Undying]))
 		{
-			//maximize("spooky res, cold res, equip The Crown of Ed the Undying", 0, 0, false);
-			//adjustEdHat("bear");
-			foreach i,r in maximize("spooky res, cold res, equip The Crown of Ed the Undying", 0, 0, true, true) {
-				coldResist += numeric_modifier(r.item, "cold resistance");
-				spookyResist += numeric_modifier(r.item, "spooky resistance");
-				expectedMaximumHp += numeric_modifier(r.item, "Maximum HP");
-				expectedMaximumHp += numeric_modifier(r.item, "Muscle");
-				expectedMaximumHp += ceil(my_basestat($stat[Muscle]) * numeric_modifier(r.item, "Muscle Percent") / 100);
-			}
+			ed_setMaximization("spooky res, cold res, equip The Crown of Ed the Undying");
 			if (get_property("edPiece") != "bear") expectedMaximumHp += 20;
 		} else
 		{
-			//maximize("spooky res, cold res, 0.075 HP", 0, 0, false);
-			foreach i,r in maximize("spooky res, cold res, 0.075 HP", 0, 0, true, true) {
-				coldResist += numeric_modifier(r.item, "cold resistance");
-				spookyResist += numeric_modifier(r.item, "spooky resistance");
-				expectedMaximumHp += numeric_modifier(r.item, "Maximum HP");
-				expectedMaximumHp += numeric_modifier(r.item, "Muscle");
-				expectedMaximumHp += ceil(my_basestat($stat[Muscle]) * numeric_modifier(r.item, "Muscle Percent") / 100);
-			}
+			ed_setMaximization("spooky res, cold res, 0.075 HP");
 		}
 
-		if(item_amount($item[Spooky Powder]) > 0 && 0 == have_effect($effect[Spookypants]))
-		{
-			spookyResist = spookyResist + 1;
-		}
-		if(item_amount($item[Cold Powder]) > 0 && 0 == have_effect($effect[Insulated Trousers]))
-		{
-			coldResist = coldResist + 1;
-		}
+		coldResist += ed_predictMaximizationModifier("cold resistance");
+		spookyResist += ed_predictMaximizationModifier("spooky resistance");
+		expectedMaximumHp += ed_predictMaximizationModifier("Maximum HP")
+			+ ed_predictMaximizationModifier("Muscle")
+			- ceil(my_basestat($stat[Muscle]) * numeric_modifier("Muscle Percent") / 100)
+			+ ceil(my_basestat($stat[Muscle]) * (numeric_modifier("Muscle Percent") + ed_predictMaximizationModifier("Muscle Percent")) / 100);
+
 		if(black_market_available() && (item_amount($item[Can of Black Paint]) == 0) && (have_effect($effect[Red Door Syndrome]) == 0) && (my_meat() >= 1000))
 		{
 			buyUpTo(1, $item[Can of Black Paint]);
@@ -3595,7 +3571,7 @@ boolean L9_aBooPeak()
 		if (
 			have_skill($skill[hide of sobek])
 			&& 0 == have_effect($effect[Hide of Sobek])
-			&& mp_cost($skill[hide of sobek]) + 10 <= my_mp()
+			&& mp_cost($skill[hide of sobek]) <= my_mp()
 		) {
 			spookyResist = spookyResist + 1;
 			coldResist = coldResist + 1;
@@ -3629,13 +3605,10 @@ boolean L9_aBooPeak()
 			return false;
 		}
 		if (possessEquipment($item[The Crown of Ed the Undying])) {
-			ed_setMaximization("spooky res, cold res, equip The Crown of Ed the Undying");
 			adjustEdHat("bear");
-		} else {
-			ed_setMaximization("spooky res, cold res, 0.075 HP");
 		}
 
-		ed_maximize(); //TODO
+		ed_maximize();
 		print("After equipment changes, HP: " + my_hp() + "/" + my_maxhp(), "orange");
 		if (my_maxhp() != expectedMaximumHp) {
 			print("FIXME:  expectedMaximumHp is not correct!", "red");
@@ -3658,8 +3631,6 @@ boolean L9_aBooPeak()
 		if (doThisBoo) {
 			print("Ready to use A-Boo clue, with " + my_hp() + " HP.", "blue");
 
-			buffMaintain($effect[Spookypants], 0, 1, 1);
-			buffMaintain($effect[Insulated Trousers], 0, 1, 1);
 			buffMaintain($effect[Red Door Syndrome], 0, 1, 1);
 			buffMaintain($effect[Well-Oiled], 0, 1, 1);
 			buffMaintain($effect[Oiled-Up], 0, 1, 1);
@@ -3706,8 +3677,10 @@ boolean L9_aBooPeak()
 
 		ed_setMaximization("exp");
 	}
-	else if((get_property("ed_abooclover") == "") && (get_property("booPeakProgress").to_int() >= 40))
+	//else if((get_property("ed_abooclover") == "") && (get_property("booPeakProgress").to_int() >= 40))
+	else if(get_property("booPeakProgress").to_int() >= 40)
 		//FIXME:  if the clover is beneficial, then the clover is beneficial.  ditch the ed_abooclover check.
+		//TODO:  is the intent of the check to ensure that we reserve clovers for other tasks?
 	{
 		if(item_amount($item[disassembled clover]) > 0)
 		{
@@ -4167,9 +4140,9 @@ boolean L11_talismanOfNam()
 	{
 		if(!possessEquipment($item[Talisman O\' Namsilat]))
 		{
-			print("We should have a Talisman O' Namsilat but we don't know about it, refreshing inventory", "red");
 			cli_execute("create talisman o' namsilat");
-			cli_execute("refresh inv");
+			if (0 < available_amount($item[Talisman O' Namsilat])) return true;
+			abort("We should have a Talisman O' Namsilat but we don't know about it.");
 		}
 		return false;
 	}
@@ -4419,7 +4392,7 @@ boolean LX_fcle()
 		}
 	}
 
-	if(my_hp() < 20)
+	if(my_hp() < 20)  //TODO:  && 0 == item_amount($item[linen bandage])  or, return false & just wait until we do have the hp.
 	{
 		set_property("choiceAdventure191", 1);
 	}
