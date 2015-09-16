@@ -2453,8 +2453,11 @@ boolean ed_LX_legDay()
 	// note that once we have wisdom of thoth, we defeat them with a single spell, crit or otherwise.  (is that really true?  even at low mys & no +damage astral item?  What if we have, say, Lapdog in effect?)
 	buffMaintain($effect[Bounty of Renenutet], 35, 1, 1);
 	ed_maximize();
-	if (300 < my_meat() && 90 < jump_chance($monster[filthy hippy])) buffMaintain($effect[Blessing of Serqet], 30, 1, 1);
-	set_property("edDefeatAbort", "3");  //TODO:  allow 1 Ka to be spent
+	//if (300 < my_meat() && 90 < jump_chance($monster[filthy hippy])) buffMaintain($effect[Blessing of Serqet], 30, 1, 1);
+	if (300 < my_meat() && 100 == jump_chance($monster[filthy hippy]) && 30 < my_maxmp()) buffMaintain($effect[Blessing of Serqet], 30, 1, 1);
+	set_property("edDefeatAbort", item_amount($item[Ka coin]) - (have_skill($skill[Upgraded Legs]) ? 0 : 10) < 2 ? "3" : "4");  // allow 1 Ka to be spent.  This should not happen frequently.
+		//TODO:  eventually we need for the script to spend an adventure and continue, if it suffers a further death.
+	if (jump_chance($monster[filthy hippy]) < 70 && my_maxhp() <= expected_damage($monster[filthy hippy]) && !needShop(ed_buildShoppingList())) return false;
 	ccAdv(1, $location[Hippy Camp]);
 	return true;
 }
@@ -4904,11 +4907,13 @@ boolean ed_LX_xp() {
 		ccAdv(1, $location[The Castle in the Clouds in the Sky (Basement)]);
 		return true;
 	}
-	else if (elementalPlanes_access($element[stench])) L1_edDinsey();
+	else if (elementalPlanes_access($element[stench]) && L1_edDinsey()) return true;
+	else if (elementalPlanes_access($element[hot]) && ed_LX_smooch()) return true;
 	else if(my_level() <= 10)
 	{
-		if (have_skill($skill[Even More Elemental Wards]))
-		{
+		if (!have_skill($skill[Even More Elemental Wards])) {
+			ed_use_servant($servant[Priest]);
+		} else {
 			ed_use_servant($servant[Scribe]);
 		}
 		ed_setMaximization("exp, -equip filthy knitted dread sack");
