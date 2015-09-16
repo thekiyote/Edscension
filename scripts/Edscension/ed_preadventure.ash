@@ -350,7 +350,7 @@ void handlePreAdventure()
 	// switching it around....
 	monster nonsurvivableCombat;
 	foreach m,f in appearance_rates(my_location(), true) {
-		print(m + " " + f + " " + expected_damage(m) + " " + jump_chance(m));
+		//print(m + " " + f + " " + expected_damage(m) + " " + jump_chance(m), "orange");
 		if ($monster[none] == m || f <= 0.0) continue;
 		if ($monster[modern zmobie] == m && get_property("cyrptAlcoveEvilness").to_int() <= 25) m = $monster[conjoined zmombie];
 		if (!(
