@@ -9,12 +9,31 @@ void handleYellowRay(monster enemy, skill yellowRay);
 void handleLashes(monster enemy);
 void handleRenenutet(monster enemy);
 
+int ed_weaponAttackMaxDamage() {
+	float result
+		= max(1, (max(0, floor(my_buffedstat($stat[Muscle]) - last_monster().base_defense))
+				+ 20 * 1 * 1
+				+ numeric_modifier("Weapon Damage"))
+				* (1+numeric_modifier("Weapon Damage Percent")/100.0)
+				* (1-last_monster().physical_resistance/100.0))
+			+ numeric_modifier("Hot Damage")
+			+ numeric_modifier("Cold Damage")
+			+ numeric_modifier("Stench Damage")
+			+ numeric_modifier("Spooky Damage")
+			+ numeric_modifier("Sleaze Damage");
+		//FIXME:  apply elemental resistance & vulernability
+	return result;
+}
+
 int ed_fistDamage() {  // (ignores physical resistance, 5 MP)
 	// (see http://kol.coldfront.net/thekolwiki/index.php/Calculating_Spell_Damage)
-	float baseDamage = min(my_buffedstat($stat[mysticality]), 50);
+	float baseDamage = min(max(1,my_buffedstat($stat[mysticality])-2), 50);
 	float multiplier = 1.0; //FIXME
 	float spellDamagePercent = numeric_modifier("Spell Damage Percent");
-	return ceil(baseDamage * multiplier * (1+spellDamagePercent/100.0));
+	float damage = floor(baseDamage * multiplier * (1+spellDamagePercent/100.0));
+	if ($monster[Your winged yeti] == last_monster() && 50 < damage) damage = 50 + (damage-50)**0.7;
+		//TODO:  do other opponents have damage reduction applied?
+	return damage;
 }
 
 int ed_howlDamage() {  // (spooky damage, 10 MP)
@@ -207,7 +226,7 @@ string ccsJunkyard(int round, string opp, string text)
 	}
 	if((!contains_text(combatState, "heredity")) && have_skill($skill[Curse of Heredity]) && (my_mp() > 15))
 	{
-		set_property("ed_combatHandler", combatState + "(heredity)");
+		set_property("ed_combatHandler", combatState + "(heredity)");  //TODO:  wiki sez "You can cast this a second time..."
 		return "skill Curse of the Heredity";
 	}
 	if((!contains_text(combatState, "love scarab")) && have_skill($skill[Summon Love Scarabs]))
@@ -236,7 +255,7 @@ string ccsJunkyard(int round, string opp, string text)
 		= 0 < item_amount($item[rock band flyers]) && get_property("flyeredML").to_int() < 10000;
 
 	if ((!contains_text(combatState, "flyers")) && flyering && edDefeats < 3) {
-		if((item_amount($item[rock band flyers]) > 0) && (get_property("flyeredML").to_int() < 10000))
+		if(flyering)
 		{
 			set_property("ed_combatHandler", combatState + "(flyers)");
 			return "item rock band flyers";
@@ -244,7 +263,7 @@ string ccsJunkyard(int round, string opp, string text)
 	}
 	if (edDefeats > 2 && (!contains_text(combatState, "flyers")) && ((expected_damage() * 1.1) <= my_hp()))
 	{
-		if((item_amount($item[rock band flyers]) > 0) && (get_property("flyeredML").to_int() < 10000))
+		if(flyering)
 		{
 			set_property("ed_combatHandler", combatState + "(flyers)");
 			return "item rock band flyers";
@@ -344,7 +363,6 @@ boolean ed_opponentHasDesiredItem(monster o) {
 		Bag of Park Garbage,
 		Swashbuckling Pants,
 		Eyepatch,
-		goat cheese,
 		rusty hedge trimmers,
 		enchanted bean,
 		tattered scrap of paper,
@@ -467,10 +485,10 @@ string ed_edCombatHandler(int round, string opp, string text)
 			set_property("ed_edCombatCount", 1 + get_property("ed_edCombatCount").to_int());
 		if (combatStage < 3 && flyering) {
 			set_property("ed_edStatus", "UNDYING!");
-			print("test1", "red");
+			print("test1", "orange");
 		} else if (combatStage < 3) {
 			set_property("ed_edStatus", "dying");
-			print("test4", "red");
+			print("test4", "orange");
 		} else {
 			//FIXME:  ???
 			set_property("ed_edStatus", "dying");
@@ -494,25 +512,27 @@ string ed_edCombatHandler(int round, string opp, string text)
 	if ($monster[Your winged yeti] == last_monster()) damagePerRound *= 3;  // (Mafia appears to be inaccurate?  Also, he has some damage reduction applied to any damage over 50.  (x-50)**(.7)+50. )
 	if ($monster[big swarm of ghuol whelps] == last_monster()) damagePerRound *= 3;  // Mafia appears to be inaccurate here, as well?
 	if ($monster[pygmy headhunter] == last_monster()) damagePerRound *= 2;  //TODO
-	if (damagePerRound < 1.0) damagePerRound = my_maxhp() + 1;  // A kludge, to ensure that we treat unknown enemies with respect!  And, avoid dividing by zero!!
+	if (damagePerRound < 0.0) damagePerRound = my_maxhp() + 1;  // A kludge, to ensure that we treat unknown enemies with respect!
+	if (damagePerRound == 0.0) damagePerRound = 1;  // Avoid dividing by zero!
 	int roundsLeftThisStage = 1 + floor(my_hp() / damagePerRound);
+	if (contains_text(text, "still cursed")) roundsLeftThisStage += 1;  // (Curse of Indecision is in effect)
 	int roundsPerStage = (jump_chance() < 100 ? 0 : 1) + floor(my_maxhp() / damagePerRound);
 	int roundsBeforeKa = roundsLeftThisStage + roundsPerStage * (2 - combatStage);
 
 	print("combat stage " + combatStage + ", round " + round + ":  " + roundsLeftThisStage + " more 'til underworld, " + roundsBeforeKa + " more 'til we need to spend Ka.", "blue");
 	print("opponent has about " + monster_hp() + " HP.  Ed has " + my_hp() + ".  Fist does " + ed_fistDamage() + ", Storm does (?) " + ed_stormDamage() + ", opponent does " + damagePerRound, "blue");
 
-	if (
-		(item_amount($item[ka coin]) > 30)
-		&& (!have_skill($skill[Healing Scarabs]) || (my_spleen_use() < spleen_limit()))
-		&& 0 == combatStage
-		&& (!contains_text(combatState, "talismanofrenenutet") && !contains_text(combatState, "curse of fortune") || contains_text(edCombatState, "insults"))
-	) {
-		//TODO:  why?  is this to go shopping?  I think I've handled that elsewhere.
-		set_property("ed_edStatus", "UNDYING!");
-		print("test5", "red");
+	if (flyering) {
+		if (20 < item_amount($item[Ka coin])) {
+			set_property("edDefeatAbort", "4");
+		}
+		if (50 < item_amount($item[Ka coin])) {
+			set_property("edDefeatAbort", "5");
+		}
 	}
+	int lastStage = get_property("edDefeatAbort").to_int() - 1;
 
+	boolean forceStasis = false;
 	int insultCount() {
 		return
 			to_int(to_boolean(get_property("lastPirateInsult1")))
@@ -529,32 +549,29 @@ string ed_edCombatHandler(int round, string opp, string text)
 		(enemy == $monster[vegetable gremlin] && item_amount($item[molybdenum screwdriver]) == 0) ||
 		(enemy == $monster[spider gremlin] && item_amount($item[molybdenum pliers]) == 0) ||
 		(enemy == $monster[erudite gremlin] && item_amount($item[molybdenum crescent wrench]) == 0) ||
+			// note, gremlins are currently handled by a separate combat filter.
 		(enemy == $monster[tetchy pirate] && insultCount() < 8) ||
 		(enemy == $monster[toothy pirate] && insultCount() < 8) ||
 		(enemy == $monster[tipsy pirate] && insultCount() < 8))
 	{
 		set_property("ed_edStatus", "UNDYING!");
-		print("test6", "red");
+		print("test6", "orange");
+		if (combatStage < lastStage) forceStasis = true;
 	}
-	
-	if ((combatStage >= 2) && !flyering)
-	{
-		set_property("ed_edStatus", "dying");
-		print("test2", "red");
-	}
-	int lastStage = 4;  //FIXME:  when to stop should depend on our Ka supply!
+
 	if (combatStage >= lastStage) {
 		set_property("ed_edStatus", "dying");
 	}
 	if (
 		combatStage < lastStage
 		&& flyering
-		&& (item_amount($item[ka coin]) > 2)
-		&& !contains_text(combatState, "talismanofrenenutet")
+		&& !contains_text(combatState, "talismanofrenenutet")  //FIXME:  renenutet and fortune use should probably be deferred until we are done flyering this opponent.  these checks will then be unneeded.
+		&& !contains_text(combatState, "curse of fortune")
 	)
 	{
 		set_property("ed_edStatus", "UNDYING!");
-		print("test3", "red");
+		print("test3", "orange");
+		forceStasis = true;
 	}
 	
 	#Handle different path is monster_level_adjustment() > 150 (immune to staggers?)
@@ -562,7 +579,8 @@ string ed_edCombatHandler(int round, string opp, string text)
 
 	if(have_effect($effect[temporary amnesia]) > 0)
 	{
-		return "attack with weapon";
+		return "attack with weapon";  //TODO:  the sooner we visit the underworld, though, the better....
+			//TODO:  iirc, using a skill just wastes a round.  so if combatStage < lastStage, we could "skill mild curse; repeat"
 	}
 
 	if((!contains_text(combatState, "love scarab")) && have_skill($skill[Summon Love Scarabs]))
@@ -573,6 +591,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 
 	if((!contains_text(combatState, "love scarab")) && get_property("lovebugsUnlocked").to_boolean())
 	{
+		//TODO:  i'm confused.  if we have the 'summon love scarabs' skill, the if block above should execute.  It's probably not worth investing in the pheromones.
 		set_property("ed_combatHandler", combatState + "(love scarab2)");
 		return "skill summon love scarabs";
 	}
@@ -583,13 +602,6 @@ string ed_edCombatHandler(int round, string opp, string text)
 		{
 			set_property("ed_combatHandler", combatState + "(love gnats)");
 			return "skill summon love gnats";
-		}
-		if(((!contains_text(combatState, "love gnats") || (contains_text(combatState, "stun resisted"))) || (contains_text(combatState, "gnats disperse"))) && have_skill($skill[Curse of Indecision]) && my_mp() > 25)
-			//FIXME:  we need to check the page text to detect "STUN RESISTED" or dispersal of gnats, in order for those checks to do anything!
-		{
-			print("WHM:  Curse of Indecision removed! (#1)", "red");
-			//set_property("ed_combatHandler", combatState + "(love gnats3)");
-			//return "skill Curse of Indecision";
 		}
 	}
 	else if(get_property("ed_edStatus") == "dying")
@@ -608,18 +620,6 @@ string ed_edCombatHandler(int round, string opp, string text)
 				set_property("ed_combatHandler", combatState + "(love gnats)");
 				return "skill summon love gnats";
 			}
-			if (
-				((!contains_text(combatState, "love gnats") || (contains_text(combatState, "stun resisted"))) || (contains_text(combatState, "gnats disperse")))
-				&& have_skill($skill[Curse of Indecision])
-				&& my_mp() > 25
-				&& ed_fistDamage() < monster_hp()
-				&& (!have_skill($skill[Storm of the Scarab]) || ed_stormDamage() < monster_hp())
-			)
-			{
-				print("WHM:  Curse of Indecision removed! (#2)", "red");
-				//set_property("ed_combatHandler", combatState + "(love gnats3)");
-				//return "skill Curse of Indecision";
-			}
 		}
 	}
 	else
@@ -633,9 +633,13 @@ string ed_edCombatHandler(int round, string opp, string text)
 		return "skill fire sewage pistol";
 	}
 
+	if (flyering && monster_level_adjustment() < 80 && !contains_text(combatState, "love gnats3") && have_skill($skill[curse of indecision]) && my_mp() <= mp_cost($skill[Curse of Indecision]) && combatStage == lastStage) {
+		set_property("ed_combatHandler", combatState + "(love gnats3)");
+		return "Curse of Indecision";
+	}
 	if((!contains_text(combatState, "flyers")))
 	{
-		if (flyering && combatStage < 4)  //TODO:  Ka budget.
+		if (flyering && (combatStage < lastStage || combatStage == lastStage && 1 < roundsLeftThisStage))
 		{
 			set_property("ed_combatHandler", combatState + "(flyers)");
 			return "item rock band flyers";
@@ -647,7 +651,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 		return "item cocktail napkin";
 	}
 
-	if((enemy == $monster[dirty thieving brigand]) && (!contains_text(combatState, "curse of fortune")))
+	if((enemy == $monster[dirty thieving brigand]) && (!contains_text(combatState, "curse of fortune") && 1 < roundsLeftThisStage))
 	{
 		if((item_amount($item[Ka Coin]) > 0) && (have_skill($skill[Curse of Fortune])))
 		{
@@ -656,17 +660,17 @@ string ed_edCombatHandler(int round, string opp, string text)
 			return "skill curse of fortune";
 		}
 	}
-	
+
 	if(contains_text(combatState, "curse of fortune"))
 	{
 		set_property("ed_edStatus", "dying");
 	}
 
-	if((item_amount($item[The Big Book of Pirate Insults]) > 0) && (!contains_text(combatState, "insults")) && (my_location() == $location[barrrney\'s barrr]))
+	if((item_amount($item[The Big Book of Pirate Insults]) > 0) && (!contains_text(combatState, "insults")) && (my_location() == $location[barrrney\'s barrr]) && insultCount() < 8)
 	{
 		if(((expected_damage() * 1.1) > my_hp()) && (get_property("ed_edStatus") == "dying"))
 		{
-			if((monster_level_adjustment() < 51) && !contains_text(combatState, "love gnats3") && have_skill($skill[curse of indecision]))
+			if((monster_level_adjustment() < 80) && !contains_text(combatState, "love gnats3") && have_skill($skill[curse of indecision]) && my_mp() <= mp_cost($skill[Curse of Indecision]))
 			{
 				set_property("ed_combatHandler", combatState + "(love gnats3)");
 				return "skill Curse of Indecision";
@@ -686,7 +690,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 		return "item the big book of pirate insults";
 	}
 
-	if(!contains_text(edCombatState, "curseofstench") && (have_skill($skill[Curse of Stench])) && (my_mp() >= 35) && (get_property("stenchCursedMonster") != opp) && (get_property("ed_edStatus") == "UNDYING!"))
+	if(!contains_text(edCombatState, "curseofstench") && (have_skill($skill[Curse of Stench])) && (my_mp() >= 35) && (get_property("stenchCursedMonster") != opp))
 	{
 		if((enemy == $monster[bob racecar]) ||
 			(enemy == $monster[pygmy bowler]) ||
@@ -809,7 +813,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 		}
 		if(enemy == $monster[knight (Snake)] && !possessEquipment($item[serpentine sword]) && !possessEquipment($item[snake shield]) && (my_daycount() < 3))
 		{
-			doWrath = true;  //TODO:  I think this is to keep it from interfering with other Wrath use to get the war outfit?
+			doWrath = true;  //TODO:  I think the daycount condition is to keep it from interfering with other Wrath use to get the war outfit?
 		}
 		if(enemy == $monster[Mountain Man])
 		{
@@ -863,6 +867,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 			(enemy == $monster[banshee librarian]) ||
 			(enemy == $monster[grassy pirate]) ||
 			(enemy == $monster[crusty pirate]))
+				// how about the shady pirate?
 		{
 			set_property("ed_combatHandler", combatState + "(curse of vacation)");
 			handleBanish(enemy, $skill[Curse of Vacation]);
@@ -877,6 +882,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 	}
 
 	if((my_location() == $location[Oil Peak]) && (item_amount($item[duskwalker syringe]) > 0) && (get_property("ed_edStatus") == "UNDYING!"))
+		//TODO:  why the ed_edStatus check?
 	{
 		return "item duskwalker syringe";
 	}
@@ -914,12 +920,11 @@ string ed_edCombatHandler(int round, string opp, string text)
 		}
 	}
 
-	boolean forceStasis = false;
 	if (
-		roundsPerStage < 20
+		roundsPerStage < 20  //TODO:  now that we batch up most stasis, can we remove this check?  I think it was just there to avoid slowing things down.
 		&& roundsLeftThisStage*3/2 < roundsPerStage
 		&& combatStage < 2
-		&& monster_hp() < roundsPerStage * ed_stormDamage()
+		&& monster_hp() < roundsPerStage * ed_stormDamage() * 0.5  //TODO:  0.5 is to account for inaccurate Storm damage estimation.
 		// && (my_hp() * 1.1 < my_maxhp() || roundsLeftThisStage < 10)
 			//TODO: note that if Ed has 33/35 HP, and
 			// opponent does 34 damage, then we have one round in the first combat, and 5 total.
@@ -929,7 +934,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 		print("Ed would like to defer until another combat, in order to heal & buy time.", "green");
 		forceStasis = true;
 	}
-	if (needShop(ed_buildShoppingList()) && monster_hp() / ed_fistDamage() < roundsPerStage) {
+	if (needShop(ed_buildShoppingList())) {
 		print("Ed would like to defer until another combat, in order to shop.", "green");
 		forceStasis = true;
 	}
@@ -948,7 +953,11 @@ string ed_edCombatHandler(int round, string opp, string text)
 		if (ed_opponentHasDesiredItem()) {
 			doRenenutet = true;
 		}
-		//FIXME:  for goat cheese & A-Boo clues, we need to detect if one dropped via Lash!
+		//FIXME:  for goat cheese & A-Boo clues, we need to detect if one dropped via Lash!  (all other items are no longer desired once we have one).  For now:
+		if (
+			($monster[dairy goat] == last_monster() || $location[A-Boo Peak] == my_location())
+			&& have_skill($skill[Lash of the Cobra])
+		) doRenenutet = false;
 		if (
 			enemy == $monster[knob goblin harem girl]
 			&& !(possessEquipment($item[knob goblin harem veil]) && possessEquipment($item[knob goblin harem pants]))
@@ -959,12 +968,10 @@ string ed_edCombatHandler(int round, string opp, string text)
 		int renenutetsAvailable = item_amount($item[Talisman of Renenutet]) + 7 - to_int(get_property("ed_renenutetBought"));
 		if (enemy == $monster[Larval Filthworm] && renenutetsAvailable < 8)
 		{
-			print("TODO:  skipping renenutet, in order to save it for later filthworm stages!  Make sure this is working as expected!", "red");
 			doRenenutet = false;
 		}
 		if(enemy == $monster[Filthworm Drone] && renenutetsAvailable < 3)
 		{
-			print("TODO:  skipping renenutet, in order to save it for a royal guard!  Make sure this is working as expected!", "red");
 			doRenenutet = false;
 		}
 		if ($monster[bookbat] == enemy) doRenenutet = false;  // tatters aren't quite valuable enough to warrant a renenutet, I think.  If we don't have lash, then I think we want to save the talismen for filthworms.
@@ -1045,8 +1052,10 @@ string ed_edCombatHandler(int round, string opp, string text)
 			print("Waiting until we are done using flyers before we use a talisman of Renenutet.", "green");
 			doRenenutet = false;
 		}
-		if (doRenenutet && roundsPerStage < 2 && !contains_text(get_property("ed_combatHandler"),"love gnats3")) {
+		if (doRenenutet && roundsPerStage < 3 && !contains_text(get_property("ed_combatHandler"),"love gnats3")) {
+				//TODO:  I increased the roundsPerStage limit to 3.  But, the real issue I'm trying to address is underestimation of damage taken per round.
 			if (have_skill($skill[Curse of Indecision])) {
+				//TODO:  with +ML, we might not be buying any time.  Probably not an issue for hardcore Ed, though?
 //abort("FIXME:  Investigate Curse of Indecision!");
 /*
 You call forth a dark curse that opens your opponent's mind to all the possible paths of cause and effect, the infinite possible actions she might take at this moment in time and all their potential consequences. She freezes to the spot, completely unable to decide on a course of action.
@@ -1068,9 +1077,7 @@ Your opponent shakes her head rapidly, and her eyes gradually refocus. Looks lik
 		}
 		//TODO:  there may still be 2-round fights where Ed ought to soften up the opponent
 		//       in this fight, so that he is guaranteed to finish the next fight with Renenutet
-		//       active.  We need the stasis logic
-		//       to support that. first, before we can really do anything about it here.  For
-		//       now, I'll avoid using renenutets:
+		//       active.  (the stasis logic should handle that reasonably well at the moment)
 		if (
 			doRenenutet
 			&& 2 == roundsLeftThisStage
@@ -1106,11 +1113,13 @@ Your opponent shakes her head rapidly, and her eyes gradually refocus. Looks lik
 
 	if (((enemy == $monster[Pygmy Headhunter]) || (enemy == $monster[Pygmy witch nurse])) && (item_amount($item[Short Writ of Habeas Corpus]) > 0))
 	{
+		//TODO:  do the orderlies have something useful?  should we also be checking which zone we are in?
 		return "item short writ of habeas corpus";
 	}
 
 	if(!needShop(ed_buildShoppingList()) && (my_level() >= 10) && (item_amount($item[Rock Band Flyers]) == 0) && (my_location() != $location[The Hidden Apartment Building]) && (type != to_phylum("Undead")) && (my_mp() > 20) && (my_location() != $location[Barrrney\'s Barrr]) && !forceStasis)
 	{
+		//TODO:  does this ever do anything?
 		set_property("ed_edStatus", "dying");
 	}
 
@@ -1148,19 +1157,32 @@ Your opponent shakes her head rapidly, and her eyes gradually refocus. Looks lik
 			return "item holy spring water";
 		}
 
-		if (2.5 * ed_fistDamage() < monster_hp()) {
+		int excessHp = monster_hp();
+		if (have_equipped($item[hot plate])) {
+			//TODO:  hit chance?  also, element vulernability?
+			excessHp -= 4 * roundsLeftThisStage;
+		}
+		//TODO:  beware other passive damage.
+		//TODO:  If opponent has very high hp, we can even cast Storm.  I'm looking at you, Wisniewski.  (Although, we should also have a rule that prevents stasis in fights where we already expect to visit the Underworld.  That would probably be a better solution.  Maybe.)
+		if (2.1 * ed_fistDamage() < excessHp && 60 < my_mp()) {
+			//TODO:  don't waste mp.
 			return "skill Fist of the Mummy";
 		}
-		if (ed_fistDamage() < monster_hp()) {
+		if (ed_weaponAttackMaxDamage() * 1.1 < excessHp) {
+			print("Predicted maximum damage from attacking with weapon:  " + ed_weaponAttackMaxDamage(), "orange");
+			return "attack with weapon";
+		}
+		if (ed_fistDamage() < excessHp) {
 			return "skill Mild Curse";
 		}
-		//TODO:  if opponent has high current hp, we might want to soften it up a bit.
 		if(item_amount($item[Dictionary]) > 0)
 		{
-			return "item dictionary";
+			return "use dictionary; repeat";
+				//TODO:  gremlins are handled separately, so I assume in this case stasis is always an attempt to visit the underworld...  need to make sure that's true.
 		}
 
-		return "skill Mild Curse";
+		return "skill Mild Curse; repeat";
+			//TODO:  as mentioned above, gremlins are handled separately, so I assume in this case stasis is always an attempt to visit the underworld...  need to make sure that's true.
 	}
 
 	if((my_mp() >= 15) && (my_location() == $location[The Secret Government Laboratory]) && have_skill($skill[Roar of the Lion]))
@@ -1181,11 +1203,12 @@ Your opponent shakes her head rapidly, and her eyes gradually refocus. Looks lik
 	if (
 		(fightStat > monster_defense())
 		&& (round < 20)
-		&& ((expected_damage() * 1.1) < my_hp())
 		&& 2 < roundsLeftThisStage
+		&& monster_hp() / max(1,ed_weaponAttackMaxDamage()) < roundsBeforeKa
 	)
 	{
-		//TODO:  at the start of the run, with the MCD turned down, we can hit things at the sleazy back alley just fine, but this block does not trigger.
+		//TODO:  at the start of the run, with the MCD turned down, we can hit things at the sleazy back alley just fine, but this block does not trigger.  (it's the -20 in fightStat, above.)
+		print("(old support for fighting without burning MP....)", "orange");
 		return "attack with weapon";
 	}
 
@@ -1202,6 +1225,7 @@ Your opponent shakes her head rapidly, and her eyes gradually refocus. Looks lik
 	}
 
 	if (!have_skill($skill[fist of the mummy])) {
+		print("We don't know any good spells!  Attacking might be better than Mild Curse", "green");
 		return "attack with weapon";
 	}
 
@@ -1211,13 +1235,23 @@ Your opponent shakes her head rapidly, and her eyes gradually refocus. Looks lik
 		return "skill " + ed_stormIfPossible();
 	}
 
+	if (
+		monster_defense() < 20
+		&& 10 < my_buffedstat($stat[Muscle])
+		&& combatStage <= 1
+		&& round < 20
+	)
+	{
+		print("experimental support for fighting without burning MP....", "green");
+		return "attack with weapon";
+	}
+
 	if (roundsBeforeKa * ed_fistDamage() < monster_hp()) {
 		print("This combat would eventually cost Ka if we only use fist.  Trying to expedite it.", "green");
 		return "skill " + ed_stormIfPossible();
 	}
 
-	if (monster_hp() > 300)
-	{
+	if (monster_hp() > 300) {  //TODO:  can this be removed?  the next couple if's should handle it fine.
 		print("This opponent is pretty big.  Trying to cut it down to size.", "green");
 		return "skill " + ed_stormIfPossible();
 	}
@@ -1226,6 +1260,7 @@ Your opponent shakes her head rapidly, and her eyes gradually refocus. Looks lik
 		expected_damage() * 1.25 >= my_hp() && (
 			1 < combatStage
 			|| contains_text(combatState, "talismanofrenenutet")
+			|| contains_text(combatState, "curse of fortune")
 			//TODO:  are there other reasons not to die?
 		)
 	) {

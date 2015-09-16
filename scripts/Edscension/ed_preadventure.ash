@@ -100,6 +100,10 @@ void handlePreAdventure()
 			buyUpTo(1, $item[Doc Galaktik\'s Invigorating Tonic]);
 			use(1, $item[Doc Galaktik\'s Invigorating Tonic]);
 		}
+		while (my_mp() < 60 && 80 < my_maxmp() && 5000 < my_meat()) {
+			buyUpTo(1, $item[Doc Galaktik\'s Invigorating Tonic]);
+			use(1, $item[Doc Galaktik\'s Invigorating Tonic]);
+		}
 
 
 //Handle buffs
@@ -124,25 +128,30 @@ void handlePreAdventure()
 		{
 			buffMaintain($effect[Bounty of Renenutet], 20, 1, 5);
 		}
-		if((my_servant() == $servant[Priest]) && ($servant[Priest].experience < 196) && ($servant[Priest].experience > 80))
-		{
-			buffMaintain($effect[Purr of the Feline], 10, 1, 5);
-		}
-		if(my_servant() == $servant[Cat])
-		{
-			buffMaintain($effect[Purr of the Feline], 10, 1, 5);
-		}
-		if(my_servant() == $servant[Scribe])
-		{
-			buffMaintain($effect[Purr of the Feline], 10, 1, 5);
-		}
-		if((my_servant() == $servant[Belly-Dancer]) && ($servant[Belly-Dancer].experience < 196) && ($servant[Belly-Dancer].experience > 80))
-		{
-			buffMaintain($effect[Purr of the Feline], 10, 1, 5);
+		if (
+			600 < my_meat()
+		) {
+			if((my_servant() == $servant[Priest]) && ($servant[Priest].experience < 196) && ($servant[Priest].experience > 80))
+			{
+				buffMaintain($effect[Purr of the Feline], 10, 1, 1);
+			}
+			if(my_servant() == $servant[Cat])
+			{
+				buffMaintain($effect[Purr of the Feline], 10, 1, 1);
+			}
+			if(my_servant() == $servant[Scribe])
+			{
+				buffMaintain($effect[Purr of the Feline], 10, 1, 1);
+			}
+			if((my_servant() == $servant[Belly-Dancer]) && ($servant[Belly-Dancer].experience < 196) && ($servant[Belly-Dancer].experience > 80))
+			{
+				buffMaintain($effect[Purr of the Feline], 10, 1, 1);
+			}
 		}
 		if (
 			!($locations[
 				The Sleazy Back Alley,
+				The Outskirts of Cobb's Knob,
 				Hippy Camp,
 				Lair of the Ninja Snowmen,
 				The SMOOCH Army HQ
@@ -152,6 +161,8 @@ void handlePreAdventure()
 				buffMaintain($effect[Blessing of Serqet], 15, 1, 1);
 				//TODO:  when starting out, we don't want the blessing if jump_chance() is low.
 				// also. it costs a lot.  trying out some new logic for that.
+				//TODO:  although, I seem to be able to handle +20 ML in those starting areas.  Other users have reported significant issues, though.
+				//TODO:  Check for More Legs, as well.
 			}
 		}
 		while((my_mp() > 120) && (have_effect($effect[wisdom of thoth]) < 50))
@@ -185,7 +196,9 @@ void handlePreAdventure()
 			(my_location() == $location[The Defiled Cranny]
 				&& get_property("cyrptCrannyEvilness").to_int() > 26
 			) ||
-			(my_location() == $location[The Defiled Alcove]) ||
+			(my_location() == $location[The Defiled Alcove]
+				&& get_property("cyrptAlcoveEvilness").to_int() > 26
+			) ||
 			(my_location() == $location[The Spooky Forest] && ("The Spooky Forest".to_location().turns_spent >= 5)) ||
 			(my_location() == $location[Inside the Palindome]) ||
 			(my_location() == $location[Barrrney\'s Barrr] && item_amount($item[Cap\'m Caronch\'s Map]) == 0 && item_amount($item[Cap\'m Caronch\'s Nasty Booty]) == 0 && (get_property("ed_pirateoutfit") == "insults")) ||
@@ -311,7 +324,11 @@ void handlePreAdventure()
 			{
 				doBreak = true;
 			}
+		} else if(my_mp() == my_maxmp()) {
+			doBreak = true;
 		} else if (my_maxmp() < 30 && my_mp() > 2 * mp_cost($skill[fist of the mummy])) {
+			doBreak = true;
+		} else if ($location[The Sleazy Back Alley] == my_location()) {
 			doBreak = true;
 		} else if ($location[The Sleazy Back Alley] == my_location() && my_mp() > 2 * mp_cost($skill[fist of the mummy])) {
 			doBreak = true;
@@ -319,7 +336,7 @@ void handlePreAdventure()
 			break;
 		} else if ($location[The SMOOCH Army HQ] == my_location() && $location[The SMOOCH Army HQ].turns_spent < 50 && mp_cost($skill[storm of the scarab]) <= my_mp()) {
 			break;
-		} else if (my_mp() < 15 && 180 < my_meat()) {
+		} else if (my_mp() < 15 && 20 < my_maxmp() && 180 < my_meat()) {
 			buyUpTo(1, $item[Doc Galaktik\'s Invigorating Tonic]);
 			use(1, $item[Doc Galaktik\'s Invigorating Tonic]);
 		} else if(my_mp() > 14)
@@ -327,7 +344,27 @@ void handlePreAdventure()
 			doBreak = true;
 		}
 	}
-		
+
+	// sanity check.  Are we getting in over our 'ed?
+	//TODO:  this would fail for, say, the Limerick Dungeon.  Should it be more robust?
+	// switching it around....
+	monster nonsurvivableCombat;
+	foreach m,f in appearance_rates(my_location(), true) {
+		//print(m + " " + f + " " + expected_damage(m) + " " + jump_chance(m), "orange");
+		if ($monster[none] == m || f <= 0.0) continue;
+		if ($monster[modern zmobie] == m && get_property("cyrptAlcoveEvilness").to_int() <= 25) m = $monster[conjoined zmombie];
+		if (!(
+			expected_damage(m) < my_maxhp()
+			|| 70 < jump_chance(m)
+			|| my_servant() == $servant[Bodyguard]  //FIXME:  ed_preadventure is called before servant switching has happened.
+			|| my_servant() == $servant[Maid] && 14 <= $servant[Maid].level
+			|| $location[Hippy Camp] == my_location() && 10 <= item_amount($item[Ka coin]) && !have_skill($skill[Upgraded Legs])
+		)) nonsurvivableCombat = m;
+	}
+	if ($monster[none] != nonsurvivableCombat) {
+		print("This script wants to adventure at " + my_location() + ".  It seems risky.  You might not survive against a " + nonsurvivableCombat, "red");
+	}
+
 	print("Pre Adventure done, beep.", "orange");
 	return;
 }

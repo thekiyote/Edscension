@@ -261,7 +261,7 @@ string tryBeerPong() {
 
 boolean buyUpTo(int num, item it)
 {
-	num = num - item_amount(it);
+	num = num - available_amount(it);
 	if(num > 0)
 	{
 		buy(num, it);
