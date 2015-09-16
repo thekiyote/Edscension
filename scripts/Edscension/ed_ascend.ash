@@ -2265,8 +2265,6 @@ boolean ed_LX_legDay()
 	//buffMaintain($effect[Power of Heka], 15, 1, 1);
 	// note that once we have wisdom of thoth, we defeat them with a single spell, crit or otherwise.  (is that really true?  even at low mys & no +damage astral item?  What if we have, say, Lapdog in effect?)
 	buffMaintain($effect[Bounty of Renenutet], 35, 1, 1);
-	if (300 < my_meat()) buffMaintain($effect[Blessing of Serqet], 30, 1, 1);
-	if (600 < my_meat()) buffMaintain($effect[Purr of the Feline], 25, 1, 1);
 	set_property("edDefeatAbort", "3");
 	ccAdv(1, $location[Hippy Camp]);
 	return true;
@@ -2319,8 +2317,6 @@ boolean ed_LX_smooch()
 		buffMaintain($effect[Blessing of Serqet], 0, 1, 1);
 	}
 	buffMaintain($effect[Bounty of Renenutet], 0, 1, 1);
-	buffMaintain($effect[Purr of the Feline], 0, 1, 1);
-	//TODO:  Is Purr of the Feline automatically maintained, when appropriate?  (Yes, I believe so.)
 	buffMaintain($effect[Glittering Eyelashes], 0, 1, 1);
 	if (10000 < my_meat()) buffMaintain($effect[Erudite], 0, 1, 1);
 	if (0 < item_amount($item[CSA bravery badge])) cli_execute("use CSA bravery badge");
@@ -4593,7 +4589,6 @@ boolean ed_LX_xp() {
 	if (my_level() >= 13) return false;
 
 	print("We've done everything possible at this time and have not reached the next level, so power-leveling in the most basic way Ed can, abort if you want to do this on your own.", "blue");
-	buffMaintain($effect[Purr of the Feline], 0, 1, 1);
 
 	boolean galleryAndBathroomOpen = get_property("ed_spookyravennecklace") == "finished";
 	// note, clovers used at:  trapper, guano, a-boo, bridge.

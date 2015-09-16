@@ -124,21 +124,25 @@ void handlePreAdventure()
 		{
 			buffMaintain($effect[Bounty of Renenutet], 20, 1, 5);
 		}
-		if((my_servant() == $servant[Priest]) && ($servant[Priest].experience < 196) && ($servant[Priest].experience > 80))
-		{
-			buffMaintain($effect[Purr of the Feline], 10, 1, 5);
-		}
-		if(my_servant() == $servant[Cat])
-		{
-			buffMaintain($effect[Purr of the Feline], 10, 1, 5);
-		}
-		if(my_servant() == $servant[Scribe])
-		{
-			buffMaintain($effect[Purr of the Feline], 10, 1, 5);
-		}
-		if((my_servant() == $servant[Belly-Dancer]) && ($servant[Belly-Dancer].experience < 196) && ($servant[Belly-Dancer].experience > 80))
-		{
-			buffMaintain($effect[Purr of the Feline], 10, 1, 5);
+		if (
+			600 < my_meat()
+		) {
+			if((my_servant() == $servant[Priest]) && ($servant[Priest].experience < 196) && ($servant[Priest].experience > 80))
+			{
+				buffMaintain($effect[Purr of the Feline], 10, 1, 1);
+			}
+			if(my_servant() == $servant[Cat])
+			{
+				buffMaintain($effect[Purr of the Feline], 10, 1, 1);
+			}
+			if(my_servant() == $servant[Scribe])
+			{
+				buffMaintain($effect[Purr of the Feline], 10, 1, 1);
+			}
+			if((my_servant() == $servant[Belly-Dancer]) && ($servant[Belly-Dancer].experience < 196) && ($servant[Belly-Dancer].experience > 80))
+			{
+				buffMaintain($effect[Purr of the Feline], 10, 1, 1);
+			}
 		}
 		if (
 			!($locations[
@@ -147,12 +151,11 @@ void handlePreAdventure()
 				Lair of the Ninja Snowmen,
 				The SMOOCH Army HQ
 			] contains my_location())
+			&& 400 < my_meat()
 		) {
-			if (400 < my_meat()) {
-				buffMaintain($effect[Blessing of Serqet], 15, 1, 1);
-				//TODO:  when starting out, we don't want the blessing if jump_chance() is low.
-				// also. it costs a lot.  trying out some new logic for that.
-			}
+			buffMaintain($effect[Blessing of Serqet], 15, 1, 1);
+			//TODO:  when starting out, we don't want the blessing if jump_chance() is low.
+			// also. it costs a lot.  trying out some new logic for that.
 		}
 		while((my_mp() > 120) && (have_effect($effect[wisdom of thoth]) < 50))
 		{
