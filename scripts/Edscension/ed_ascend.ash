@@ -2331,6 +2331,14 @@ boolean L7_crypt()
 	if (
 		0 < get_property("cyrptNookEvilness").to_int()
 	) {
+		//FIXME:  these should be removed, now that I have autoMcd, right?
+		// (or rather, if ed_safeMl < ed_predictMl ...)
+		if (ed_safeMl($location[The Defiled Nook]) < monster_level_adjustment()) change_mcd(0);
+		if (ed_safeMl($location[The Defiled Nook]) < monster_level_adjustment()) {
+			print("Skipping the Cyrpt for now.", "red");
+			handleMcd();
+			return false;
+		}
 		print("The Nook!", "blue");
 		ccAdv(1, $location[The Defiled Nook]);
 		if(item_amount($item[evil eye]) > 0)
@@ -2674,34 +2682,42 @@ boolean L6_friarsGetParts()
 		//TODO:  it would be nice to eliminate the extra server hit here.
 	if(item_amount($item[box of birthday candles]) == 0)
 	{
-		print("Getting Box of Birthday Candles", "blue");
-		ccAdv(1, $location[The Dark Heart of the Woods]);
-		return true;
+		if (90 < jump_chance($monster[Fallen Archfiend]) || expected_damage($monster[Fallen Archfiend]) < my_maxhp()) {
+			print("Getting Box of Birthday Candles", "blue");
+			ccAdv(1, $location[The Dark Heart of the Woods]);
+			return true;
+		}
 	}
 
 	if(item_amount($item[dodecagram]) == 0)
 	{
-		if (50 < jump_chance($monster[Hellion]) || expected_damage($monster[Hellion]) < my_maxhp()) {
+		if (90 < jump_chance($monster[Hellion]) || expected_damage($monster[Hellion]) < my_maxhp()) {
 			print("Getting Dodecagram", "blue");
 			ccAdv(1, $location[The Dark Neck of the Woods]);
 			return true;
 		}
 	}
-	
+
 	if(item_amount($item[eldritch butterknife]) == 0)
 	{
-		print("Getting Eldritch Butterknife", "blue");
-		ccAdv(1, $location[The Dark Elbow of the Woods]);
-		return true;
+		if (90 < jump_chance($monster[Demoninja]) || expected_damage($monster[Demoninja]) < my_maxhp()) {
+			print("Getting Eldritch Butterknife", "blue");
+			ccAdv(1, $location[The Dark Elbow of the Woods]);
+			return true;
+		}
 	}
 
 	if((item_amount($item[hot wing]) < 3) && (get_property("questM12Pirate").to_int() < 3))
 	{
-		print("Need more Hot Wings", "blue");
-		ccAdv(1, $location[The Dark Heart of the Woods]);
-		return true;
+		if (90 < jump_chance($monster[Fallen Archfiend]) || expected_damage($monster[Fallen Archfiend]) < my_maxhp()) {
+			print("Need more Hot Wings", "blue");
+			ccAdv(1, $location[The Dark Heart of the Woods]);
+			return true;
+		}
 	}
-	
+
+	if (0 == item_amount($item[box of birthday candles]) || 0 == item_amount($item[dodecagram]) || 0 == item_amount($item[eldritch butterknife])) return false;
+
 	print("Finishing friars", "blue");
 	visit_url("friars.php?action=ritual&pwd");
 	council();
@@ -2838,9 +2854,9 @@ boolean L8_trapperGround()
 
 	if(item_amount($item[goat cheese]) < 3)
 	{
-		if (jump_chance($monster[dairy goat]) < 70) return false;
+		if (my_maxhp() <= expected_damage($monster[dairy goat]) + 5 && jump_chance($monster[dairy goat]) < 70) return false;
 		print("Yay for goat cheese!", "blue");
-		if (get_property("friarsBlessingReceived") == "false") {
+		if (friars_available() && get_property("friarsBlessingReceived") == "false") {
 			cli_execute("friars food");
 		}
 		ccAdv(1, $location[The Goatlet]);
@@ -3958,6 +3974,13 @@ boolean L9_chasmBuild()
 		visit_url("place.php?whichplace=orc_chasm&action=bridge"+(to_int(get_property("chasmBridgeProgress"))));
 	}
 
+	//TODO:  autoMcd() or ed_predictMl()
+	if (ed_safeMl($location[The Smut Orc Logging Camp]) < monster_level_adjustment()) change_mcd(0);
+	if (ed_safeMl($location[The Smut Orc Logging Camp]) < monster_level_adjustment()) {
+		print("Skipping the Smut Orcs for now.", "red");
+		handleMcd();
+		return false;
+	}
 	if(!get_property("ed_chasmBusted").to_boolean())
 	{
 		print("What a nice bridge over here...." , "green");
