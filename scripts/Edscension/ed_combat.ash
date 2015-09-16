@@ -1203,11 +1203,12 @@ Your opponent shakes her head rapidly, and her eyes gradually refocus. Looks lik
 	if (
 		(fightStat > monster_defense())
 		&& (round < 20)
-		&& ((expected_damage() * 1.1) < my_hp())
 		&& 2 < roundsLeftThisStage
+		&& monster_hp() / max(1,ed_weaponAttackMaxDamage()) < roundsBeforeKa
 	)
 	{
-		//TODO:  at the start of the run, with the MCD turned down, we can hit things at the sleazy back alley just fine, but this block does not trigger.
+		//TODO:  at the start of the run, with the MCD turned down, we can hit things at the sleazy back alley just fine, but this block does not trigger.  (it's the -20 in fightStat, above.)
+		print("(old support for fighting without burning MP....)", "orange");
 		return "attack with weapon";
 	}
 
