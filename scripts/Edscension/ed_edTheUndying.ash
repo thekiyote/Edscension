@@ -559,7 +559,7 @@ boolean ed_eatStuff()
 		{
 			return false;
 		}
-		if((my_meat() >= 500) && have_skill($skill[Replacement Liver]) && ((my_inebriety() == 0) || (my_inebriety() == 3)))
+		if((my_meat() >= 500) && have_skill($skill[Replacement Liver]) && ((my_inebriety() == 0) || (my_inebriety() == 3)) && 0 < item_amount($item[Clan VIP Lounge key]))
 		{
 			cli_execute("drink 1 lucky lindy");
 		}
@@ -567,6 +567,7 @@ boolean ed_eatStuff()
 			(my_meat() >= 40)
 			&& have_skill($skill[Replacement Stomach])
 			&& ((my_fullness() == 0) || (fullness_limit() - my_fullness() == 1))
+				//TODO:  I'm not sure what the reason is for this restriction
 			&& (my_inebriety() == inebriety_limit() || 0 == item_amount($item[Clan VIP Lounge key]))
 		)
 		{
