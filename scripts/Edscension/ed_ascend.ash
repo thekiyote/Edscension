@@ -229,12 +229,25 @@ void initializeSettings()
 	set_property("ed_doneInitialize", my_ascensions());
 }
 
-void ed_resumeCombat() {
-	int defeatQuota = 2;  //TODO:  allow more for gremlins, sonofa, bosses
-	defeatQuota -= to_int(get_property("_edDefeats"));
-	defeatQuota = max(0, defeatQuota);
-	ed_ccAdv(1 + defeatQuota, my_location(), "", true);
+boolean ed_resumeCombat(location l) {
+	if ($location[The Typical Tavern Cellar] == l) l = $location[Noob Cave];
+	return ed_ccAdv(1, l, "", true);
 }
+
+boolean ed_resumeUnderworld(location l) {
+	if ($location[The Typical Tavern Cellar] == l) l = $location[Noob Cave];
+	return ed_ccAdv(1, l, "", true);
+}
+
+boolean ed_resumeCombat() {
+	return ed_resumeCombat(my_location());
+}
+
+boolean ed_resumeUnderworld() {
+	return ed_resumeUnderworld(my_location());
+}
+
+void ed_autoMcd(location l);
 
 void ed_doPreadventure(location l) {
 	ed_use_servant();
