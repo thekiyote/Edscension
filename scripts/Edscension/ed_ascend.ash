@@ -221,7 +221,8 @@ void initializeSettings()
 	set_property("ed_yellowRays", "");
 	set_property("ed_dayOfSmoochAdventureCount", "");
 	set_property("ed_smoochAdventureCount", "");
-	
+
+	cli_execute("spookyraven off");
 	elementalPlanes_initializeSettings();
 	eudora_initializeSettings();
 	ed_initializeSettings();
