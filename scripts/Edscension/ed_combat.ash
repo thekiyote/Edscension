@@ -922,7 +922,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 		roundsPerStage < 20  //TODO:  now that we batch up most stasis, can we remove this check?  I think it was just there to avoid slowing things down.
 		&& roundsLeftThisStage*3/2 < roundsPerStage
 		&& combatStage < 2
-		&& monster_hp() < roundsPerStage * ed_stormDamage()
+		&& monster_hp() < roundsPerStage * ed_stormDamage() * 0.5  //TODO:  0.5 is to account for inaccurate Storm damage estimation.
 		// && (my_hp() * 1.1 < my_maxhp() || roundsLeftThisStage < 10)
 			//TODO: note that if Ed has 33/35 HP, and
 			// opponent does 34 damage, then we have one round in the first combat, and 5 total.
@@ -932,7 +932,7 @@ string ed_edCombatHandler(int round, string opp, string text)
 		print("Ed would like to defer until another combat, in order to heal & buy time.", "green");
 		forceStasis = true;
 	}
-	if (needShop(ed_buildShoppingList()) && monster_hp() / ed_fistDamage() < roundsPerStage) {
+	if (needShop(ed_buildShoppingList())) {
 		print("Ed would like to defer until another combat, in order to shop.", "green");
 		forceStasis = true;
 	}
@@ -1050,7 +1050,8 @@ string ed_edCombatHandler(int round, string opp, string text)
 			print("Waiting until we are done using flyers before we use a talisman of Renenutet.", "green");
 			doRenenutet = false;
 		}
-		if (doRenenutet && roundsPerStage < 2 && !contains_text(get_property("ed_combatHandler"),"love gnats3")) {
+		if (doRenenutet && roundsPerStage < 3 && !contains_text(get_property("ed_combatHandler"),"love gnats3")) {
+				//TODO:  I increased the roundsPerStage limit to 3.  But, the real issue I'm trying to address is underestimation of damage taken per round.
 			if (have_skill($skill[Curse of Indecision])) {
 				//TODO:  with +ML, we might not be buying any time.  Probably not an issue for hardcore Ed, though?
 //abort("FIXME:  Investigate Curse of Indecision!");
@@ -1219,15 +1220,7 @@ Your opponent shakes her head rapidly, and her eyes gradually refocus. Looks lik
 	}
 
 	if (!have_skill($skill[fist of the mummy])) {
-		return "attack with weapon";
-	}
-
-	if (
-		monster_defense() < 20
-		&& 10 < my_buffedstat($stat[Muscle])
-	)
-	{
-		// experimental support for fighting without burning MP....
+		print("We don't know any good spells!  Attacking might be better than Mild Curse", "green");
 		return "attack with weapon";
 	}
 
@@ -1237,13 +1230,23 @@ Your opponent shakes her head rapidly, and her eyes gradually refocus. Looks lik
 		return "skill " + ed_stormIfPossible();
 	}
 
+	if (
+		monster_defense() < 20
+		&& 10 < my_buffedstat($stat[Muscle])
+		&& combatStage <= 1
+		&& round < 20
+	)
+	{
+		print("experimental support for fighting without burning MP....", "green");
+		return "attack with weapon";
+	}
+
 	if (roundsBeforeKa * ed_fistDamage() < monster_hp()) {
 		print("This combat would eventually cost Ka if we only use fist.  Trying to expedite it.", "green");
 		return "skill " + ed_stormIfPossible();
 	}
 
-	if (monster_hp() > 300)
-	{
+	if (monster_hp() > 300) {  //TODO:  can this be removed?  the next couple if's should handle it fine.
 		print("This opponent is pretty big.  Trying to cut it down to size.", "green");
 		return "skill " + ed_stormIfPossible();
 	}
