@@ -4896,6 +4896,7 @@ boolean ed_L12_flyers() {
 	print("Should not have so little flyer ML at this point, trying high ML locations.", "red");
 	wait(1);
 	ed_setMaximization("ML");
+	set_property("edDefeatAbort", item_amount($item[Ka coin]) < 15 ? "3" : "4");
 	if(get_property("sleazeAirportAlways").to_boolean())
 	{
 		ccAdv(1, $location[Sloppy Seconds Diner]);
@@ -4937,6 +4938,8 @@ boolean doTasks()
 		council();
 		questOverride();
 	}
+	set_property("edDefeatAbort", "3");
+		// By default, we don't intend to spend any Ka on undeaths.
 
 	// Noob override that makes sure you don't accidentally go to the Noob Cave, and if you do aborts so you can see what went wrong.
 	if (last_monster() == $monster[Crate])
@@ -5818,7 +5821,6 @@ void ed_begin()
 
 	//TODO:  council();
 	questOverride();
-	set_property("edDefeatAbort", "3");
 
 	int retryLimit = 20;
 	int retries = 0;
