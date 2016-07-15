@@ -1075,14 +1075,33 @@ boolean LX_chateauDailyPainting()
 		} else
 		{
 			print("Your painting isn't officially supported by this script, but we'll give it the college try.", "red");
-			ed_setMaximization("HP, equip the crown of ed the undying");
-			ed_maximize();
-			adjustEdHat("weasel");
-			ed_use_servant($servant[scribe]);
-			ed_use_servant();
-			visit_url("place.php?whichplace=chateau&action=chateau_painting");
-			ed_resumeCombat();
-			return true;
+			if(possessEquipment($item[The Crown of Ed the Undying]))
+			{
+				ed_setMaximization("HP, equip the crown of ed the undying");
+				ed_maximize();
+				adjustEdHat("weasel");
+				ed_use_servant($servant[scribe]);
+				ed_use_servant();
+				visit_url("place.php?whichplace=chateau&action=chateau_painting");
+				ed_resumeCombat();
+				return true;
+			} else
+			{
+				if(my_Level() > 8)
+				{
+					ed_setMaximization("hp, da, dr");
+					ed_maximize();
+					if(my_hp() > 100)
+					{
+						print("Trying to fight unknown painting, this is untested so continue at your own risk. Let me know the results.", "red");
+						wait(20);
+						visit_url("place.php?whichplace=chateau&action=chateau_painting");
+						ed_resumeCombat();
+						return true;
+					}
+				}
+			}
+			
 		}
 	}
 	
